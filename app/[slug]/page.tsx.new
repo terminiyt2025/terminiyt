@@ -1,0 +1,417 @@
+"use client"
+
+import { useState, useEffect } from "react"
+import { useParams } from "next/navigation"
+import Head from "next/head"
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
+import { Button } from "@/components/ui/button"
+import { Badge } from "@/components/ui/badge"
+import { Header } from "@/components/header"
+import { Footer } from "@/components/footer"
+import {
+  MapPin,
+  Phone,
+  Mail,
+  Globe,
+  Instagram,
+  Facebook,
+  Star,
+  Clock,
+  Users,
+  Building2,
+  Calendar
+} from "lucide-react"
+import Image from "next/image"
+
+interface Business {
+  id: number
+  name: string
+  slug: string
+  description?: string
+  category_name: string
+  owner_name: string
+  phone: string
+  address: string
+  city: string
+  state: string
+  account_email: string
+  google_maps_link?: string
+  latitude?: number
+  longitude?: number
+  website?: string
+  instagram?: string
+  facebook?: string
+  logo?: string
+  business_images?: string[]
+  operating_hours?: any
+  services?: any[]
+  staff?: any[]
+  is_verified: boolean
+  is_active: boolean
+  rating: number
+  total_reviews: number
+  created_at: string
+  updated_at: string
+}
+
+export default function BusinessPage() {
+  const params = useParams()
+  const [business, setBusiness] = useState<Business | null>(null)
+  const [loading, setLoading] = useState(true)
+  const [error, setError] = useState<string | null>(null)
+
+  useEffect(() => {
+    const fetchBusiness = async () => {
+      try {
+        const response = await fetch(`/api/businesses/slug/${params.slug}`)
+        
+        if (response.ok) {
+          const businessData = await response.json()
+          setBusiness(businessData)
+        } else if (response.status === 404) {
+          setError('Ky biznes nuk ekziston ose nuk është i disponueshëm për momentin.')
+        } else {
+          setError('Ndodhi një gabim gjatë ngarkimit të biznesit')
+        }
+      } catch (err) {
+        console.error('Error fetching business:', err)
+        setError('Ndodhi një gabim gjatë ngarkimit të biznesit')
+      } finally {
+        setLoading(false)
+      }
+    }
+
+    if (params.slug) {
+      fetchBusiness()
+    }
+  }, [params.slug])
+
+  useEffect(() => {
+    if (business) {
+      document.title = `${business.name} - ServiceConnect`
+    }
+  }, [business])
+
+  if (loading) {
+    return (
+      <div className="min-h-screen bg-gradient-to-r from-gray-800 to-teal-800">
+        <Header transparent={true} />
+        <div className="container mx-auto px-4 py-32">
+          <div className="flex items-center justify-center">
+            <div className="w-12 h-12 border-4 border-white/20 border-t-white rounded-full animate-spin"></div>
+          </div>
+        </div>
+      </div>
+    )
+  }
+
+  if (error || !business) {
+    return (
+      <div className="min-h-screen bg-gradient-to-r from-gray-800 to-teal-800">
+        <Header transparent={true} />
+        <div className="container mx-auto px-4 py-32">
+          <div className="text-center">
+            <div className="mb-8">
+              <div className="w-24 h-24 mx-auto mb-6 bg-white/10 backdrop-blur-sm rounded-full flex items-center justify-center">
+                <Image 
+                  src="/logo.png" 
+                  alt="ServiceConnect Logo" 
+                  width={48} 
+                  height={48}
+                  className="w-12 h-12"
+                />
+              </div>
+              <h1 className="text-4xl font-bold text-white mb-4">Biznesi nuk u gjet</h1>
+              <p className="text-teal-100 mb-8 max-w-md mx-auto">
+                {error}
+              </p>
+            </div>
+            <div className="space-y-4">
+              <Button asChild size="lg" className="w-full sm:w-auto bg-white text-teal-600 hover:bg-teal-50">
+                <a href="/">Kthehu në faqen kryesore</a>
+              </Button>
+              <div className="text-sm text-teal-200">
+                Ose shkoni te{" "}
+                <a href="/" className="text-white hover:text-teal-100 underline">
+                  lista e bizneseve
+                </a>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    )
+  }
+
+  const formatOperatingHours = (hours: any) => {
+    if (!hours) return null
+    
+    const dayNames = {
+      monday: 'E Hënë',
+      tuesday: 'E Martë', 
+      wednesday: 'E Mërkurë',
+      thursday: 'E Enjte',
+      friday: 'E Premte',
+      saturday: 'E Shtunë',
+      sunday: 'E Diel'
+    }
+
+    return Object.entries(dayNames).map(([day, name]) => {
+      const dayHours = hours[day]
+      if (!dayHours) return null
+      
+      return (
+        <div key={day} className="flex justify-between">
+          <span className="font-medium">{name}:</span>
+          <span>
+            {dayHours.closed ? 'Mbyllur' : `${dayHours.open} - ${dayHours.close}`}
+          </span>
+        </div>
+      )
+    }).filter(Boolean)
+  }
+
+  return (
+    <div className="min-h-screen bg-background">
+      <Header transparent={true} />
+      
+      {/* Hero Section with Business Header */}
+      <section className="w-full bg-gradient-to-r from-gray-800 to-teal-800 text-white py-20 pt-32">
+        <div className="container mx-auto px-4">
+          <div className="flex flex-col md:flex-row gap-8 items-center">
+            {/* Logo */}
+            {business.logo && (
+              <div className="flex-shrink-0">
+                <div className="w-32 h-32 md:w-40 md:h-40 relative rounded-2xl overflow-hidden shadow-2xl border-4 border-white/10">
+                  <Image
+                    src={business.logo}
+                    alt={`${business.name} logo`}
+                    width={160}
+                    height={160}
+                    className="object-cover w-full h-full"
+                  />
+                </div>
+              </div>
+            )}
+            
+            {/* Business Info */}
+            <div className="flex-1 text-center md:text-left">
+              <div className="flex flex-col md:flex-row md:items-start md:justify-between gap-6">
+                <div>
+                  <h1 className="text-4xl md:text-5xl font-heading font-bold text-white mb-4">{business.name}</h1>
+                  <div className="flex flex-wrap items-center gap-4 mb-4 justify-center md:justify-start">
+                    <Badge className="bg-teal-800/40 backdrop-blur-sm text-white border-0 shadow-sm px-4 py-1.5">
+                      {business.category_name}
+                    </Badge>
+                    {business.is_verified && (
+                      <Badge className="bg-emerald-500/20 text-emerald-100 border-0 px-4 py-1.5">
+                        ✓ Verifikuar
+                      </Badge>
+                    )}
+                  </div>
+                </div>
+                
+                {/* Rating */}
+                <div className="bg-white/10 backdrop-blur-lg rounded-2xl p-4 text-center">
+                  <div className="flex items-center gap-2 justify-center">
+                    <Star className="w-8 h-8 text-yellow-400 fill-current" />
+                    <span className="text-3xl font-bold text-white">{business.rating.toFixed(1)}</span>
+                  </div>
+                  <p className="text-sm text-teal-100 mt-1">{business.total_reviews} vlerësime</p>
+                </div>
+              </div>
+
+              {business.description && (
+                <p className="text-lg text-teal-100 mt-4 max-w-3xl">{business.description}</p>
+              )}
+            </div>
+          </div>
+
+          {/* Contact Info Grid */}
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 mt-8">
+            <div className="flex items-center gap-3 bg-white/10 backdrop-blur-sm rounded-xl p-4">
+              <MapPin className="w-5 h-5 text-teal-300" />
+              <span className="text-teal-100">{business.address}, {business.city}, {business.state}</span>
+            </div>
+            <div className="flex items-center gap-3 bg-white/10 backdrop-blur-sm rounded-xl p-4">
+              <Phone className="w-5 h-5 text-teal-300" />
+              <a href={`tel:${business.phone}`} className="text-teal-100 hover:text-white">
+                {business.phone}
+              </a>
+            </div>
+            <div className="flex items-center gap-3 bg-white/10 backdrop-blur-sm rounded-xl p-4">
+              <Mail className="w-5 h-5 text-teal-300" />
+              <a href={`mailto:${business.account_email}`} className="text-teal-100 hover:text-white">
+                {business.account_email}
+              </a>
+            </div>
+            {business.website && (
+              <div className="flex items-center gap-3 bg-white/10 backdrop-blur-sm rounded-xl p-4">
+                <Globe className="w-5 h-5 text-teal-300" />
+                <a href={business.website} target="_blank" rel="noopener noreferrer" className="text-teal-100 hover:text-white">
+                  Vizito Website
+                </a>
+              </div>
+            )}
+          </div>
+        </div>
+      </section>
+
+      <div className="container mx-auto px-4 py-12">
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
+          {/* Operating Hours */}
+          {business.operating_hours && (
+            <Card className="border-0 shadow-xl hover:shadow-2xl transition-all duration-300">
+              <CardHeader>
+                <CardTitle className="flex items-center gap-2 text-2xl">
+                  <Clock className="w-6 h-6 text-teal-600" />
+                  Orari i Punës
+                </CardTitle>
+              </CardHeader>
+              <CardContent>
+                <div className="space-y-3">
+                  {formatOperatingHours(business.operating_hours)}
+                </div>
+              </CardContent>
+            </Card>
+          )}
+
+          {/* Services */}
+          {business.services && business.services.length > 0 && (
+            <Card className="border-0 shadow-xl hover:shadow-2xl transition-all duration-300">
+              <CardHeader>
+                <CardTitle className="flex items-center gap-2 text-2xl">
+                  <Building2 className="w-6 h-6 text-teal-600" />
+                  Shërbimet
+                </CardTitle>
+              </CardHeader>
+              <CardContent>
+                <div className="space-y-4">
+                  {business.services.map((service: any, index: number) => (
+                    <div key={index} className="group p-4 rounded-xl hover:bg-gray-50 transition-all duration-300">
+                      <div className="flex justify-between items-start">
+                        <div>
+                          <h4 className="font-medium text-gray-800 group-hover:text-teal-700 transition-colors">{service.name}</h4>
+                          {service.description && (
+                            <p className="text-sm text-gray-600 mt-1">{service.description}</p>
+                          )}
+                        </div>
+                        <div className="text-right">
+                          <p className="font-semibold text-teal-600">{service.price}€</p>
+                          <p className="text-sm text-gray-500">{service.duration}</p>
+                        </div>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              </CardContent>
+            </Card>
+          )}
+
+          {/* Staff */}
+          {business.staff && business.staff.length > 0 && (
+            <Card className="border-0 shadow-xl hover:shadow-2xl transition-all duration-300">
+              <CardHeader>
+                <CardTitle className="flex items-center gap-2 text-2xl">
+                  <Users className="w-6 h-6 text-teal-600" />
+                  Stafi
+                </CardTitle>
+              </CardHeader>
+              <CardContent>
+                <div className="grid gap-6">
+                  {business.staff.map((member: any, index: number) => (
+                    <div key={index} className="flex items-center gap-4 p-4 rounded-xl hover:bg-gray-50 transition-all duration-300 group">
+                      <div className="w-12 h-12 bg-gradient-to-br from-gray-800 to-teal-800 rounded-full flex items-center justify-center group-hover:scale-110 transition-transform">
+                        <Users className="w-6 h-6 text-white" />
+                      </div>
+                      <div>
+                        <h4 className="font-medium text-gray-800 group-hover:text-teal-700 transition-colors">{member.name}</h4>
+                        <p className="text-sm text-gray-600">{member.email}</p>
+                        <p className="text-sm text-gray-500">{member.phone}</p>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              </CardContent>
+            </Card>
+          )}
+
+          {/* Business Images */}
+          {business.business_images && business.business_images.length > 0 && (
+            <Card className="lg:col-span-2 border-0 shadow-xl hover:shadow-2xl transition-all duration-300">
+              <CardHeader>
+                <CardTitle className="text-2xl">Imazhet e Biznesit</CardTitle>
+              </CardHeader>
+              <CardContent>
+                <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
+                  {business.business_images.map((image: string, index: number) => (
+                    <div key={index} className="aspect-square relative rounded-xl overflow-hidden group">
+                      <Image
+                        src={image}
+                        alt={`${business.name} image ${index + 1}`}
+                        fill
+                        className="object-cover transition-transform duration-300 group-hover:scale-110"
+                      />
+                    </div>
+                  ))}
+                </div>
+              </CardContent>
+            </Card>
+          )}
+        </div>
+
+        {/* Booking Section */}
+        <div className="mt-12 bg-gradient-to-r from-gray-800 to-teal-800 rounded-2xl p-12 text-center">
+          <h3 className="text-3xl font-heading font-bold text-white mb-4">Interesuar për shërbimet e këtij biznesi?</h3>
+          <p className="text-teal-100 text-lg mb-8 max-w-2xl mx-auto">
+            Rezervoni një takim ose kontaktoni direkt për më shumë informacion
+          </p>
+          <div className="flex flex-col sm:flex-row gap-4 justify-center">
+            <Button asChild size="lg" className="bg-white text-teal-800 hover:bg-gray-100 font-semibold text-lg px-8">
+              <a href={`/book/${business.id}`}>
+                <Calendar className="w-5 h-5 mr-2" />
+                Rezervo Tani
+              </a>
+            </Button>
+            <Button asChild variant="outline" size="lg" className="border-2 border-white text-white hover:bg-white hover:text-teal-800 font-semibold text-lg px-8">
+              <a href={`tel:${business.phone}`}>
+                <Phone className="w-5 h-5 mr-2" />
+                Telefono
+              </a>
+            </Button>
+          </div>
+        </div>
+
+        {/* Social Links */}
+        <div className="mt-8 flex flex-wrap gap-4 justify-center">
+          {business.google_maps_link && (
+            <Button asChild variant="outline" size="lg" className="bg-white hover:bg-gray-50">
+              <a href={business.google_maps_link} target="_blank" rel="noopener noreferrer" className="flex items-center gap-2">
+                <MapPin className="w-5 h-5" />
+                Shiko në Google Maps
+              </a>
+            </Button>
+          )}
+          {business.instagram && (
+            <Button asChild variant="outline" size="lg" className="bg-white hover:bg-gray-50">
+              <a href={business.instagram} target="_blank" rel="noopener noreferrer" className="flex items-center gap-2">
+                <Instagram className="w-5 h-5" />
+                Instagram
+              </a>
+            </Button>
+          )}
+          {business.facebook && (
+            <Button asChild variant="outline" size="lg" className="bg-white hover:bg-gray-50">
+              <a href={business.facebook} target="_blank" rel="noopener noreferrer" className="flex items-center gap-2">
+                <Facebook className="w-5 h-5" />
+                Facebook
+              </a>
+            </Button>
+          )}
+        </div>
+      </div>
+
+      <Footer />
+    </div>
+  )
+}

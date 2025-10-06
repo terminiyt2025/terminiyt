@@ -1,0 +1,167 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+// Looking for ways to speed up your queries, or scale easily with your serverless or edge functions?
+// Try Prisma Accelerate: https://pris.ly/cli/accelerate-init
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model Category {
+  id        Int      @id @default(autoincrement()) @db.SmallInt
+  name      String   @unique
+  slug      String   @unique
+  icon      String?  // URL or identifier for the icon
+  createdAt DateTime @default(now()) @map("created_at")
+  updatedAt DateTime @updatedAt @map("updated_at")
+
+  // Relations
+  businesses Business[]
+
+  @@map("categories")
+}
+
+model Business {
+  id               Int      @id @default(autoincrement())
+  name             String
+  slug             String   @unique
+  description      String?
+  categoryId       Int      @map("category_id")
+  ownerName        String   @map("owner_name")
+  phone            String
+  address          String
+  city             String
+  state            String
+  googleMapsLink   String?  @map("google_maps_link")
+  latitude         Float?   
+  longitude        Float?   
+  website          String?
+  instagram        String?
+  facebook         String?
+  logo             String?  // Business logo URL
+  businessImage    String?  @map("business_images") // Single business image URL
+  accountEmail     String   @map("account_email")
+  accountPassword  String   @map("account_password") // This will store hashed passwords
+  operatingHours   Json?    @map("operating_hours") // Store as JSON instead of separate table
+  services         Json?    // Store services as JSON array
+  staff            Json?    // Store staff members as JSON array
+  isVerified       Boolean  @default(false) @map("is_verified")
+  isActive         Boolean  @default(true) @map("is_active")
+  rating           Float    @default(0)
+  totalReviews     Int      @default(0) @map("total_reviews")
+  createdAt        DateTime @default(now()) @map("created_at")
+  updatedAt        DateTime @updatedAt @map("updated_at")
+
+  // Relations
+  category Category @relation(fields: [categoryId], references: [id])
+  bookings Booking[]
+  locations BusinessLocation[]
+  blockedSlots BlockedSlot[]
+  // Removed Service relation - now stored as JSON
+
+  @@map("businesses")
+}
+
+// Service model removed - services are now stored as JSON in Business model
+
+model BusinessLocation {
+  id          Int      @id @default(autoincrement())
+  businessId  Int      @map("business_id")
+  city        String
+  address     String
+  latitude    Float? 
+  longitude   Float?  
+  isActive    Boolean  @default(true) @map("is_active")
+  createdAt   DateTime @default(now()) @map("created_at")
+  updatedAt   DateTime @updatedAt @map("updated_at")
+
+  // Relations
+  business Business @relation(fields: [businessId], references: [id], onDelete: Cascade)
+
+  @@map("business_locations")
+}
+
+model Booking {
+  id              Int      @id @default(autoincrement())
+  userId          Int?     @map("user_id")
+  businessId      Int      @map("business_id")
+  serviceName     String?  @map("service_name") // Store service name directly
+  staffName       String?  @map("staff_name") // Store staff name directly
+  appointmentDate DateTime @map("appointment_date")
+  appointmentTime String   @map("appointment_time")
+  customerName    String   @map("customer_name")
+  customerEmail   String   @map("customer_email")
+  customerPhone   String   @map("customer_phone")
+  notes           String?
+  status          BookingStatus @default(PENDING)
+  totalPrice      Float?   @map("total_price")
+  serviceDuration Int?     @map("service_duration") // Service duration in minutes
+  createdAt       DateTime @default(now()) @map("created_at")
+  updatedAt       DateTime @updatedAt @map("updated_at")
+
+  // Relations
+  business Business @relation(fields: [businessId], references: [id], onDelete: Cascade)
+  // Removed service relation - service info stored directly
+
+  @@map("bookings")
+}
+
+model BlockedSlot {
+  id              Int      @id @default(autoincrement())
+  businessId      Int      @map("business_id")
+  staffName       String?  @map("staff_name") // Staff member name (optional for general blocks)
+  date            DateTime @db.Date
+  startTime       String   @map("start_time")
+  endTime         String   @map("end_time")
+  reason          String?
+  isRecurring     Boolean  @default(false) @map("is_recurring")
+  recurringPattern String? @map("recurring_pattern")
+  createdAt       DateTime @default(now()) @map("created_at")
+  updatedAt       DateTime @updatedAt @map("updated_at")
+
+  // Relations
+  business Business @relation(fields: [businessId], references: [id], onDelete: Cascade)
+
+  @@map("blocked_slots")
+}
+
+model SuperAdmin {
+  id        Int      @id @default(autoincrement())
+  email     String   @unique
+  password  String
+  name      String
+  createdAt DateTime @default(now()) @map("created_at")
+  updatedAt DateTime @updatedAt @map("updated_at")
+
+  @@map("super_admins")
+}
+
+model Kerkesat {
+  id                        Int      @id @default(autoincrement())
+  businessId                Int      @map("business_id")
+  businessName              String   @map("business_name")
+  requestedGoogleMapsLink   String   @map("requested_google_maps_link")
+  reason                    String
+  adminNotes                String?  @map("admin_notes")
+  reviewedAt                DateTime? @map("reviewed_at")
+  reviewedBy                Int?     @map("reviewed_by")
+  reviewedStatus            String?  @map("reviewed_status")
+  createdAt                 DateTime @default(now()) @map("created_at")
+  updatedAt                 DateTime @updatedAt @map("updated_at")
+
+  @@map("kerkesat")
+}
+
+enum BookingStatus {
+  PENDING
+  ACTIVE
+  CONFIRMED
+  CANCELLED
+  COMPLETED
+}
