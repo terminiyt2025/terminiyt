@@ -183,7 +183,7 @@ export default function BusinessPage() {
         <div className="container mx-auto px-4 py-12">
           <div className="max-w-4xl mx-auto">
             <div className="text-center  mt-6">
-              <div className="inline-flex items-center gap-2 bg-white/10 backdrop-blur-sm text-white px-6 py-2 rounded-full text-sm font-medium mb-6">
+              <div className="hidden md:inline-flex items-center gap-2 bg-white/10 backdrop-blur-sm text-white px-6 py-2 rounded-full text-sm font-medium mb-6">
                 <span className="w-2 h-2 bg-white rounded-full animate-pulse"></span>
                 Cakto Terminin
               </div>

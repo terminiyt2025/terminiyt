@@ -492,7 +492,7 @@ export function BookingSteps({ business }: BookingStepsProps) {
               <div className={`text-center pt-4  transition-all duration-700 ease-out ${
                 showInstruction ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-4'
               }`}>
-                <p className="text-gray-600 text-md p-0">Plotësoni hapat më poshtë për të rezervuar terminin tuaj</p>
+                <p className="text-gray-600 text-sm md:text-md  p-0">Plotësoni hapat më poshtë për të rezervuar terminin tuaj</p>
               </div>
               
               {/* Choose Another Service Button - Show when service is selected */}
@@ -517,7 +517,7 @@ export function BookingSteps({ business }: BookingStepsProps) {
             {/* Service Selection */}
             {!selectedService && (
               <div className="text-center">
-                <h3 className="text-lg font-bold text-gray-900 mb-1">Zgjidhni shërbimin që dëshironi të rezervoni</h3>
+                <h3 className="text-md md:text-lg font-bold text-gray-900 mb-1">Zgjidhni shërbimin që dëshironi të rezervoni</h3>
               </div>
             )}
 
