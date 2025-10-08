@@ -82,23 +82,10 @@ export default function AdminDashboard() {
   const [businesses, setBusinesses] = useState<Business[]>([])
   const [filteredBusinesses, setFilteredBusinesses] = useState<Business[]>([])
   const [searchTerm, setSearchTerm] = useState("")
-  const [expandedCard, setExpandedCard] = useState<number | null>(null)
+  const [expandedCard, setExpandedCard] = useState<number | string | null>(null)
   const [editingBusiness, setEditingBusiness] = useState<number | null>(null)
   const [editFormData, setEditFormData] = useState<any>({})
   const [categories, setCategories] = useState<any[]>([])
-  const [isHandlingView, setIsHandlingView] = useState(false)
-
-  // Reset handling state if it gets stuck
-  useEffect(() => {
-    const resetTimer = setTimeout(() => {
-      if (isHandlingView) {
-        console.log('Resetting stuck isHandlingView state')
-        setIsHandlingView(false)
-      }
-    }, 2000) // Reset after 2 seconds if still stuck
-
-    return () => clearTimeout(resetTimer)
-  }, [isHandlingView])
   const [uploadingImage, setUploadingImage] = useState(false)
   const [uploadingLogo, setUploadingLogo] = useState(false)
   const [selectedImage, setSelectedImage] = useState<string | null>(null)
@@ -468,26 +455,17 @@ export default function AdminDashboard() {
   }
 
   const handleViewBusiness = (business: Business) => {
-    console.log('handleViewBusiness called with:', business)
-    
-    // Prevent rapid clicking on mobile
-    if (isHandlingView) {
-      console.log('Already handling view, skipping')
-      return
-    }
-    
     try {
-      setIsHandlingView(true)
+      // Test if function is called
+      alert(`Clicked on business: ${business?.name || 'Unknown'}`)
       
-      // Validate business data - be more lenient
+      // Validate business data
       if (!business) {
-        console.error('Business is null or undefined:', business)
-        setIsHandlingView(false)
         return
       }
       
       // Use business.id or fallback to business.name for identification
-      const businessId = business.id || business.name || Math.random()
+      const businessId = business.id || business.name
       
       // Clear any editing state when switching businesses
       if (editingBusiness !== businessId) {
@@ -497,20 +475,12 @@ export default function AdminDashboard() {
       
       // Toggle expanded state
       setExpandedCard(expandedCard === businessId ? null : businessId)
-      console.log('Toggled expanded card to:', expandedCard === businessId ? null : businessId)
-      
-      // Reset handling flag after a short delay
-      setTimeout(() => {
-        setIsHandlingView(false)
-        console.log('Reset isHandlingView to false')
-      }, 300)
     } catch (error) {
-      console.error('Error in handleViewBusiness:', error, 'Business data:', business)
+      console.error('Error in handleViewBusiness:', error)
       // Fallback: ensure state is clean
       setExpandedCard(null)
       setEditingBusiness(null)
       setEditFormData({})
-      setIsHandlingView(false)
     }
   }
 
@@ -1738,7 +1708,11 @@ export default function AdminDashboard() {
                                 size="sm" 
                                 variant="ghost" 
                                 className="bg-gradient-to-r from-blue-600 to-blue-700 hover:from-blue-500 hover:to-blue-600 text-white h-8 w-8 p-0 font-medium shadow-md transition-all duration-300"
-                                onClick={() => handleViewBusiness(business)}
+                                onClick={(e) => {
+                                  e.preventDefault()
+                                  e.stopPropagation()
+                                  handleViewBusiness(business)
+                                }}
                                 title="Shiko"
                               >
                                 <Eye className="w-4 h-4" />
