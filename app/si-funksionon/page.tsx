@@ -267,7 +267,7 @@ export default function SiFunksiononPage() {
                 Menaxhoni ekipin tuaj dhe mbani ata të informuar me njoftime, duke siguruar që të gjithë të jenë të koordinuar. </p>
                 <div className="flex justify-center items-center">
   <img 
-    src="/Stafi.png" 
+    src="/stafi.png" 
     alt="Shërbimet tuaja" 
     className="pt-10 mx-auto rounded-xl object-cover"
   />
