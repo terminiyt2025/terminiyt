@@ -462,6 +462,13 @@ export default function AdminDashboard() {
     try {
       setIsHandlingView(true)
       
+      // Validate business data
+      if (!business || !business.id) {
+        console.error('Invalid business data:', business)
+        setIsHandlingView(false)
+        return
+      }
+      
       // Clear any editing state when switching businesses
       if (editingBusiness !== business.id) {
         setEditingBusiness(null)
@@ -474,7 +481,7 @@ export default function AdminDashboard() {
       // Reset handling flag after a short delay
       setTimeout(() => setIsHandlingView(false), 300)
     } catch (error) {
-      console.error('Error in handleViewBusiness:', error)
+      console.error('Error in handleViewBusiness:', error, 'Business data:', business)
       // Fallback: ensure state is clean
       setExpandedCard(null)
       setEditingBusiness(null)
@@ -951,7 +958,7 @@ export default function AdminDashboard() {
     <div className="min-h-screen bg-gradient-to-br from-gray-800 to-teal-800">
       <Header transparent={true} />
 
-        <div className="container mx-auto px-4 py-32">
+        <div className="container mx-auto px-4 md:py-24 py-16">
         {/* Header */}
         <div className="text-center mb-8">
           <div className="flex items-center justify-center mb-4">
@@ -963,7 +970,7 @@ export default function AdminDashboard() {
           </div>
 
         {/* Stats Cards */}
-        <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
+        <div className="grid grid-cols-2 lg:grid-cols-3 gap-4 mb-6">
           <Card className="bg-white border-gray-200 py-3 md:py-6 shadow-lg cursor-pointer hover:bg-gray-50 transition-all duration-200"
                 onClick={() => {
                   setShowBusinessesTable(true)
@@ -1205,7 +1212,7 @@ export default function AdminDashboard() {
                         </tr>
                       ) : (
                         getBusinessSummary().map((business) => (
-                          <tr key={business.id} className="border-b border-gray-200 hover:bg-gray-50">
+                          <tr key={business.id} className="border-b border-gray-200 bg-gray-50 hover:bg-gray-100">
                             <td className="py-3 px-0 sm:px-4 mr-2 sm:mr-0">
               <div>
                                 <div className="font-medium whitespace-nowrap truncate" title={business.name}>
@@ -1273,7 +1280,7 @@ export default function AdminDashboard() {
                         </tr>
                       ) : (
                         filteredBookings.map((booking) => (
-                          <tr key={booking.id} className="border-b border-gray-200 hover:bg-gray-50">
+                          <tr key={booking.id} className="border-b border-gray-200 bg-gray-50 hover:bg-gray-100">
                             <td className="py-3 px-0 sm:px-4 mr-2 sm:mr-0">
                               <span className="font-medium whitespace-nowrap truncate block" title={booking.business_name || 'N/A'}>
                                 {booking.business_name || 'N/A'}
@@ -1357,7 +1364,7 @@ export default function AdminDashboard() {
                       </tr>
                     ) : (
                       requests.map((request) => (
-                        <tr key={request.id} className="border-b border-gray-200 hover:bg-gray-50">
+                        <tr key={request.id} className="border-b border-gray-200 bg-gray-50 hover:bg-gray-100">
                           <td className="py-3 px-0 sm:px-4 font-medium whitespace-nowrap mr-2 sm:mr-0">{request.business_name}</td>
                           <td className="py-3 px-0 sm:px-4 mr-2 sm:mr-0">
                             <a 
@@ -1486,7 +1493,7 @@ export default function AdminDashboard() {
                   </thead>
                   <tbody>
                     {adminCategories.map((category) => (
-                      <tr key={category.id} className="border-b border-gray-200 hover:bg-gray-50">
+                      <tr key={category.id} className="border-b border-gray-200 bg-gray-50 hover:bg-gray-100">
                         <td className="py-3 px-0 sm:px-4 mr-2 sm:mr-0">
                           {editingCategoryId === category.id ? (
                             <input
@@ -1628,7 +1635,7 @@ export default function AdminDashboard() {
           </div>
             ) : (
               <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
-                {filteredBusinesses.map((business) => (
+                {filteredBusinesses.filter(business => business && business.id).map((business) => (
                   <Card 
                     key={business.id} 
                     className={`bg-white border-gray-200 hover:shadow-lg transition-all duration-300 ${
@@ -1717,7 +1724,7 @@ export default function AdminDashboard() {
                         </div>
                   </CardHeader>
                     
-                    {expandedCard === business.id ? (
+                    {expandedCard === business.id && business ? (
                       // Expanded View - Full Details
                   <CardContent className="space-y-4">
                         {editingBusiness === business.id ? (
@@ -1750,8 +1757,15 @@ export default function AdminDashboard() {
                                         <button
                                           type="button"
                                           onClick={() => {
-                                            const generatedSlug = generateSlug(editFormData.name || '')
-                                            setEditFormData({...editFormData, slug: generatedSlug})
+                                            try {
+                                              const businessName = editFormData.name || ''
+                                              if (businessName.trim()) {
+                                                const generatedSlug = generateSlug(businessName)
+                                                setEditFormData({...editFormData, slug: generatedSlug})
+                                              }
+                                            } catch (error) {
+                                              console.error('Error generating slug:', error)
+                                            }
                                           }}
                                           className="px-3 py-1 bg-gradient-to-r from-gray-800 to-teal-800 hover:from-gray-700 hover:to-teal-700 text-white text-xs rounded font-medium shadow-md transition-all duration-300"
                                         >

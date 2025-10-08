@@ -333,7 +333,7 @@ export default function SiFunksiononPage() {
           <h2 className="text-3xl md:text-5xl font-heading font-bold mb-6 text-balance">
             Gati për të Filluar?
           </h2>
-          <p className="text-xl text-white text-muted-foreground max-w-2xl mx-auto mb-8">
+          <p className="text-sm md:text-xl text-white text-muted-foreground max-w-2xl mx-auto mb-8">
             Bashkohu me klientët tanë të kënaqur që besojnë Terminiyt.com për nevojat e tyre të shërbimeve lokale.
           </p>
           <div className="flex flex-col sm:flex-row gap-4 justify-center">
