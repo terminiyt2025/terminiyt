@@ -83,6 +83,7 @@ export default function AdminDashboard() {
   const [filteredBusinesses, setFilteredBusinesses] = useState<Business[]>([])
   const [searchTerm, setSearchTerm] = useState("")
   const [expandedCard, setExpandedCard] = useState<number | string | null>(null)
+  const [isToggling, setIsToggling] = useState(false)
   const [editingBusiness, setEditingBusiness] = useState<number | null>(null)
   const [editFormData, setEditFormData] = useState<any>({})
   const [categories, setCategories] = useState<any[]>([])
@@ -456,16 +457,27 @@ export default function AdminDashboard() {
 
   const handleViewBusiness = (business: Business) => {
     try {
-      // Test if function is called
-      alert(`Clicked on business: ${business?.name || 'Unknown'}`)
+      console.log('handleViewBusiness called with:', business?.name)
+      console.log('Current expandedCard:', expandedCard)
+      console.log('isToggling:', isToggling)
       
-      // Validate business data
-      if (!business) {
+      // Prevent rapid clicking
+      if (isToggling) {
+        console.log('Already toggling, skipping')
         return
       }
       
+      // Validate business data
+      if (!business) {
+        console.log('Business is null/undefined')
+        return
+      }
+      
+      setIsToggling(true)
+      
       // Use business.id or fallback to business.name for identification
       const businessId = business.id || business.name
+      console.log('Business ID:', businessId)
       
       // Clear any editing state when switching businesses
       if (editingBusiness !== businessId) {
@@ -473,14 +485,25 @@ export default function AdminDashboard() {
         setEditFormData({})
       }
       
-      // Toggle expanded state
-      setExpandedCard(expandedCard === businessId ? null : businessId)
+      // Toggle expanded state with additional safety
+      const newExpandedState = expandedCard === businessId ? null : businessId
+      console.log('Setting expandedCard to:', newExpandedState)
+      setExpandedCard(newExpandedState)
+      
+      // Reset toggling state after a short delay
+      setTimeout(() => {
+        setIsToggling(false)
+        console.log('Reset isToggling to false')
+      }, 500)
+      
     } catch (error) {
       console.error('Error in handleViewBusiness:', error)
+      console.error('Business data:', business)
       // Fallback: ensure state is clean
       setExpandedCard(null)
       setEditingBusiness(null)
       setEditFormData({})
+      setIsToggling(false)
     }
   }
 
@@ -964,7 +987,7 @@ export default function AdminDashboard() {
           </div>
 
         {/* Stats Cards */}
-        <div className="grid grid-cols-2 lg:grid-cols-3 gap-4 mb-6">
+        <div className="grid grid-cols-2 md:grid-cols-2 lg:grid-cols-4 xl:grid-cols-4 2xl:grid-cols-4 gap-4 mb-6">
           <Card className="bg-white border-gray-200 py-3 md:py-6 shadow-lg cursor-pointer hover:bg-gray-50 transition-all duration-200"
                 onClick={() => {
                   setShowBusinessesTable(true)
