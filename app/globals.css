@@ -156,3 +156,23 @@ video::-webkit-media-controls-enclosure {
 .animate-scroll {
   animation: scroll 40s linear infinite;
 }
+
+/* Custom breakpoint for 1550px to 1650px screens */
+@media (min-width: 1550px) and (max-width: 1650px) {
+  .container {
+    padding-left: 100px !important;
+    padding-right: 100px !important;
+  }
+  
+  /* Apply to main content areas */
+  .main-content {
+    padding-left: 100px !important;
+    padding-right: 100px !important;
+  }
+  
+  /* Apply to sections with container classes */
+  section .container {
+    padding-left: 100px !important;
+    padding-right: 100px !important;
+  }
+}
