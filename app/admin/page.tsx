@@ -1,6 +1,24 @@
 "use client"
 
 import { useState, useEffect } from "react"
+
+// Mobile detection hook
+const useIsMobile = () => {
+  const [isMobile, setIsMobile] = useState(false)
+  
+  useEffect(() => {
+    const checkMobile = () => {
+      setIsMobile(window.innerWidth < 768)
+    }
+    
+    checkMobile()
+    window.addEventListener('resize', checkMobile)
+    
+    return () => window.removeEventListener('resize', checkMobile)
+  }, [])
+  
+  return isMobile
+}
 import { useRouter } from "next/navigation"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
@@ -76,6 +94,7 @@ interface Business {
 }
 
 export default function AdminDashboard() {
+  const isMobile = useIsMobile()
   const [isAuthenticated, setIsAuthenticated] = useState(false)
   const [isLoading, setIsLoading] = useState(true)
   const [admin, setAdmin] = useState<any>(null)
@@ -440,7 +459,13 @@ export default function AdminDashboard() {
   }
 
   const handleViewBusiness = (business: Business) => {
-    setExpandedCard(expandedCard === business.id ? null : business.id)
+    try {
+      setExpandedCard(expandedCard === business.id ? null : business.id)
+    } catch (error) {
+      console.error('Error expanding business card:', error)
+      // Fallback: just close any expanded card
+      setExpandedCard(null)
+    }
   }
 
   const handleEditBusiness = (business: Business) => {
@@ -1692,6 +1717,55 @@ export default function AdminDashboard() {
                     {expandedCard === business.id ? (
                       // Expanded View - Full Details
                   <CardContent className="space-y-4">
+                    {isMobile ? (
+                      // Simplified mobile view
+                      <div className="space-y-4">
+                        <div className="bg-white rounded-lg p-4 border">
+                          <h4 className="font-semibold text-gray-800 mb-3">Informacione Biznesi</h4>
+                          <div className="space-y-2 text-sm">
+                            <div><strong>Emri:</strong> {business.name}</div>
+                            <div><strong>Pronari:</strong> {business.owner_name}</div>
+                            <div><strong>Email:</strong> {business.account_email}</div>
+                            <div><strong>Telefon:</strong> {business.phone}</div>
+                            <div><strong>Qyteti:</strong> {business.city}</div>
+                            <div><strong>Adresa:</strong> {business.address}</div>
+                            <div><strong>Status:</strong> 
+                              <span className={`ml-2 px-2 py-1 rounded text-xs ${
+                                business.is_active ? 'bg-green-100 text-green-800' : 'bg-red-100 text-red-800'
+                              }`}>
+                                {business.is_active ? 'Aktiv' : 'Jo Aktiv'}
+                              </span>
+                            </div>
+                            <div><strong>Verifikuar:</strong> 
+                              <span className={`ml-2 px-2 py-1 rounded text-xs ${
+                                business.is_verified ? 'bg-blue-100 text-blue-800' : 'bg-gray-100 text-gray-800'
+                              }`}>
+                                {business.is_verified ? 'Po' : 'Jo'}
+                              </span>
+                            </div>
+                          </div>
+                        </div>
+                        <div className="flex gap-2">
+                          <Button
+                            size="sm"
+                            onClick={() => handleEditBusiness(business)}
+                            className="flex-1 bg-gradient-to-r from-gray-800 to-teal-800 hover:from-gray-700 hover:to-teal-700 text-white"
+                          >
+                            <Edit className="w-4 h-4 mr-2" />
+                            Modifiko
+                          </Button>
+                          <Button
+                            size="sm"
+                            variant="outline"
+                            onClick={() => handleViewBusinessReservations(business)}
+                            className="flex-1"
+                          >
+                            <Eye className="w-4 h-4 mr-2" />
+                            Rezervimet
+                          </Button>
+                        </div>
+                      </div>
+                    ) : (
                         {editingBusiness === business.id ? (
                       <div>
                             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
@@ -2973,6 +3047,7 @@ export default function AdminDashboard() {
                         </div>
                         </>
                         )}
+                    )}
                 </CardContent>
                     ) : (
                       // Compact View
