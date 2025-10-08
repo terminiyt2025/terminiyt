@@ -149,7 +149,7 @@ export default function SiFunksiononPage() {
               {/* Duplicate set for seamless loop */}
               {services.map((service, index) => (
                 <div key={`second-${service.id}`} className="flex-shrink-0 px-3">
-                  <div className="relative w-[calc(100vw/1.5-20px)] md:w-160 w-80 h-48 md:h-80 rounded-2xl overflow-hidden transition-transform duration-300 cursor-pointer">
+                  <div className="relative md:w-160 w-80 h-48 md:h-80 rounded-2xl overflow-hidden transition-transform duration-300 cursor-pointer">
                     <Image
                       src={service.image}
                       alt={service.name}
@@ -256,13 +256,13 @@ export default function SiFunksiononPage() {
 
               {/* Third box */}
               <div 
-                className="md:px-6 md:py-8 sm:px-4 sm:py-6 lg:px-8 lg:py-10 xl:px-12 xl:py-16 2xl:px-14 2xl:py-18 rounded-xl"
+                className="md:px-20 md:py-20 px-2 py-4 rounded-xl"
                 style={{ 
                   backgroundColor: '#F4F4F4',
                   borderRadius: '12px'
                 }}
               >
-                <h3 className="text-2xl md:text-2xl lg:text-4xl font-heading font-bold mb-3 lg:md-6 text-balance bg-gradient-to-r from-gray-800 to-teal-800 bg-clip-text text-transparent">
+                <h3 className="text-3xl md:text-4xl lg:text-5xl font-heading font-bold mb-6 text-balance bg-gradient-to-r from-gray-800 to-teal-800 bg-clip-text text-transparent">
                 Shto anëtarë të ekipit
                 </h3>
                 <p className="text-sm md:text-xl text-muted-foreground max-w-2xl mx-auto">
