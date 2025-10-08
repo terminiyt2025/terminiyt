@@ -86,6 +86,7 @@ export default function AdminDashboard() {
   const [editingBusiness, setEditingBusiness] = useState<number | null>(null)
   const [editFormData, setEditFormData] = useState<any>({})
   const [categories, setCategories] = useState<any[]>([])
+  const [isHandlingView, setIsHandlingView] = useState(false)
   const [uploadingImage, setUploadingImage] = useState(false)
   const [uploadingLogo, setUploadingLogo] = useState(false)
   const [selectedImage, setSelectedImage] = useState<string | null>(null)
@@ -183,6 +184,21 @@ export default function AdminDashboard() {
       return () => document.removeEventListener('keydown', handleEscape)
     }
   }, [selectedImage])
+
+  // Cleanup effect to prevent state conflicts on mobile
+  useEffect(() => {
+    const handleVisibilityChange = () => {
+      if (document.hidden) {
+        // When page becomes hidden, clean up states to prevent conflicts
+        setExpandedCard(null)
+        setEditingBusiness(null)
+        setEditFormData({})
+      }
+    }
+
+    document.addEventListener('visibilitychange', handleVisibilityChange)
+    return () => document.removeEventListener('visibilitychange', handleVisibilityChange)
+  }, [])
 
   const fetchStats = async () => {
     try {
@@ -440,7 +456,31 @@ export default function AdminDashboard() {
   }
 
   const handleViewBusiness = (business: Business) => {
-    setExpandedCard(expandedCard === business.id ? null : business.id)
+    // Prevent rapid clicking on mobile
+    if (isHandlingView) return
+    
+    try {
+      setIsHandlingView(true)
+      
+      // Clear any editing state when switching businesses
+      if (editingBusiness !== business.id) {
+        setEditingBusiness(null)
+        setEditFormData({})
+      }
+      
+      // Toggle expanded state
+      setExpandedCard(expandedCard === business.id ? null : business.id)
+      
+      // Reset handling flag after a short delay
+      setTimeout(() => setIsHandlingView(false), 300)
+    } catch (error) {
+      console.error('Error in handleViewBusiness:', error)
+      // Fallback: ensure state is clean
+      setExpandedCard(null)
+      setEditingBusiness(null)
+      setEditFormData({})
+      setIsHandlingView(false)
+    }
   }
 
   const handleEditBusiness = (business: Business) => {
