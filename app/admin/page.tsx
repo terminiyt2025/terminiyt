@@ -83,8 +83,17 @@ export default function AdminDashboard() {
   const [filteredBusinesses, setFilteredBusinesses] = useState<Business[]>([])
   const [searchTerm, setSearchTerm] = useState("")
   const [expandedCard, setExpandedCard] = useState<number | string | null>(null)
-  const [showBusinessModal, setShowBusinessModal] = useState(false)
-  const [selectedBusiness, setSelectedBusiness] = useState<Business | null>(null)
+  const [isMobile, setIsMobile] = useState(false)
+
+  // Detect mobile device
+  useEffect(() => {
+    const checkMobile = () => {
+      const userAgent = navigator.userAgent
+      const mobile = /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(userAgent)
+      setIsMobile(mobile)
+    }
+    checkMobile()
+  }, [])
   const [editingBusiness, setEditingBusiness] = useState<number | null>(null)
   const [editFormData, setEditFormData] = useState<any>({})
   const [categories, setCategories] = useState<any[]>([])
@@ -459,9 +468,20 @@ export default function AdminDashboard() {
   const handleViewBusiness = (business: Business) => {
     if (!business) return
     
-    // Instead of expanding the card, open a simple modal
-    setSelectedBusiness(business)
-    setShowBusinessModal(true)
+    const businessId = business.id || business.name
+    const isCurrentlyExpanded = expandedCard === businessId
+    
+    // On mobile, always expand (don't toggle)
+    if (isMobile) {
+      setExpandedCard(businessId)
+    } else {
+      // On desktop, toggle as before
+      if (isCurrentlyExpanded) {
+        setExpandedCard(null)
+      } else {
+        setExpandedCard(businessId)
+      }
+    }
   }
 
   const handleEditBusiness = (business: Business) => {
@@ -1690,7 +1710,7 @@ export default function AdminDashboard() {
                                 variant="ghost" 
                                 className="bg-gradient-to-r from-blue-600 to-blue-700 hover:from-blue-500 hover:to-blue-600 text-white h-8 w-8 p-0 font-medium shadow-md transition-all duration-300"
                                 onClick={() => handleViewBusiness(business)}
-                                title="Shiko"
+                                title={isMobile ? "Hap" : "Shiko"}
                               >
                                 <Eye className="w-4 h-4" />
                               </Button>
@@ -3352,50 +3372,6 @@ export default function AdminDashboard() {
         </div>
       )}
 
-      {/* Simple Business Modal */}
-      {showBusinessModal && selectedBusiness && (
-        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
-          <div className="bg-white rounded-lg max-w-2xl w-full max-h-[80vh] overflow-y-auto">
-            <div className="p-6">
-              <div className="flex justify-between items-center mb-4">
-                <h2 className="text-xl font-bold">{selectedBusiness.name}</h2>
-                <button
-                  onClick={() => {
-                    setShowBusinessModal(false)
-                    setSelectedBusiness(null)
-                  }}
-                  className="text-gray-500 hover:text-gray-700"
-                >
-                  ✕
-                </button>
-              </div>
-              
-              <div className="space-y-4">
-                <div>
-                  <strong>Email:</strong> {selectedBusiness.account_email}
-                </div>
-                <div>
-                  <strong>Phone:</strong> {selectedBusiness.phone}
-                </div>
-                <div>
-                  <strong>Address:</strong> {selectedBusiness.address}
-                </div>
-                <div>
-                  <strong>City:</strong> {selectedBusiness.city}
-                </div>
-                <div>
-                  <strong>Owner:</strong> {selectedBusiness.owner_name}
-                </div>
-                {selectedBusiness.description && (
-                  <div>
-                    <strong>Description:</strong> {selectedBusiness.description}
-                  </div>
-                )}
-              </div>
-            </div>
-          </div>
-        </div>
-      )}
       </div>
       </div>
   )
