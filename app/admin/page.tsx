@@ -87,6 +87,18 @@ export default function AdminDashboard() {
   const [editFormData, setEditFormData] = useState<any>({})
   const [categories, setCategories] = useState<any[]>([])
   const [isHandlingView, setIsHandlingView] = useState(false)
+
+  // Reset handling state if it gets stuck
+  useEffect(() => {
+    const resetTimer = setTimeout(() => {
+      if (isHandlingView) {
+        console.log('Resetting stuck isHandlingView state')
+        setIsHandlingView(false)
+      }
+    }, 2000) // Reset after 2 seconds if still stuck
+
+    return () => clearTimeout(resetTimer)
+  }, [isHandlingView])
   const [uploadingImage, setUploadingImage] = useState(false)
   const [uploadingLogo, setUploadingLogo] = useState(false)
   const [selectedImage, setSelectedImage] = useState<string | null>(null)
@@ -456,30 +468,42 @@ export default function AdminDashboard() {
   }
 
   const handleViewBusiness = (business: Business) => {
+    console.log('handleViewBusiness called with:', business)
+    
     // Prevent rapid clicking on mobile
-    if (isHandlingView) return
+    if (isHandlingView) {
+      console.log('Already handling view, skipping')
+      return
+    }
     
     try {
       setIsHandlingView(true)
       
-      // Validate business data
-      if (!business || !business.id) {
-        console.error('Invalid business data:', business)
+      // Validate business data - be more lenient
+      if (!business) {
+        console.error('Business is null or undefined:', business)
         setIsHandlingView(false)
         return
       }
       
+      // Use business.id or fallback to business.name for identification
+      const businessId = business.id || business.name || Math.random()
+      
       // Clear any editing state when switching businesses
-      if (editingBusiness !== business.id) {
+      if (editingBusiness !== businessId) {
         setEditingBusiness(null)
         setEditFormData({})
       }
       
       // Toggle expanded state
-      setExpandedCard(expandedCard === business.id ? null : business.id)
+      setExpandedCard(expandedCard === businessId ? null : businessId)
+      console.log('Toggled expanded card to:', expandedCard === businessId ? null : businessId)
       
       // Reset handling flag after a short delay
-      setTimeout(() => setIsHandlingView(false), 300)
+      setTimeout(() => {
+        setIsHandlingView(false)
+        console.log('Reset isHandlingView to false')
+      }, 300)
     } catch (error) {
       console.error('Error in handleViewBusiness:', error, 'Business data:', business)
       // Fallback: ensure state is clean
@@ -1635,11 +1659,11 @@ export default function AdminDashboard() {
           </div>
             ) : (
               <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
-                {filteredBusinesses.filter(business => business && business.id).map((business) => (
+                {filteredBusinesses.filter(business => business && (business.id || business.name)).map((business) => (
                   <Card 
-                    key={business.id} 
+                    key={business.id || business.name || Math.random()} 
                     className={`bg-white border-gray-200 hover:shadow-lg transition-all duration-300 ${
-                      expandedCard === business.id ? 'md:col-span-2 lg:col-span-4' : ''
+                      expandedCard === (business.id || business.name) ? 'md:col-span-2 lg:col-span-4' : ''
                     }`}
                   >
                     <CardHeader className="pb-3 px-4 pt-2">
@@ -1724,7 +1748,7 @@ export default function AdminDashboard() {
                         </div>
                   </CardHeader>
                     
-                    {expandedCard === business.id && business ? (
+                    {expandedCard === (business.id || business.name) && business ? (
                       // Expanded View - Full Details
                   <CardContent className="space-y-4">
                         {editingBusiness === business.id ? (
