@@ -85,15 +85,22 @@ export default function AdminDashboard() {
   const [expandedCard, setExpandedCard] = useState<number | string | null>(null)
   const [isMobile, setIsMobile] = useState(false)
 
-  // Detect mobile device
+  // Detect mobile device and auto-expand cards on mobile
   useEffect(() => {
     const checkMobile = () => {
       const userAgent = navigator.userAgent
       const mobile = /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(userAgent)
       setIsMobile(mobile)
+      
+      // On mobile, auto-expand the first business card
+      if (mobile && filteredBusinesses.length > 0 && !expandedCard) {
+        const firstBusiness = filteredBusinesses[0]
+        const businessId = firstBusiness.id || firstBusiness.name
+        setExpandedCard(businessId)
+      }
     }
     checkMobile()
-  }, [])
+  }, [filteredBusinesses, expandedCard])
   const [editingBusiness, setEditingBusiness] = useState<number | null>(null)
   const [editFormData, setEditFormData] = useState<any>({})
   const [categories, setCategories] = useState<any[]>([])
@@ -1672,8 +1679,8 @@ export default function AdminDashboard() {
                             </div>
                           </div>
                           <div className="flex space-x-1 flex-shrink-0">
-                            {expandedCard === business.id ? (
-                              // When expanded, show delete, edit and close buttons
+                            {expandedCard === business.id || isMobile ? (
+                              // When expanded (or on mobile), show delete, edit and close buttons
                               <>
                                 <Button 
                                   size="sm" 
@@ -1693,24 +1700,26 @@ export default function AdminDashboard() {
                                 >
                                   <Edit className="w-4 h-4" />
                                 </Button>
-                                <Button 
-                                  size="sm" 
-                                  variant="ghost" 
-                                  className="bg-gradient-to-r from-gray-600 to-gray-700 hover:from-gray-500 hover:to-gray-600 text-white h-8 w-8 p-0 font-medium shadow-md transition-all duration-300"
-                                  onClick={() => handleViewBusiness(business)}
-                                  title="Mbyll"
-                                >
-                                  <X className="w-4 h-4" />
-                                </Button>
+                                {!isMobile && (
+                                  <Button 
+                                    size="sm" 
+                                    variant="ghost" 
+                                    className="bg-gradient-to-r from-gray-600 to-gray-700 hover:from-gray-500 hover:to-gray-600 text-white h-8 w-8 p-0 font-medium shadow-md transition-all duration-300"
+                                    onClick={() => handleViewBusiness(business)}
+                                    title="Mbyll"
+                                  >
+                                    <X className="w-4 h-4" />
+                                  </Button>
+                                )}
                               </>
                             ) : (
-                              // When collapsed, show only eye button
+                              // When collapsed (desktop only), show only eye button
                               <Button 
                                 size="sm" 
                                 variant="ghost" 
                                 className="bg-gradient-to-r from-blue-600 to-blue-700 hover:from-blue-500 hover:to-blue-600 text-white h-8 w-8 p-0 font-medium shadow-md transition-all duration-300"
                                 onClick={() => handleViewBusiness(business)}
-                                title={isMobile ? "Hap" : "Shiko"}
+                                title="Shiko"
                               >
                                 <Eye className="w-4 h-4" />
                               </Button>
@@ -1719,7 +1728,7 @@ export default function AdminDashboard() {
                         </div>
                   </CardHeader>
                     
-                    {expandedCard === (business.id || business.name) && business ? (
+                    {(expandedCard === (business.id || business.name) || isMobile) && business ? (
                       // Expanded View - Full Details
                   <CardContent className="space-y-4">
                         {editingBusiness === business.id ? (
