@@ -469,8 +469,14 @@ export function GoogleMaps({ businesses: propBusinesses, categories, selectedCat
           <div className="text-center space-y-4">
             <MapPin className="w-16 h-16 mx-auto text-teal-600" />
             <div>
-              <h3 className="text-xl font-semibold mb-2">Duke ngarkuar Google Maps</h3>
-              <p className="text-muted-foreground mb-4">Ju lutem prisni që harta të ngarkohet</p>
+              <h3 className="text-xl font-semibold mb-2">
+                {error === "Location access denied by user" ? "Vendndodhja e Kërkuar" : "Duke ngarkuar Google Maps"}
+              </h3>
+              <p className="text-muted-foreground mb-4">
+                {error === "Location access denied by user" 
+                  ? "Ju lutem aktivizoni vendndodhjen në shfletuesin tuaj për të parë shërbimet pranë jush" 
+                  : "Ju lutem prisni që harta të ngarkohet"}
+              </p>
               {(error || mapError) && (
                 <div className="flex items-center justify-center gap-2 text-red-600 mb-4">
                   <AlertCircle className="h-4 w-4" />
