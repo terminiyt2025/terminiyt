@@ -681,9 +681,11 @@ export default function HomePage() {
                           <div key={index} className="p-4 border rounded-lg">
                             <div className="flex justify-between items-start mb-2">
                               <h4 className="font-semibold text-gray-900">{service.name} ({service.duration})</h4>
-                              <span className="bg-gradient-to-br from-gray-800 to-teal-800 bg-clip-text text-transparent font-bold">
-                                {service.price}€
-                              </span>
+                              {service.price && service.price > 0 && (
+                                <span className="bg-gradient-to-br from-gray-800 to-teal-800 bg-clip-text text-transparent font-bold">
+                                  {service.price}€
+                                </span>
+                              )}
                             </div>
                             {service.description && (
                               <p className="text-sm text-gray-600 mb-2">{service.description}</p>

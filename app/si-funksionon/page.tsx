@@ -330,7 +330,7 @@ export default function SiFunksiononPage() {
       {/* CTA Section */}
       <section className="py-20 px-4 bg-gradient-to-r  from-gray-800 to-teal-800 text-white">
         <div className="container mx-auto text-left md:text-center">
-          <h2 className="text-3xl md:text-5xl font-heading font-bold mb-6 text-balance">
+          <h2 className="text-3xl md:text-5xl font-heading font-bold mb-3 text-balance">
             Gati për të Filluar?
           </h2>
           <p className="text-sm md:text-xl text-white text-muted-foreground max-w-2xl mx-auto mb-8">
@@ -355,11 +355,11 @@ export default function SiFunksiononPage() {
       {/* Q&A Section */}
       <section className="py-20 px-4 bg-gray-50">
         <div className="container mx-auto">
-          <div className="text-left md:text-center mb-16">
-            <h2 className="text-4xl md:text-5xl font-heading font-bold text-gray-800 mb-6">
+          <div className="text-left md:text-center mb-10">
+            <h2 className="text-4xl md:text-5xl font-heading font-bold text-gray-800 mb-3">
               Pyetje të Shpeshta
             </h2>
-            <p className="text-xl text-gray-600 max-w-3xl mx-auto">
+            <p className="text-sm md:text-xl text-gray-600 max-w-3xl mx-auto">
               Gjeni përgjigjet për pyetjet më të shpeshta rreth platformës sonë
             </p>
           </div>
@@ -400,10 +400,10 @@ export default function SiFunksiononPage() {
             {/* Contact CTA */}
             <div className="text-center mt-12">
               <div className="bg-gradient-to-r from-gray-800 to-teal-800 rounded-2xl p-8 text-white">
-                <h3 className="text-2xl font-semibold mb-4">
+                <h3 className="text-lg md:text-2xl font-semibold mb-4">
                   Nuk gjetët përgjigjen që kërkoni?
                 </h3>
-                <p className="text-white/80 mb-6">
+                <p className="text-sm md:text-white/80 mb-6">
                   Ekipi ynë është këtu për t'ju ndihmuar me çdo pyetje
                 </p>
                 <div className="flex flex-col sm:flex-row gap-4 justify-center">

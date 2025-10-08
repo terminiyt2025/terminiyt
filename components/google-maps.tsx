@@ -605,43 +605,70 @@ export function GoogleMaps({ businesses: propBusinesses, categories, selectedCat
       {/* Selected Business Info */}
       {selectedBusiness && (
         <Card className="mt-4 animate-in slide-in-from-bottom-4 duration-300">
-          <CardContent className="p-4">
-            {/* Business Info - 4 Column Layout */}
+          <CardContent className="p-3">
+            {/* Business Info - All in One Row on Desktop */}
             <div className="flex items-start justify-between mb-6">
-              <div className="flex-1 grid grid-cols-1 md:grid-cols-4 gap-8">
+              <div className="flex-1 grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
                 {/* Business Basic Info */}
-                <div className="w-48">
-                  <h3 className="font-bold text-xl text-gray-900 ">{selectedBusiness.name}</h3>
+                <div>
+                  <h3 className="font-bold text-xl text-gray-900 mb-2">{selectedBusiness.name}</h3>
                   <div className="flex items-center gap-2 mb-2">
-            
-                      <span className="bg-gradient-to-br from-gray-800 to-teal-800 bg-clip-text text-transparent font-medium">{(selectedBusiness as any).category_name || 'Unknown Category'}</span>
-                    </div>
-                  <div className="flex items-center gap-2 mb-3">
-                    <MapPin className="w-6 h-6 text-gray-500" />
-                    <p className="text-gray-600">{selectedBusiness.address}, {selectedBusiness.city}</p>
+                    <span className="bg-gradient-to-br from-gray-800 to-teal-800 bg-clip-text text-transparent font-medium">{(selectedBusiness as any).category_name || 'Unknown Category'}</span>
                   </div>
-                   
-                  <div className="space-y-1 text-sm">
-                    <div className="flex items-center gap-2">
-                      <span className="text-gray-500"><Phone className="w-4 h-4" /></span>
-                      <span className="text-gray-700">{selectedBusiness.phone}</span>
-                    </div>
-                   
+                  <div className="flex items-center gap-2 mb-3">
+                    <MapPin className="w-5 h-5 text-teal-900" />
+                    <p className="text-gray-600 text-sm">{selectedBusiness.address}, {selectedBusiness.city}</p>
+                  </div>
+                  
+                  {/* Social Media Icons - Under Business Name */}
+                  <div className="flex flex-row gap-3">
+                    {selectedBusiness.instagram && (
+                      <a 
+                        href={`https://instagram.com/${selectedBusiness.instagram.replace('@', '')}`}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="text-teal-900 hover:text-teal-700 transition-colors"
+                      >
+                        <Instagram className="w-5 h-5" />
+                      </a>
+                    )}
+                    {selectedBusiness.facebook && (
+                      <a 
+                        href={selectedBusiness.facebook}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="text-teal-900 hover:text-teal-700 transition-colors"
+                      >
+                        <Facebook className="w-5 h-5" />
+                      </a>
+                    )}
+                    {selectedBusiness.website && (
+                      <a 
+                        href={selectedBusiness.website}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="text-teal-900 hover:text-teal-700 transition-colors"
+                      >
+                        <Globe className="w-5 h-5" />
+                      </a>
+                    )}
                   </div>
                 </div>
 
                 {/* Services */}
                 {selectedBusiness.services && selectedBusiness.services.length > 0 && (
-                  <div className="w-48">
+                  <div className="lg:w-4/5">
                     <h4 className="font-semibold text-gray-900 mb-3">Shërbimet</h4>
                     <ul className="space-y-2">
                       {selectedBusiness.services.map((service: any, index: number) => (
-                        <li key={index} className="flex justify-between items-center py-1 text-sm whitespace-nowrap">
+                        <li key={index} className="flex justify-between items-center py-1 text-sm">
                           <div className="flex items-center gap-2 min-w-0">
                             <span className="font-medium text-gray-900 truncate">{service.name}</span>
                             <span className="text-gray-500 text-xs flex items-center gap-1 flex-shrink-0"><Clock className="w-3 h-3" />{service.duration}</span>
                           </div>
-                          <span className="bg-gradient-to-br from-gray-800 to-teal-800 bg-clip-text text-transparent font-semibold flex-shrink-0 ml-2">{service.price}€</span>
+                          {service.price && service.price > 0 && (
+                            <span className="bg-gradient-to-br from-gray-800 to-teal-800 bg-clip-text text-transparent font-semibold flex-shrink-0 ml-2">{service.price}€</span>
+                          )}
                         </li>
                       ))}
                     </ul>
@@ -650,7 +677,7 @@ export function GoogleMaps({ businesses: propBusinesses, categories, selectedCat
 
                 {/* Operating Hours */}
                 {selectedBusiness.operating_hours && (
-                  <div className="w-48">
+                  <div className="lg:w-4/5">
                     <h4 className="font-semibold text-gray-900 mb-3">Orari i Punës</h4>
                     <div className="space-y-1">
                       {Object.entries(selectedBusiness.operating_hours)
@@ -665,47 +692,13 @@ export function GoogleMaps({ businesses: propBusinesses, categories, selectedCat
                   </div>
                 )}
 
-                {/* Social Media Icons */}
-                <div className="w-48">
-                <h4 className="font-semibold text-gray-900 mb-3">Rrjetet Sociale:</h4>
-                  <div className="flex flex-row gap-3">
-                    {selectedBusiness.instagram && (
-                      <a 
-                        href={`https://instagram.com/${selectedBusiness.instagram.replace('@', '')}`}
-                        target="_blank"
-                        rel="noopener noreferrer"
-                        className="text-gray-600 hover:text-white hover:bg-gradient-to-br hover:from-gray-800 hover:to-teal-800 transition-colors p-2 rounded-full"
-                      >
-                        <Instagram className="w-5 h-5" />
-                      </a>
-                    )}
-                    {selectedBusiness.facebook && (
-                      <a 
-                        href={selectedBusiness.facebook}
-                        target="_blank"
-                        rel="noopener noreferrer"
-                        className="text-gray-600 hover:text-white hover:bg-gradient-to-br hover:from-gray-800 hover:to-teal-800 transition-colors p-2 rounded-full"
-                      >
-                        <Facebook className="w-5 h-5" />
-                      </a>
-                    )}
-                    {selectedBusiness.website && (
-                      <a 
-                        href={selectedBusiness.website}
-                        target="_blank"
-                        rel="noopener noreferrer"
-                        className="text-gray-600 hover:text-white hover:bg-gradient-to-br hover:from-gray-800 hover:to-teal-800 transition-colors p-2 rounded-full"
-                      >
-                        <Globe className="w-5 h-5" />
-                      </a>
-                    )}
-                  </div>
-                </div>
+                {/* Empty column for spacing */}
+                <div></div>
               </div>
               <Button 
                 variant="outline" 
                 size="sm"
-                className="border-gray-300 text-gray-600 hover:bg-gradient-to-br hover:from-gray-800 hover:to-teal-800 hover:text-white hover:border-transparent"
+                className="border-gray-300 text-gray-600 hover:bg-gradient-to-br hover:from-gray-800 hover:to-teal-800 hover:text-white hover:border-transparent ml-4"
                 onClick={() => setSelectedBusiness(null)}
               >
                 Mbyll
@@ -713,19 +706,13 @@ export function GoogleMaps({ businesses: propBusinesses, categories, selectedCat
             </div>
 
             {/* Action Buttons */}
-            <div className="flex justify-center items-center gap-6 mt-6">
+            <div className="flex justify-center items-center mt-6">
               <Button 
                 className="bg-gradient-to-br from-gray-800 to-teal-800 hover:from-gray-700 hover:to-teal-700 px-6"
                 onClick={() => window.open(`/${(selectedBusiness as any).slug}`, '_blank')}
               >
                 Rezervo termin te ky biznes
               </Button>
-              <a 
-                href={`tel:${selectedBusiness.phone}`}
-                className="text-gray-600 hover:bg-gradient-to-br hover:from-gray-800 hover:to-teal-800 hover:bg-clip-text "
-              >
-                <Phone className="w-6 h-6" />
-              </a>
             </div>
 
           </CardContent>

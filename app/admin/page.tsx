@@ -1680,7 +1680,7 @@ export default function AdminDashboard() {
                           </div>
                           <div className="flex space-x-1 flex-shrink-0">
                             {expandedCard === business.id || isMobile ? (
-                              // When expanded (or on mobile), show delete, edit and close buttons
+                              // When expanded (or on mobile), show buttons based on edit state
                               <>
                                 <Button 
                                   size="sm" 
@@ -1691,35 +1691,33 @@ export default function AdminDashboard() {
                                 >
                                   <Trash2 className="w-4 h-4" />
                                 </Button>
-                                <Button 
-                                  size="sm" 
-                                  variant="ghost" 
-                                  className="bg-gradient-to-r from-gray-800 to-teal-800 hover:from-gray-700 hover:to-teal-700 text-white h-8 w-8 p-0 font-medium shadow-md transition-all duration-300"
-                                  onClick={() => handleEditBusiness(business)}
-                                  title="Modifiko"
-                                >
-                                  <Edit className="w-4 h-4" />
-                                </Button>
-                                <Button 
-                                  size="sm" 
-                                  variant="ghost" 
-                                  className="bg-gradient-to-r from-gray-600 to-gray-700 hover:from-gray-500 hover:to-gray-600 text-white h-8 w-8 p-0 font-medium shadow-md transition-all duration-300"
-                                  onClick={() => {
-                                    if (editingBusiness === business.id) {
-                                      // Cancel editing
+                                
+                                {editingBusiness === business.id ? (
+                                  // When editing, show cancel button
+                                  <Button 
+                                    size="sm" 
+                                    variant="ghost" 
+                                    className="bg-gradient-to-r from-gray-600 to-gray-700 hover:from-gray-500 hover:to-gray-600 text-white h-8 w-8 p-0 font-medium shadow-md transition-all duration-300"
+                                    onClick={() => {
                                       setEditingBusiness(null)
                                       setEditFormData({})
-                                    } else {
-                                      // Close card (desktop only)
-                                      if (!isMobile) {
-                                        handleViewBusiness(business)
-                                      }
-                                    }
-                                  }}
-                                  title={editingBusiness === business.id ? "Anulo" : "Mbyll"}
-                                >
-                                  <X className="w-4 h-4" />
-                                </Button>
+                                    }}
+                                    title="Anulo"
+                                  >
+                                    <X className="w-4 h-4" />
+                                  </Button>
+                                ) : (
+                                  // When not editing, show edit button
+                                  <Button 
+                                    size="sm" 
+                                    variant="ghost" 
+                                    className="bg-gradient-to-r from-gray-800 to-teal-800 hover:from-gray-700 hover:to-teal-700 text-white h-8 w-8 p-0 font-medium shadow-md transition-all duration-300"
+                                    onClick={() => handleEditBusiness(business)}
+                                    title="Modifiko"
+                                  >
+                                    <Edit className="w-4 h-4" />
+                                  </Button>
+                                )}
                               </>
                             ) : (
                               // When collapsed (desktop only), show only eye button
@@ -2455,7 +2453,7 @@ export default function AdminDashboard() {
                                             </div>
                                           </div>
                                           <div className="space-y-2">
-                                            <div className="text-xs font-medium text-gray-600">Shërbimet e Caktuar:</div>
+                                            <div className="text-xs font-medium text-gray-600">Shërbimet e Caktuara:</div>
                                             <div className="grid grid-cols-2 gap-1">
                                               {(editFormData.services || []).map((service: any, serviceIndex: number) => (
                                                 <label key={serviceIndex} className="flex items-center text-xs">
@@ -2491,7 +2489,7 @@ export default function AdminDashboard() {
                                           
                                           {/* Break Times Section */}
                                           <div className="space-y-2">
-                                            <div className="text-xs font-medium text-gray-600">Ora e Pauzës:</div>
+                                            <div className="text-xs font-medium text-gray-600 pt-2">Ora e Pauzës:</div>
                                             <div className="space-y-2">
                                               {(member.breakTimes || []).map((breakTime: any, breakIndex: number) => {
                                                 // Generate time options from 00:00 to 23:45 (every 15 minutes)

@@ -459,15 +459,8 @@ export function BookingSteps({ business }: BookingStepsProps) {
       case 1:
         return (
           <div className="space-y-6">
-            {/* Welcome Message */}
-            <div className={`text-center mb-4 transition-all duration-700 ease-out ${
-              showWelcome ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-4'
-            }`}>
-              <p className="text-gray-600 text-lg">Mirëseerdhet në</p>
-            </div>
-
             {/* Business Header */}
-            <div className="text-center mb-6">
+            <div className="text-center mb-2">
               <div className="flex items-center justify-center gap-6 mb-4">
                 {business.logo && (
                   <div className={`w-28 h-28 relative rounded-full overflow-hidden shadow-lg border-4 border-white flex-shrink-0 transition-all duration-700 ease-out ${
@@ -481,74 +474,111 @@ export function BookingSteps({ business }: BookingStepsProps) {
                   </div>
                 )}
                 <div className="text-center">
-                  <h2 className={`text-2xl font-bold text-gray-900 mb-2 transition-all duration-700 ease-out ${
+                  {/* Welcome Message */}
+                  <div className={`text-left mb-1 transition-all duration-700 ease-out ${
+                    showWelcome ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-4'
+                  }`}>
+                    <p className="text-gray-600 text-md">Mirëseerdhet në</p>
+                  </div>
+                  <h2 className={`text-3xl font-bold text-gray-900 mb-2 transition-all duration-700 ease-out ${
                     showBusinessName ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-4'
                   }`}>
                     {business.name}
                   </h2>
-                  <p className={`text-gray-600 transition-all duration-700 ease-out ${
-                    showDescription ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-4'
-                  }`}>
-                    {business.description}
-                  </p>
                 </div>
               </div>
               
-              {/* Separation Line */}
-              <div className={`border-t border-gray-200 pt-6 transition-all duration-700 ease-out ${
+              {/* Instructions */}
+              <div className={`text-center pt-4  transition-all duration-700 ease-out ${
                 showInstruction ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-4'
               }`}>
-                <p className="text-gray-600 text-lg">Plotësoni hapat më poshtë për të rezervuar terminin tuaj</p>
+                <p className="text-gray-600 text-md p-0">Plotësoni hapat më poshtë për të rezervuar terminin tuaj</p>
               </div>
+              
+              {/* Choose Another Service Button - Show when service is selected */}
+              {selectedService && (
+                <div className="text-center mt-4">
+                  <Button
+                    onClick={() => {
+                      setSelectedService(null)
+                      setSelectedStaff(null)
+                    }}
+                    variant="outline"
+                    size="sm"
+                    className="text-sm text-gray-600 hover:text-gray-800 hover:bg-gray-50"
+                  >
+                    <ArrowLeft className="w-4 h-4 mr-2" />
+                    Zgjidh shërbim tjetër
+                  </Button>
+                </div>
+              )}
             </div>
 
-            {/* Service Selection - Only show if no service selected */}
+            {/* Service Selection */}
             {!selectedService && (
-              <>
-                <div className="text-center">
-                  <h3 className="text-xl font-bold text-gray-900 mb-2">Zgjidhni shërbimin që dëshironi të rezervoni</h3>
-                </div>
+              <div className="text-center">
+                <h3 className="text-lg font-bold text-gray-900 mb-1">Zgjidhni shërbimin që dëshironi të rezervoni</h3>
+              </div>
+            )}
 
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
-                  {business.services && business.services.length > 0 ? (
-                    business.services.map((service: any, index: number) => (
-                      <Card 
-                        key={index} 
-                        className="cursor-pointer hover:shadow-md transition-shadow border-2 hover:border-teal-800"
-                        onClick={() => handleServiceSelect(service)}
-                      >
-                        <CardContent className="p-4">
-                          <div className="flex items-center justify-between">
+            {/* Service Options - Only show if no service selected */}
+            {!selectedService && (
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+                {business.services && business.services.length > 0 ? (
+                  business.services.map((service: any, index: number) => (
+                    <Card 
+                      key={index} 
+                      className="cursor-pointer hover:shadow-lg transition-all duration-300 border-2 border-gray-200 hover:border-transparent hover:scale-[1.02] bg-gradient-to-br from-white to-gray-50 relative"
+                      style={{
+                        background: 'linear-gradient(white, #f9fafb) padding-box, linear-gradient(to right, #1f2937, #0f766e) border-box'
+                      }}
+                      onMouseEnter={(e) => {
+                        e.currentTarget.style.background = 'linear-gradient(white, #f9fafb) padding-box, linear-gradient(to right, #1f2937, #0f766e) border-box'
+                      }}
+                      onMouseLeave={(e) => {
+                        e.currentTarget.style.background = 'linear-gradient(to bottom right, white, #f9fafb)'
+                        e.currentTarget.style.border = '2px solid #e5e7eb'
+                      }}
+                      onClick={() => handleServiceSelect(service)}
+                    >
+                      <CardContent >
+                        <div className="space-y-1">
+                          {/* Service Header */}
+                          <div className="flex items-start justify-between">
                             <div className="flex-1">
-                              <h4 className="font-semibold text-gray-900">{service.name}</h4>
+                              <h4 className="text-lg font-bold text-gray-900 ">{service.name}</h4>
                               {service.description && (
-                                <p className="text-sm text-gray-600 mt-1">{service.description}</p>
+                                <p className="text-sm text-gray-600">{service.description}</p>
                               )}
-                              <div className="flex items-center gap-4 mt-2">
-                                {service.duration && (
-                                  <div className="flex items-center gap-1 text-sm text-gray-500">
-                                    <Clock className="w-4 h-4" />
-                                    <span>{service.duration}</span>
-                                  </div>
-                                )}
-                              </div>
                             </div>
-                            {service.price && (
-                              <div className="text-right">
-                                <span className="text-lg font-bold text-teal-800">{service.price}€</span>
+                            {service.price && service.price > 0 && (
+                              <div className="ml-3 text-right">
+                                <div className="bg-gradient-to-r from-gray-800 to-teal-800 px-2 py-1 rounded-md">
+                                  <span className="text-lg font-bold text-white">{service.price}€</span>
+                                </div>
                               </div>
                             )}
                           </div>
-                        </CardContent>
-                      </Card>
-                    ))
-                  ) : (
-                    <div className="text-center py-8">
-                      <p className="text-gray-500">Nuk ka shërbime të disponueshme për këtë biznes.</p>
-                    </div>
-                  )}
-                </div>
-              </>
+                          
+                          {/* Service Details */}
+                          {service.duration && (
+                            <div className="flex items-center border-t border-gray-100">
+                              <div className="flex items-center gap-1 text-teal-600">
+                                <Clock className="w-4 h-4" />
+                                <span className="text-sm font-medium">{service.duration}</span>
+                              </div>
+                            </div>
+                          )}
+                        </div>
+                      </CardContent>
+                    </Card>
+                  ))
+                ) : (
+                  <div className="text-center py-8">
+                    <p className="text-gray-500">Nuk ka shërbime të disponueshme për këtë biznes.</p>
+                  </div>
+                )}
+              </div>
             )}
 
             {/* Staff Selection - Show after service is selected */}
@@ -565,33 +595,50 @@ export function BookingSteps({ business }: BookingStepsProps) {
                 return (
                   <div className="space-y-4">
                     <div className="text-center">
-                      <h3 className="text-xl font-bold text-gray-900 mb-2">Zgjidhni Stafin</h3>
-                      <p className="text-gray-600">Zgjidhni stafin që do të ofrojë shërbimin "{selectedService.name}"</p>
+                      <h3 className="text-xl font-bold text-gray-900 mb-2">Zgjidhni stafin që do të ofrojë shërbimin "{selectedService.name}"</h3>
                     </div>
                     
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
                       {availableStaff.map((member: any, index: number) => (
                         <Card 
                           key={index} 
-                          className={`cursor-pointer hover:shadow-md transition-shadow border-2 hover:border-teal-800 ${
-                            selectedStaff?.name === member.name ? 'border-teal-800 bg-teal-50' : ''
+                          className={`cursor-pointer hover:shadow-lg transition-all duration-300 border-2 border-gray-200 hover:border-transparent hover:scale-[1.02] bg-gradient-to-br from-white to-gray-50 relative ${
+                            selectedStaff?.name === member.name ? 'border-transparent' : ''
                           }`}
+                          style={{
+                            background: selectedStaff?.name === member.name 
+                              ? 'linear-gradient(white, #f9fafb) padding-box, linear-gradient(to right, #1f2937, #0f766e) border-box'
+                              : 'linear-gradient(to bottom right, white, #f9fafb)'
+                          }}
+                          onMouseEnter={(e) => {
+                            if (selectedStaff?.name !== member.name) {
+                              e.currentTarget.style.background = 'linear-gradient(white, #f9fafb) padding-box, linear-gradient(to right, #1f2937, #0f766e) border-box'
+                            }
+                          }}
+                          onMouseLeave={(e) => {
+                            if (selectedStaff?.name !== member.name) {
+                              e.currentTarget.style.background = 'linear-gradient(to bottom right, white, #f9fafb)'
+                              e.currentTarget.style.border = '2px solid #e5e7eb'
+                            }
+                          }}
                           onClick={() => {
                             setSelectedStaff(member)
                             // Auto-move to next step after staff selection
                             setTimeout(() => setCurrentStep(2), 500)
                           }}
                         >
-                          <CardContent className="p-4">
-                            <div className="flex items-center gap-3">
-                              <div className="w-12 h-12 bg-gray-200 rounded-full flex items-center justify-center">
-                                <User className="w-6 h-6 text-gray-600" />
-                              </div>
-                              <div className="flex-1">
-                                <h5 className="font-medium text-gray-900">{member.name}</h5>
-                                {member.specialization && (
-                                  <p className="text-sm text-gray-600">{member.specialization}</p>
-                                )}
+                          <CardContent className="py-4">
+                            <div className="space-y-1">
+                              <div className="flex items-center gap-3">
+                                <div className="w-10 h-10 bg-gradient-to-r from-gray-800 to-teal-800 rounded-full flex items-center justify-center">
+                                  <User className="w-5 h-5 text-white" />
+                                </div>
+                                <div className="flex-1">
+                                  <h5 className="text-lg font-bold text-gray-900">{member.name}</h5>
+                                  {member.specialization && (
+                                    <p className="text-sm text-gray-600">{member.specialization}</p>
+                                  )}
+                                </div>
                               </div>
                             </div>
                           </CardContent>
@@ -618,17 +665,17 @@ export function BookingSteps({ business }: BookingStepsProps) {
           <div className="space-y-6">
             {/* Calendar - Show first, disappear after date selection */}
             {!selectedDate && (
-              <div className="flex justify-center items-center min-h-[400px] md:min-h-[500px] lg:min-h-[600px]">
-                <div className="w-full max-w-sm sm:max-w-md md:max-w-lg mx-auto px-4">
+              <div className="flex justify-center items-center min-h-[400px] md:min-h-[450px] lg:min-h-[500px]">
+                <div className="w-full max-w-xs sm:max-w-sm md:max-w-md mx-auto px-4">
                   <h4 className="text-xl md:text-2xl font-bold text-gray-900 mb-4 md:mb-6 text-center">Zgjidhni Datën</h4>
-                  <div className="bg-white rounded-xl shadow-xl border-2 border-gray-100 px-4 py-6 sm:px-6 sm:py-8 md:px-8 md:py-12 mx-auto">
+                  <div className="bg-white rounded-xl shadow-xl border-2 border-gray-100 px-3 py-4 sm:px-4 sm:py-6 md:px-6 md:py-8 mx-auto">
                     <div className="flex justify-center">
                       <Calendar
                         mode="single"
                         selected={selectedDate}
                         onSelect={handleDateSelect}
                         disabled={isDateDisabled}
-                        className="scale-100 sm:scale-110 md:scale-125 origin-center [&_.rdp-caption]:!text-lg sm:[&_.rdp-caption]:!text-xl [&_.rdp-caption]:!font-bold [&_.rdp-caption]:!text-gray-800 [&_.rdp-caption]:!mb-3 sm:[&_.rdp-caption]:!mb-4 [&_.rdp-nav_button]:!w-8 [&_.rdp-nav_button]:!h-8 sm:[&_.rdp-nav_button]:!w-10 sm:[&_.rdp-nav_button]:!h-10 [&_.rdp-nav_button]:!text-base sm:[&_.rdp-nav_button]:!text-lg [&_.rdp-nav_button]:!font-bold [&_.rdp-weekday]:!text-sm sm:[&_.rdp-weekday]:!text-base [&_.rdp-weekday]:!font-semibold [&_.rdp-weekday]:!text-gray-600 [&_.rdp-weekday]:!py-1 sm:[&_.rdp-weekday]:!py-2 [&_.rdp-day]:!w-8 [&_.rdp-day]:!h-8 sm:[&_.rdp-day]:!w-10 sm:[&_.rdp-day]:!h-10 md:[&_.rdp-day]:!w-12 md:[&_.rdp-day]:!h-12 [&_.rdp-day]:!text-sm sm:[&_.rdp-day]:!text-base [&_.rdp-day]:!font-medium [&_.rdp-day]:!rounded-lg [&_.rdp-day]:!transition-all [&_.rdp-day]:!duration-200 [&_[data-selected-single=true]]:!bg-gradient-to-r [&_[data-selected-single=true]]:!from-gray-800 [&_[data-selected-single=true]]:!to-teal-800 [&_[data-selected-single=true]]:!text-white [&_[data-selected-single=true]]:!border-0 [&_[data-selected-single=true]]:!rounded-lg [&_[data-selected-single=true]]:!shadow-lg [&_[data-selected-single=true]]:!scale-105 [&_td.rdp-today]:!bg-gradient-to-r [&_td.rdp-today]:!from-gray-600 [&_td.rdp-today]:!to-gray-700 [&_td.rdp-today]:!text-white [&_td.rdp-today]:!border-0 [&_td.rdp-today]:!rounded-lg [&_td.rdp-today]:!shadow-md [&_td.rdp-today[data-selected-single=true]]:!bg-gradient-to-r [&_td.rdp-today[data-selected-single=true]]:!from-gray-800 [&_td.rdp-today[data-selected-single=true]]:!to-teal-800 [&_td.rdp-today[data-selected-single=true]]:!text-white [&_td.rdp-today[data-selected-single=true]]:!border-0 [&_td.rdp-today[data-selected-single=true]]:!rounded-lg [&_td.rdp-today[data-selected-single=true]]:!shadow-lg [&_td.rdp-today[data-selected-single=true]]:!scale-105 [&_.rdp-day]:hover:!bg-gradient-to-r [&_.rdp-day]:hover:!from-gray-700 [&_.rdp-day]:hover:!to-teal-700 [&_.rdp-day]:hover:!text-white [&_.rdp-day]:hover:!rounded-lg [&_.rdp-day]:hover:!shadow-md [&_.rdp-day]:hover:!scale-105 [&_.rdp-button_previous]:!bg-transparent [&_.rdp-button_previous]:hover:!bg-transparent [&_.rdp-button_previous]:hover:!bg-gradient-to-r [&_.rdp-button_previous]:hover:!from-gray-600 [&_.rdp-button_previous]:hover:!to-gray-700 [&_.rdp-button_previous]:hover:!text-white [&_.rdp-button_previous]:hover:!rounded-lg [&_.rdp-button_previous]:hover:!shadow-lg [&_.rdp-button_previous]:hover:!border-0 [&_.rdp-button_next]:!bg-transparent [&_.rdp-button_next]:hover:!bg-transparent [&_.rdp-button_next]:hover:!bg-gradient-to-r [&_.rdp-button_next]:hover:!from-gray-600 [&_.rdp-button_next]:hover:!to-gray-700 [&_.rdp-button_next]:hover:!text-white [&_.rdp-button_next]:hover:!rounded-lg [&_.rdp-button_next]:hover:!shadow-lg [&_.rdp-button_next]:hover:!border-0"
+                        className="scale-85 sm:scale-90 md:scale-95 origin-center [&_.rdp-caption]:!text-lg sm:[&_.rdp-caption]:!text-xl [&_.rdp-caption]:!font-bold [&_.rdp-caption]:!text-gray-800 [&_.rdp-caption]:!mb-3 sm:[&_.rdp-caption]:!mb-4 [&_.rdp-nav_button]:!w-8 [&_.rdp-nav_button]:!h-8 sm:[&_.rdp-nav_button]:!w-10 sm:[&_.rdp-nav_button]:!h-10 [&_.rdp-nav_button]:!text-base sm:[&_.rdp-nav_button]:!text-lg [&_.rdp-nav_button]:!font-bold [&_.rdp-weekday]:!text-sm sm:[&_.rdp-weekday]:!text-base [&_.rdp-weekday]:!font-semibold [&_.rdp-weekday]:!text-gray-600 [&_.rdp-weekday]:!py-1 sm:[&_.rdp-weekday]:!py-2 [&_.rdp-day]:!w-8 [&_.rdp-day]:!h-8 sm:[&_.rdp-day]:!w-10 sm:[&_.rdp-day]:!h-10 md:[&_.rdp-day]:!w-12 md:[&_.rdp-day]:!h-12 [&_.rdp-day]:!text-sm sm:[&_.rdp-day]:!text-base [&_.rdp-day]:!font-medium [&_.rdp-day]:!rounded-lg [&_.rdp-day]:!transition-all [&_.rdp-day]:!duration-200 [&_[data-selected-single=true]]:!bg-gradient-to-r [&_[data-selected-single=true]]:!from-gray-800 [&_[data-selected-single=true]]:!to-teal-800 [&_[data-selected-single=true]]:!text-white [&_[data-selected-single=true]]:!border-0 [&_[data-selected-single=true]]:!rounded-lg [&_[data-selected-single=true]]:!shadow-lg [&_[data-selected-single=true]]:!scale-105 [&_td.rdp-today]:!bg-gradient-to-r [&_td.rdp-today]:!from-gray-600 [&_td.rdp-today]:!to-gray-700 [&_td.rdp-today]:!text-white [&_td.rdp-today]:!border-0 [&_td.rdp-today]:!rounded-lg [&_td.rdp-today]:!shadow-md [&_td.rdp-today[data-selected-single=true]]:!bg-gradient-to-r [&_td.rdp-today[data-selected-single=true]]:!from-gray-800 [&_td.rdp-today[data-selected-single=true]]:!to-teal-800 [&_td.rdp-today[data-selected-single=true]]:!text-white [&_td.rdp-today[data-selected-single=true]]:!border-0 [&_td.rdp-today[data-selected-single=true]]:!rounded-lg [&_td.rdp-today[data-selected-single=true]]:!shadow-lg [&_td.rdp-today[data-selected-single=true]]:!scale-105 [&_.rdp-day]:hover:!bg-gradient-to-r [&_.rdp-day]:hover:!from-gray-700 [&_.rdp-day]:hover:!to-teal-700 [&_.rdp-day]:hover:!text-white [&_.rdp-day]:hover:!rounded-lg [&_.rdp-day]:hover:!shadow-md [&_.rdp-day]:hover:!scale-105 [&_.rdp-button_previous]:!bg-transparent [&_.rdp-button_previous]:hover:!bg-transparent [&_.rdp-button_previous]:hover:!bg-gradient-to-r [&_.rdp-button_previous]:hover:!from-gray-600 [&_.rdp-button_previous]:hover:!to-gray-700 [&_.rdp-button_previous]:hover:!text-white [&_.rdp-button_previous]:hover:!rounded-lg [&_.rdp-button_previous]:hover:!shadow-lg [&_.rdp-button_previous]:hover:!border-0 [&_.rdp-button_next]:!bg-transparent [&_.rdp-button_next]:hover:!bg-transparent [&_.rdp-button_next]:hover:!bg-gradient-to-r [&_.rdp-button_next]:hover:!from-gray-600 [&_.rdp-button_next]:hover:!to-gray-700 [&_.rdp-button_next]:hover:!text-white [&_.rdp-button_next]:hover:!rounded-lg [&_.rdp-button_next]:hover:!shadow-lg [&_.rdp-button_next]:hover:!border-0"
                         locale={sq}
                       />
                     </div>
@@ -741,10 +788,12 @@ export function BookingSteps({ business }: BookingStepsProps) {
                         </span>
                       </div>
                       
-                      <div className="pt-2 border-t border-gray-200">
-                        <span className="text-gray-600">Çmimi: </span>
-                        <span className="font-semibold text-gray-900">{selectedService.price}€</span>
-                      </div>
+                      {selectedService.price && selectedService.price > 0 && (
+                        <div className="pt-2 border-t border-gray-200">
+                          <span className="text-gray-600">Çmimi: </span>
+                          <span className="font-semibold text-gray-900">{selectedService.price}€</span>
+                        </div>
+                      )}
                     </div>
                   </div>
                 )}
@@ -834,17 +883,17 @@ export function BookingSteps({ business }: BookingStepsProps) {
   return (
     <div className="bg-white rounded-lg shadow-lg p-6">
       {/* Progress Bar */}
-      <div className="flex items-center justify-center space-x-4 mb-8">
+      <div className="flex items-center justify-center space-x-4 mb-4">
         {[1, 2, 3].map((step) => (
           <div key={step} className="flex items-center">
             <div
-              className={`w-8 h-8 rounded-full flex items-center justify-center text-sm font-medium ${
+              className={`w-6 h-6 rounded-full flex items-center justify-center text-xs font-medium ${
                 step <= currentStep
                   ? "bg-gradient-to-r from-gray-800 to-teal-800 text-white"
                   : "bg-gray-200 text-gray-600"
               }`}
             >
-              {step < currentStep ? <Check className="w-4 h-4" /> : step}
+              {step < currentStep ? <Check className="w-3 h-3" /> : step}
             </div>
             {step < 3 && (
               <div
@@ -866,7 +915,7 @@ export function BookingSteps({ business }: BookingStepsProps) {
       <div className="flex justify-between pt-6 border-t">
         <Button
           onClick={handlePrevious}
-          disabled={currentStep === 1}
+          disabled={currentStep === 1 && !selectedService || (currentStep === 1 && selectedService)}
           className="bg-gradient-to-r from-gray-600 to-gray-700 hover:from-gray-500 hover:to-gray-600 text-white"
         >
           <ArrowLeft className="w-4 h-4 mr-2" />
