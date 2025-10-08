@@ -214,8 +214,8 @@ export default function HomePage() {
                                   <SelectItem value="all" className="hover:bg-gray-100 focus:bg-gray-100 hover:text-black focus:text-black">Të Gjitha</SelectItem>
                                   {categories
                                     .sort((a, b) => {
-                                      if (a.name === "Të tjera") return 1;
-                                      if (b.name === "Të tjera") return -1;
+                                      if (a.name === "Të tjera" || a.name === "Të Tjera") return 1;
+                                      if (b.name === "Të tjera" || b.name === "Të Tjera") return -1;
                                       return a.name.localeCompare(b.name);
                                     })
                                     .map((category) => (
@@ -296,8 +296,8 @@ export default function HomePage() {
                                 <SelectItem value="all" className="hover:bg-gray-100 focus:bg-gray-100 hover:text-black focus:text-black">Të Gjitha</SelectItem>
                                 {categories
                                   .sort((a, b) => {
-                                    if (a.name === "Të tjera") return 1;
-                                    if (b.name === "Të tjera") return -1;
+                                    if (a.name === "Të tjera" || a.name === "Të Tjera") return 1;
+                                    if (b.name === "Të tjera" || b.name === "Të Tjera") return -1;
                                     return a.name.localeCompare(b.name);
                                   })
                                   .map((category) => (
@@ -624,7 +624,7 @@ export default function HomePage() {
       {/* Modals */}
       {selectedBusiness && modalType && (
         <Dialog open={!!modalType} onOpenChange={() => setModalType(null)}>
-          <DialogContent className="max-w-2xl max-h-[80vh] overflow-y-auto mx-[15px] md:mx-0">
+          <DialogContent className="max-w-[calc(100vw-30px)] md:max-w-2xl max-h-[80vh] overflow-y-auto mx-[15px] md:mx-0">
             <DialogHeader>
               <DialogTitle className="text-xl font-bold">
                 {modalType === 'staff-sherbimet' && 'Staff & Shërbimet'}
