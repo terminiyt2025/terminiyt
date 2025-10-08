@@ -30,7 +30,7 @@ export function GoogleMaps({ businesses: propBusinesses, categories, selectedCat
   const mapRef = useRef<HTMLDivElement>(null)
   const mapInstanceRef = useRef<google.maps.Map | null>(null)
   const markersRef = useRef<google.maps.Marker[]>([])
-  const { latitude, longitude, error, loading, getCurrentLocation, calculateDistance } = useLocation()
+  const { latitude, longitude, error, loading, getCurrentLocation, calculateDistance, setLocationToPrishtina } = useLocation()
   const { businesses: storeBusinesses } = useBusinesses()
   const [selectedBusiness, setSelectedBusiness] = useState<Business | null>(null)
   const [mapLoaded, setMapLoaded] = useState(false)
@@ -486,7 +486,13 @@ export function GoogleMaps({ businesses: propBusinesses, categories, selectedCat
               <Button 
                 onClick={() => {
                   setMapError(null)
-                  getCurrentLocation()
+                  if (error === "Location access denied by user") {
+                    // If location was previously denied, set to Prishtina
+                    setLocationToPrishtina()
+                  } else {
+                    // Otherwise, try to get current location
+                    getCurrentLocation()
+                  }
                 }} 
                 disabled={loading}
                 className="bg-gradient-to-br from-gray-800 to-teal-800 hover:from-gray-700 hover:to-teal-700 text-white"
@@ -499,7 +505,7 @@ export function GoogleMaps({ businesses: propBusinesses, categories, selectedCat
                 ) : (
                   <>
                     <Navigation className="w-4 h-4 mr-2" />
-                    Aktivizo Vendndodhjen
+                    {error === "Location access denied by user" ? "Shiko në Prishtinë" : "Aktivizo Vendndodhjen"}
                   </>
                 )}
               </Button>

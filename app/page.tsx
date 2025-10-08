@@ -39,7 +39,7 @@ export default function HomePage() {
   const [modalType, setModalType] = useState<'staff-sherbimet' | 'orari' | null>(null)
   const [showAllCards, setShowAllCards] = useState(false)
   const { user, isAuthenticated, logout } = useAuth()
-  const { calculateDistance, getCurrentLocation } = useLocation()
+  const { calculateDistance, getCurrentLocation, setLocationToPrishtina } = useLocation()
   const { businesses, loading } = useBusinesses()
 
   // Fetch categories from database

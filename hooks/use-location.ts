@@ -12,6 +12,7 @@ interface LocationState {
 interface LocationHook extends LocationState {
   getCurrentLocation: () => void
   calculateDistance: (lat: number, lng: number) => number | null
+  setLocationToPrishtina: () => void
 }
 
 export function useLocation(): LocationHook {
@@ -22,13 +23,21 @@ export function useLocation(): LocationHook {
     loading: false,
   })
 
+  // Prishtina coordinates as fallback
+  const PRISHTINA_COORDS = {
+    latitude: 42.6629,
+    longitude: 21.1655
+  }
+
   const getCurrentLocation = useCallback(() => {
     if (!navigator.geolocation) {
-      setLocation((prev) => ({
-        ...prev,
-        error: "Geolocation is not supported by this browser",
+      console.log("[v0] Geolocation not supported, falling back to Prishtina")
+      setLocation({
+        latitude: PRISHTINA_COORDS.latitude,
+        longitude: PRISHTINA_COORDS.longitude,
+        error: null,
         loading: false,
-      }))
+      })
       return
     }
 
@@ -52,7 +61,15 @@ export function useLocation(): LocationHook {
         switch (error.code) {
           case error.PERMISSION_DENIED:
             errorMessage = "Location access denied by user"
-            break
+            // Automatically fallback to Prishtina when location is denied
+            console.log("[v0] Location denied, falling back to Prishtina")
+            setLocation({
+              latitude: PRISHTINA_COORDS.latitude,
+              longitude: PRISHTINA_COORDS.longitude,
+              error: null, // Don't show error since we have fallback
+              loading: false,
+            })
+            return
           case error.POSITION_UNAVAILABLE:
             errorMessage = "Location information is unavailable"
             break
@@ -94,9 +111,20 @@ export function useLocation(): LocationHook {
     return Math.round(distance * 10) / 10 // Round to 1 decimal place
   }
 
+  const setLocationToPrishtina = useCallback(() => {
+    console.log("[v0] Manually setting location to Prishtina")
+    setLocation({
+      latitude: PRISHTINA_COORDS.latitude,
+      longitude: PRISHTINA_COORDS.longitude,
+      error: null,
+      loading: false,
+    })
+  }, [])
+
   return {
     ...location,
     getCurrentLocation,
     calculateDistance,
+    setLocationToPrishtina,
   }
 }
