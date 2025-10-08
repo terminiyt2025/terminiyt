@@ -37,7 +37,7 @@ export default function LoginPage() {
           {/* Login Form Card */}
           <Card className="bg-[#f4f4f4] border-0 shadow-2xl backdrop-blur-sm max-w-lg mx-auto">
             <CardHeader className="text-center pb-4 md:pb-6">
-              <CardTitle className="text-xl md:text-3xl font-heading font-bold bg-gradient-to-r from-gray-800 to-teal-800 bg-clip-text text-transparent">
+              <CardTitle className="text-3xl md:text-3xl font-heading font-bold bg-gradient-to-r from-gray-800 to-teal-800 bg-clip-text text-transparent">
                 Identifikohu
               </CardTitle>
               <CardDescription className="text-gray-600 text-sm md:text-lg">
