@@ -199,7 +199,7 @@ export default function SiFunksiononPage() {
           <div className="space-y-6">
             {/* First box - 100% width with video */}
             <div 
-              className="w-full px-2 py-4 md:px-16 md:py-16 rounded-2xl"
+              className="w-full px-2 py-4 sm:px-4 sm:py-6 md:px-6 md:py-8 lg:px-8 lg:py-10 xl:px-12 xl:py-16 2xl:px-14 2xl:py-18 rounded-2xl"
               style={{ 
                 backgroundColor: '#F4F4F4 ',
                 borderRadius: '12px'
@@ -235,7 +235,7 @@ export default function SiFunksiononPage() {
             <div className="grid md:grid-cols-2 gap-6">
               {/* Second box */}
               <div 
-  className="md:px-20 md:py-20 px-2 py-4 rounded-xl"
+  className="px-2 py-4 sm:px-4 sm:py-6 md:px-6 md:py-8 lg:px-8 lg:py-10 xl:px-12 xl:py-16 2xl:px-14 2xl:py-18 rounded-xl"
   style={{ 
     backgroundColor: '#F4F4F4',
     borderRadius: '12px'
@@ -256,7 +256,7 @@ export default function SiFunksiononPage() {
 
               {/* Third box */}
               <div 
-                className="md:px-20 md:py-20 px-2 py-4 rounded-xl"
+                className="px-2 py-4 sm:px-4 sm:py-6 md:px-6 md:py-8 lg:px-8 lg:py-10 xl:px-12 xl:py-16 2xl:px-14 2xl:py-18 rounded-xl"
                 style={{ 
                   backgroundColor: '#F4F4F4',
                   borderRadius: '12px'
