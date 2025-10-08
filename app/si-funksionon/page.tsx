@@ -7,7 +7,7 @@ import { Calendar, ArrowLeft, Play, ChevronDown, ChevronUp } from "lucide-react"
 import { Header } from "@/components/header"
 import { Footer } from "@/components/footer"
 import Image from "next/image"
-import { useState } from "react"
+import { useState, useEffect, useRef } from "react"
 
 const faqData = [
   {
@@ -79,10 +79,42 @@ const services = [
 
 export default function SiFunksiononPage() {
   const [openFAQ, setOpenFAQ] = useState<number | null>(null)
+  const [visibleCards, setVisibleCards] = useState<number[]>([])
+  const cardRefs = useRef<(HTMLDivElement | null)[]>([])
 
   const toggleFAQ = (id: number) => {
     setOpenFAQ(openFAQ === id ? null : id)
   }
+
+  // Intersection Observer for scroll animations
+  useEffect(() => {
+    const observer = new IntersectionObserver(
+      (entries) => {
+        entries.forEach((entry) => {
+          if (entry.isIntersecting) {
+            const cardIndex = cardRefs.current.indexOf(entry.target as HTMLDivElement)
+            if (cardIndex !== -1 && !visibleCards.includes(cardIndex)) {
+              setVisibleCards(prev => [...prev, cardIndex])
+            }
+          }
+        })
+      },
+      {
+        threshold: 0.1,
+        rootMargin: '0px 0px -50px 0px'
+      }
+    )
+
+    cardRefs.current.forEach((card) => {
+      if (card) observer.observe(card)
+    })
+
+    return () => {
+      cardRefs.current.forEach((card) => {
+        if (card) observer.unobserve(card)
+      })
+    }
+  }, [visibleCards])
 
   return (
     <div className="min-h-screen bg-background">
@@ -199,7 +231,12 @@ export default function SiFunksiononPage() {
           <div className="space-y-6">
             {/* First box - 100% width with video */}
             <div 
-              className="w-full px-2 py-4 sm:px-6 sm:py-8 md:px-8 md:py-10 lg:px-8 lg:py-10 xl:px-12 xl:py-16 2xl:px-14 2xl:py-18 rounded-2xl"
+              ref={(el) => (cardRefs.current[0] = el)}
+              className={`w-full px-2 py-4 sm:px-4 sm:py-6 md:px-6 md:py-8 lg:px-8 lg:py-10 xl:px-12 xl:py-16 2xl:px-14 2xl:py-18 rounded-2xl transition-all duration-1000 ease-out transform ${
+                visibleCards.includes(0) 
+                  ? 'translate-y-0 opacity-100' 
+                  : 'translate-y-8 opacity-0'
+              }`}
               style={{ 
                 backgroundColor: '#F4F4F4 ',
                 borderRadius: '12px'
@@ -235,7 +272,12 @@ export default function SiFunksiononPage() {
             <div className="grid md:grid-cols-2 gap-6">
               {/* Second box */}
               <div 
-  className="px-2 py-4 sm:px-6 sm:py-8 md:px-8 md:py-10 lg:px-8 lg:py-10 xl:px-12 xl:py-16 2xl:px-14 2xl:py-18 rounded-xl"
+  ref={(el) => (cardRefs.current[1] = el)}
+  className={`px-2 py-4 sm:px-4 sm:py-6 md:px-6 md:py-8 lg:px-8 lg:py-10 xl:px-12 xl:py-16 2xl:px-14 2xl:py-18 rounded-xl transition-all duration-1000 ease-out transform delay-200 ${
+    visibleCards.includes(1) 
+      ? 'translate-y-0 opacity-100' 
+      : 'translate-y-8 opacity-0'
+  }`}
   style={{ 
     backgroundColor: '#F4F4F4',
     borderRadius: '12px'
@@ -256,7 +298,12 @@ export default function SiFunksiononPage() {
 
               {/* Third box */}
               <div 
-                className="px-2 py-4 sm:px-6 sm:py-8 md:px-8 md:py-10 lg:px-8 lg:py-10 xl:px-12 xl:py-16 2xl:px-14 2xl:py-18 rounded-xl"
+                ref={(el) => (cardRefs.current[2] = el)}
+                className={`px-2 py-4 sm:px-4 sm:py-6 md:px-6 md:py-8 lg:px-8 lg:py-10 xl:px-12 xl:py-16 2xl:px-14 2xl:py-18 rounded-xl transition-all duration-1000 ease-out transform delay-400 ${
+                  visibleCards.includes(2) 
+                    ? 'translate-y-0 opacity-100' 
+                    : 'translate-y-8 opacity-0'
+                }`}
                 style={{ 
                   backgroundColor: '#F4F4F4',
                   borderRadius: '12px'
