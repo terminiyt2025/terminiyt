@@ -624,12 +624,16 @@ export default function HomePage() {
       {/* Modals */}
       {selectedBusiness && modalType && (
         <Dialog open={!!modalType} onOpenChange={() => setModalType(null)}>
-          <DialogContent className="max-w-[calc(100vw-30px)] md:max-w-2xl max-h-[80vh] overflow-y-auto mx-[15px] md:mx-0">
+          <DialogContent className="w-[95%] md:max-w-2xl max-h-[80vh] overflow-y-auto mx-auto">
             <DialogHeader>
               <DialogTitle className="text-xl font-bold">
-                {modalType === 'staff-sherbimet' && 'Staff & Shërbimet'}
-                {modalType === 'orari' && 'Orari i Punës'}
-                - {selectedBusiness.name}
+                <div className="block">
+                  {modalType === 'staff-sherbimet' && 'Staff & Shërbimet'}
+                  {modalType === 'orari' && 'Orari i Punës'}
+                </div>
+                <div className="block text-lg font-medium text-gray-600 mt-1">
+                  {selectedBusiness.name}
+                </div>
               </DialogTitle>
             </DialogHeader>
             

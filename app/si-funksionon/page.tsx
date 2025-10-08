@@ -92,7 +92,7 @@ export default function SiFunksiononPage() {
       {/* Hero Section */}
       <section className="py-20 md:py-32 px-4 bg-gradient-to-r  from-gray-800 to-teal-800 text-white">
         <div className="container mx-auto text-center">
-          <h1 className="text-4xl md:text-5xl font-heading font-bold mb-6 text-balance leading-tight">
+          <h1 className="text-2xl md:text-5xl font-heading font-bold mb-6 text-balance leading-tight">
           Platformë rezervimesh për<br className="hidden md:block" /> eksperienca të paharrueshme.          </h1>
           <p className="text-md md:text-xl mb-8 max-w-4xl mx-auto text-blue-100 text-balance">
           Menaxho termnimet me lehtësi, në mënyrë që të përqendrohesh tek ajo që ka më shumë rëndësi
@@ -117,7 +117,7 @@ export default function SiFunksiononPage() {
               {/* First set of services */}
               {services.map((service, index) => (
                 <div key={`first-${service.id}`} className="flex-shrink-0 px-3">
-                  <div className="relative w-160 h-80 rounded-2xl overflow-hidden transition-transform duration-300 cursor-pointer">
+                  <div className="relative md:w-160 w-136 h-64 md:h-80 rounded-2xl overflow-hidden transition-transform duration-300 cursor-pointer">
                     <Image
                       src={service.image}
                       alt={service.name}
