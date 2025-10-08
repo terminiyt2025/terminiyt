@@ -92,9 +92,9 @@ export default function SiFunksiononPage() {
       {/* Hero Section */}
       <section className="py-20 md:py-32 px-4 bg-gradient-to-r  from-gray-800 to-teal-800 text-white">
         <div className="container mx-auto text-center">
-          <h1 className="text-2xl md:text-5xl font-heading font-bold mb-6 text-balance leading-tight">
+          <h1 className="text-2xl md:text-5xl font-heading font-bold mb-3 text-balance leading-tight">
           Platformë rezervimesh për<br className="hidden md:block" /> eksperienca të paharrueshme.          </h1>
-          <p className="text-md md:text-xl mb-8 max-w-4xl mx-auto text-blue-100 text-balance">
+          <p className="text-sm md:text-xl mb-3 max-w-4xl mx-auto text-blue-100 text-balance">
           Menaxho termnimet me lehtësi, në mënyrë që të përqendrohesh tek ajo që ka më shumë rëndësi
            – ofrimi i një shërbimi të jashtëzakonshëm në çdo moment.
           </p>
@@ -117,7 +117,7 @@ export default function SiFunksiononPage() {
               {/* First set of services */}
               {services.map((service, index) => (
                 <div key={`first-${service.id}`} className="flex-shrink-0 px-3">
-                  <div className="relative md:w-160 w-136 h-64 md:h-80 rounded-2xl overflow-hidden transition-transform duration-300 cursor-pointer">
+                  <div className="relative md:w-160 w-80 h-40 md:h-80 rounded-2xl overflow-hidden transition-transform duration-300 cursor-pointer">
                     <Image
                       src={service.image}
                       alt={service.name}
@@ -199,24 +199,23 @@ export default function SiFunksiononPage() {
           <div className="space-y-6">
             {/* First box - 100% width with video */}
             <div 
-              className="w-full p-10 md:p-16 rounded-2xl mx-[15px] md:mx-0"
+              className="w-full p-6 md:p-16 rounded-2xl"
               style={{ 
                 backgroundColor: '#F4F4F4 ',
-                borderRadius: '50px'
+                borderRadius: '20px'
               }}
             >
               <div className="grid md:grid-cols-2 gap-8 items-center">
                 <div>
-                  <h3 className="text-3xl md:text-5xl font-heading font-bold mb-6 text-balance">
+                  <h3 className="text-3xl md:text-4xl lg:text-5xl font-heading font-bold mb-6 text-balance">
                     Termine Online
                   </h3>
-                  <p className="text-xl text-muted-foreground max-w-2xl mx-auto">
+                  <p className="text-sm md:text-xl text-muted-foreground max-w-2xl mx-auto">
                   Klientët mund të zgjedhin ditën dhe orën që i përshtatet më shumë, duke marrë parasysh orarin e punës së biznesit, pa nevojën për telefonata ose pritje në vend.                  </p>
                 </div>
                 <div className="relative">
                   <video 
                     className="w-full h-64 md:h-80 rounded-xl object-cover"
-                    controls
                     poster="/placeholder.jpg"
                     autoPlay
                     loop
@@ -233,16 +232,16 @@ export default function SiFunksiononPage() {
             <div className="grid md:grid-cols-2 gap-6">
               {/* Second box */}
               <div 
-  className="md:p-20 p-12 rounded-2xl mx-[15px] md:mx-0"
+  className="md:p-20 p-6 rounded-2xl"
   style={{ 
     backgroundColor: '#F4F4F4',
-    borderRadius: '50px'
+    borderRadius: '20px'
   }}
 >
-  <h3 className="text-3xl md:text-5xl font-heading font-bold mb-6 text-balance">
+  <h3 className="text-3xl md:text-4xl lg:text-5xl font-heading font-bold mb-6 text-balance">
     Shërbimet e Biznesit
   </h3>
-  <p className="text-xl text-muted-foreground max-w-2xl mx-auto">
+  <p className="text-sm md:text-xl text-muted-foreground max-w-2xl mx-auto">
   Biznesi mund të shtojë lehtësisht shërbimet e ndryshme, ndërsa klientët kanë mundësinë të zgjedhin atë që i përshtatet më mirë nevojave të tyre.  </p>
  <img 
   src="/sherbimet.png" 
@@ -254,16 +253,16 @@ export default function SiFunksiononPage() {
 
               {/* Third box */}
               <div 
-                className="md:p-20 p-12 rounded-2xl mx-[15px] md:mx-0"
+                className="md:p-20 p-6 rounded-2xl"
                 style={{ 
                   backgroundColor: '#F4F4F4',
-                  borderRadius: '50px'
+                  borderRadius: '20px'
                 }}
               >
-                <h3 className="text-3xl md:text-5xl font-heading font-bold mb-6 text-balance">
+                <h3 className="text-3xl md:text-4xl lg:text-5xl font-heading font-bold mb-6 text-balance">
                   Shto pjestarë e ekipit tuaj
                 </h3>
-                <p className="text-xl text-muted-foreground max-w-2xl mx-auto">
+                <p className="text-sm md:text-xl text-muted-foreground max-w-2xl mx-auto">
                 Menaxhoni ekipin tuaj dhe mbani ata të informuar me njoftime, duke siguruar që të gjithë të jenë të koordinuar. </p>
                 <div className="flex justify-center items-center">
   <img 
