@@ -469,7 +469,7 @@ export default function HomePage() {
 
           <div className="grid grid-cols-1 sm:grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-3 2xl:grid-cols-3 gap-8 lg:gap-12">
             {/* Step 1 */}
-            <div className="group relative flex">
+            <div className="group relative flex mx-[15px] md:mx-0">
               <div className="bg-white rounded-2xl p-8 shadow-lg hover:shadow-2xl transition-all duration-500 hover:-translate-y-2 border border-gray-100 flex flex-col w-full">
                 <div className="absolute -top-4 -left-4 w-8 h-8 bg-gradient-to-r from-gray-800 to-teal-800 rounded-full flex items-center justify-center text-white font-bold text-sm">
                   1
@@ -487,7 +487,7 @@ export default function HomePage() {
             </div>
 
             {/* Step 2 */}
-            <div className="group relative flex">
+            <div className="group relative flex mx-[15px] md:mx-0">
               <div className="bg-white rounded-2xl p-8 shadow-lg hover:shadow-2xl transition-all duration-500 hover:-translate-y-2 border border-gray-100 flex flex-col w-full">
                 <div className="absolute -top-4 -left-4 w-8 h-8 bg-gradient-to-r from-gray-800 to-teal-800 rounded-full flex items-center justify-center text-white font-bold text-sm">
                   2
@@ -505,7 +505,7 @@ export default function HomePage() {
             </div>
 
             {/* Step 3 */}
-            <div className="group relative flex">
+            <div className="group relative flex mx-[15px] md:mx-0">
               <div className="bg-white rounded-2xl p-8 shadow-lg hover:shadow-2xl transition-all duration-500 hover:-translate-y-2 border border-gray-100 flex flex-col w-full">
                 <div className="absolute -top-4 -left-4 w-8 h-8 bg-gradient-to-r from-gray-800 to-teal-800 rounded-full flex items-center justify-center text-white font-bold text-sm">
                   3
