@@ -144,14 +144,14 @@ export default function HomePage() {
       <Header transparent={true} />
 
       {/* Interactive Map Section - Full Width - First After Navbar */}
-      <section className="w-full bg-gradient-to-r  from-gray-800 to-teal-800 text-white py-10 pt-24 map-section">
+      <section className="w-full bg-gradient-to-r  from-gray-800 to-teal-800 text-white py-10 pt-18 md:pt-24 map-section">
         <div className="w-full">
           {/* Map Title and Slogan */}
           <div className="text-center mb-8">
-            <h2 className="text-2xl md:text-4xl font-heading font-bold text-foreground mb-3 text-white">
+            <h2 className="text-3xl md:text-4xl font-heading font-bold text-foreground mb-3 text-white text-balance">
             Gjej Shërbime Lokale sipas Interesit tënd
             </h2>
-            <p className="text-lg md:text-xl text-muted-foreground text-white">
+            <p className="text-md md:text-xl text-muted-foreground text-white">
               Zbuloni dhe rezervoni shërbime cilësore në afërsi
             </p>
           </div>
@@ -182,7 +182,84 @@ export default function HomePage() {
           <div className="flex flex-col lg:flex-row items-center justify-between gap-4">
                     {/* Category and City Selection */}
                     <div className="text-center lg:text-left">
-                      <div className="flex items-center gap-3 flex-wrap justify-center lg:justify-start">
+                      {/* Mobile Layout: Filtro sipas on own line, filters below */}
+                      <div className="flex flex-col items-center gap-3 lg:hidden">
+                        <p className="text-lg text-gray-700">
+                          Filtro sipas:
+                        </p>
+                        <div className="flex items-center gap-4 justify-center">
+                          {/* Category Filter */}
+                          <div className="flex items-center gap-2">
+                            <span className="text-sm text-gray-600">Kategorisë:</span>
+                            {selectedCategory !== "all" ? (
+                              <div className="flex items-center gap-2">
+                                <span className="font-semibold text-teal-600 bg-teal-50 px-3 py-1 rounded-full">
+                                  {categories.find(cat => String(cat.id) === selectedCategory)?.name || "Unknown"}
+                                </span>
+                                <Button
+                                  variant="ghost"
+                                  size="sm"
+                                  onClick={() => setSelectedCategory("all")}
+                                  className="h-6 w-6 p-0 hover:bg-gray-200"
+                                >
+                                  <X className="w-4 h-4 text-gray-500" />
+                                </Button>
+                              </div>
+                            ) : (
+                              <Select value={selectedCategory} onValueChange={setSelectedCategory}>
+                                <SelectTrigger className="w-40">
+                                  <SelectValue placeholder="Kategoria" />
+                                </SelectTrigger>
+                                <SelectContent>
+                                  <SelectItem value="all" className="hover:bg-gray-100 focus:bg-gray-100 hover:text-black focus:text-black">Të Gjitha</SelectItem>
+                                  {categories.map((category) => (
+                                    <SelectItem key={category.id} value={String(category.id)} className="hover:bg-gray-100 focus:bg-gray-100 hover:text-black focus:text-black">
+                                      {category.name}
+                                    </SelectItem>
+                                  ))}
+                                </SelectContent>
+                              </Select>
+                            )}
+                          </div>
+
+                          {/* City Filter */}
+                          <div className="flex items-center gap-2">
+                            <span className="text-sm text-gray-600">Qytetit:</span>
+                            {selectedCity !== "all" ? (
+                              <div className="flex items-center gap-2">
+                                <span className="font-semibold text-teal-600 bg-teal-50 px-3 py-1 rounded-full">
+                                  {selectedCity}
+                                </span>
+                                <Button
+                                  variant="ghost"
+                                  size="sm"
+                                  onClick={() => setSelectedCity("all")}
+                                  className="h-6 w-6 p-0 hover:bg-gray-200"
+                                >
+                                  <X className="w-4 h-4 text-gray-500" />
+                                </Button>
+                              </div>
+                            ) : (
+                              <Select value={selectedCity} onValueChange={setSelectedCity}>
+                                <SelectTrigger className="w-32">
+                                  <SelectValue placeholder="Qyteti" />
+                                </SelectTrigger>
+                                <SelectContent>
+                                  <SelectItem value="all" className="hover:bg-gray-100 focus:bg-gray-100 hover:text-black focus:text-black">Të Gjitha</SelectItem>
+                                  {cities.map((city) => (
+                                    <SelectItem key={city} value={city} className="hover:bg-gray-100 focus:bg-gray-100 hover:text-black focus:text-black">
+                                      {city}
+                                    </SelectItem>
+                                  ))}
+                                </SelectContent>
+                              </Select>
+                            )}
+                          </div>
+                        </div>
+                      </div>
+
+                      {/* Desktop Layout: Original horizontal layout */}
+                      <div className="hidden lg:flex items-center gap-3 justify-start">
                         <p className="text-lg text-gray-700">
                           Filtro sipas:
                         </p>
@@ -535,7 +612,7 @@ export default function HomePage() {
       {/* Modals */}
       {selectedBusiness && modalType && (
         <Dialog open={!!modalType} onOpenChange={() => setModalType(null)}>
-          <DialogContent className="max-w-2xl max-h-[80vh] overflow-y-auto">
+          <DialogContent className="max-w-2xl max-h-[80vh] overflow-y-auto mx-[15px] md:mx-0">
             <DialogHeader>
               <DialogTitle className="text-xl font-bold">
                 {modalType === 'staff-sherbimet' && 'Staff & Shërbimet'}

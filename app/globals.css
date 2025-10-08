@@ -158,6 +158,13 @@ video::-webkit-media-controls-enclosure {
 }
 
 /* Custom padding for different screen sizes - Mobile First Approach */
+
+/* Base mobile styles (0px and up) */
+.map-container {
+  margin-left: 15px !important;
+  margin-right: 15px !important;
+}
+
 @media (min-width: 640px) {
   /* sm and up: 15px left and right */
   .container {
