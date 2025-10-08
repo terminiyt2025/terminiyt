@@ -192,6 +192,12 @@ video::-webkit-media-controls-enclosure {
     padding-left: 25px !important;
     padding-right: 25px !important;
   }
+  
+  /* Map section: 100% width minus 25px padding */
+  .map-section {
+    padding-left: 25px !important;
+    padding-right: 25px !important;
+  }
 }
 
 @media (min-width: 1024px) and (max-width: 1279px) {

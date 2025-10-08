@@ -144,8 +144,8 @@ export default function HomePage() {
       <Header transparent={true} />
 
       {/* Interactive Map Section - Full Width - First After Navbar */}
-      <section className="w-full bg-gradient-to-r  from-gray-800 to-teal-800 text-white py-10 pt-24">
-        <div className="w-full container">
+      <section className="w-full bg-gradient-to-r  from-gray-800 to-teal-800 text-white py-10 pt-24 map-section">
+        <div className="w-full">
           {/* Map Title and Slogan */}
           <div className="text-center mb-8">
             <h2 className="text-2xl md:text-4xl font-heading font-bold text-foreground mb-3 text-white">
@@ -296,7 +296,7 @@ export default function HomePage() {
             </div>
                   ) : (
                     <>
-                      <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6">
+                      <div className="grid grid-cols-1 sm:grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-3 2xl:grid-cols-4 gap-6">
                         {(showAllCards ? filteredProviders : filteredProviders.slice(0, 12)).map((provider) => (
               <Card key={provider.id} className="group hover:shadow-2xl transition-all duration-300 hover:-translate-y-1 bg-white border-0 shadow-lg overflow-hidden py-0 px-0">
                 <div className="flex flex-col">
@@ -467,7 +467,7 @@ export default function HomePage() {
             </p>
           </div>
 
-          <div className="grid md:grid-cols-3 gap-8 lg:gap-12 px-[15px] md:px-0">
+          <div className="grid grid-cols-1 sm:grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-3 2xl:grid-cols-3 gap-8 lg:gap-12">
             {/* Step 1 */}
             <div className="group relative flex">
               <div className="bg-white rounded-2xl p-8 shadow-lg hover:shadow-2xl transition-all duration-500 hover:-translate-y-2 border border-gray-100 flex flex-col w-full">
