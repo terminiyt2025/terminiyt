@@ -157,20 +157,91 @@ video::-webkit-media-controls-enclosure {
   animation: scroll 40s linear infinite;
 }
 
-/* Custom breakpoint for 1550px to 1650px screens */
-@media (min-width: 1550px) and (max-width: 1650px) {
+/* Custom padding for different screen sizes */
+@media (min-width: 640px) and (max-width: 767px) {
+  /* sm: 15px left and right */
+  .container {
+    padding-left: 15px !important;
+    padding-right: 15px !important;
+  }
+  
+  .main-content {
+    padding-left: 15px !important;
+    padding-right: 15px !important;
+  }
+  
+  section .container {
+    padding-left: 15px !important;
+    padding-right: 15px !important;
+  }
+}
+
+@media (min-width: 768px) and (max-width: 1023px) {
+  /* md: 25px left and right */
+  .container {
+    padding-left: 25px !important;
+    padding-right: 25px !important;
+  }
+  
+  .main-content {
+    padding-left: 25px !important;
+    padding-right: 25px !important;
+  }
+  
+  section .container {
+    padding-left: 25px !important;
+    padding-right: 25px !important;
+  }
+}
+
+@media (min-width: 1024px) and (max-width: 1279px) {
+  /* lg: 25px left and right */
+  .container {
+    padding-left: 25px !important;
+    padding-right: 25px !important;
+  }
+  
+  .main-content {
+    padding-left: 25px !important;
+    padding-right: 25px !important;
+  }
+  
+  section .container {
+    padding-left: 25px !important;
+    padding-right: 25px !important;
+  }
+}
+
+@media (min-width: 1280px) and (max-width: 1535px) {
+  /* xl: 50px left and right */
+  .container {
+    padding-left: 50px !important;
+    padding-right: 50px !important;
+  }
+  
+  .main-content {
+    padding-left: 50px !important;
+    padding-right: 50px !important;
+  }
+  
+  section .container {
+    padding-left: 50px !important;
+    padding-right: 50px !important;
+  }
+}
+
+@media (min-width: 1536px) {
+  /* 2xl: 100px left and right */
   .container {
     padding-left: 100px !important;
     padding-right: 100px !important;
   }
   
-  /* Apply to main content areas */
   .main-content {
     padding-left: 100px !important;
     padding-right: 100px !important;
   }
   
-  /* Apply to sections with container classes */
   section .container {
     padding-left: 100px !important;
     padding-right: 100px !important;
