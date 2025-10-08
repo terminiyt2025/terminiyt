@@ -363,7 +363,7 @@ export function Header({ transparent = false, className = "" }: HeaderProps) {
                   size="sm"
                   className="p-2 hover:bg-transparent flex items-start justify-center"
                 >
-                  <Menu className="h-13 w-13 text-white" />
+                  <Menu className="h-14 w-14 text-white" />
                 </Button>
               </DropdownMenuTrigger>
               <DropdownMenuContent className="w-56" align="end">

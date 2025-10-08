@@ -28,16 +28,14 @@ export default function LoginPage() {
               <span className="w-2 h-2 bg-white rounded-full animate-pulse"></span>
               Mirë se vini përsëri
             </div>
-            <h1 className="text-3xl md:text-4xl font-heading font-bold text-white mb-4">
-              Hyr në Llogari
-            </h1>
+           
             
           </div>
 
           {/* Login Form Card */}
           <Card className="bg-[#f4f4f4] border-0 shadow-2xl backdrop-blur-sm max-w-lg mx-auto">
             <CardHeader className="text-center pb-4 md:pb-6">
-              <CardTitle className="text-3xl md:text-3xl font-heading font-bold bg-gradient-to-r from-gray-800 to-teal-800 bg-clip-text text-transparent">
+              <CardTitle className="text-3xl md:text-3xl font-heading font-extrabold bg-gradient-to-r from-gray-800 to-teal-800 bg-clip-text text-transparent">
                 Identifikohu
               </CardTitle>
               <CardDescription className="text-gray-600 text-sm md:text-lg">
@@ -61,7 +59,9 @@ export default function LoginPage() {
             {/* Business registration link */}
             <div className="text-center">
               <p className="text-white/80 text-sm md:text-base">
-                Dëshironi të listoni biznesin tuaj?{" "}
+                Dëshironi të listoni biznesin tuaj?
+              </p>
+              <p className="text-center mt-2">
                 <Link 
                   href="/regjistro-biznesin" 
                   className="text-white hover:text-white/80 font-semibold underline underline-offset-4 transition-colors"

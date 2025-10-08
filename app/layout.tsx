@@ -3,6 +3,7 @@ import type { Metadata } from "next"
 import { Space_Grotesk, DM_Sans } from "next/font/google"
 import { Analytics } from "@vercel/analytics/next"
 import { Suspense } from "react"
+import { Toaster } from "@/components/ui/toaster"
 import "./globals.css"
 
 const spaceGrotesk = Space_Grotesk({
@@ -27,15 +28,15 @@ export const metadata: Metadata = {
     apple: "/fav-icon.png",
   },
   openGraph: {
-    title: "ServiceConnect - Find Local Service Providers",
-    description: "Connect with local barbers, beauty salons, doctors and more. Book appointments easily.",
+    title: "TerminiYt.com",
+    description: "Rezervo shërbimet tuaja lokale në Kosovë",
     type: "website",
     locale: "en_US",
   },
   twitter: {
     card: "summary_large_image",
-    title: "ServiceConnect - Find Local Service Providers",
-    description: "Connect with local barbers, beauty salons, doctors and more. Book appointments easily.",
+    title: "TerminiYt.com",
+    description: "Rezervo shërbimet tuaja lokale në Kosovë",
   },
 }
 
@@ -48,6 +49,7 @@ export default function RootLayout({
     <html lang="en">
       <body className={`font-sans ${dmSans.variable} ${spaceGrotesk.variable}`} suppressHydrationWarning={true}>
         <Suspense fallback={null}>{children}</Suspense>
+        <Toaster />
         <Analytics />
       </body>
     </html>

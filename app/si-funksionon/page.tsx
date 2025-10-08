@@ -219,10 +219,10 @@ export default function SiFunksiononPage() {
       <section className="py-16 px-[15px] md:px-4">
         <div className="container mx-auto">
           <div className="text-left md:text-center mb-12">
-            <h2 className="text-4xl md:text-5xl font-heading font-bold md:mb-6 mb-3 text-balance">
+            <h2 className="text-4xl md:text-5xl lg:text-4xl font-heading font-bold md:mb-6 mb-3 text-balance">
               Pse ta përdorni <span className="bg-gradient-to-r from-gray-800 to-teal-800 bg-clip-text text-transparent">TerminiYt.com</span>?
             </h2>
-            <p className="text-xl text-muted-foreground max-w-2xl mx-auto">
+            <p className="text-xl md:text-lg lg:text-lg text-muted-foreground max-w-2xl mx-auto">
               Gjetja dhe rezervimi i shërbimeve lokale nuk ka qenë kurrë më e lehtë
             </p>
           </div>
@@ -232,7 +232,7 @@ export default function SiFunksiononPage() {
             {/* First box - 100% width with video */}
             <div 
               ref={(el) => (cardRefs.current[0] = el)}
-              className={`w-full px-2 py-4 sm:px-4 sm:py-6 md:px-6 md:py-8 lg:px-8 lg:py-10 xl:px-12 xl:py-16 2xl:px-14 2xl:py-18 rounded-2xl transition-all duration-1000 ease-out transform ${
+              className={`w-full px-6 py-8 sm:px-6 sm:py-8 md:px-8 md:py-10 lg:px-8 lg:py-10 xl:px-12 xl:py-16 2xl:px-14 2xl:py-18 rounded-2xl transition-all duration-1500 ease-out transform ${
                 visibleCards.includes(0) 
                   ? 'translate-y-0 opacity-100' 
                   : 'translate-y-8 opacity-0'
@@ -273,7 +273,7 @@ export default function SiFunksiononPage() {
               {/* Second box */}
               <div 
   ref={(el) => (cardRefs.current[1] = el)}
-  className={`px-2 py-4 sm:px-4 sm:py-6 md:px-6 md:py-8 lg:px-8 lg:py-10 xl:px-12 xl:py-16 2xl:px-14 2xl:py-18 rounded-xl transition-all duration-1000 ease-out transform delay-200 ${
+  className={`px-6 py-8 sm:px-6 sm:py-8 md:px-8 md:py-10 lg:px-8 lg:py-10 xl:px-12 xl:py-16 2xl:px-14 2xl:py-18 rounded-xl transition-all duration-1500 ease-out transform delay-200 ${
     visibleCards.includes(1) 
       ? 'translate-y-0 opacity-100' 
       : 'translate-y-8 opacity-0'
@@ -299,7 +299,7 @@ export default function SiFunksiononPage() {
               {/* Third box */}
               <div 
                 ref={(el) => (cardRefs.current[2] = el)}
-                className={`px-2 py-4 sm:px-4 sm:py-6 md:px-6 md:py-8 lg:px-8 lg:py-10 xl:px-12 xl:py-16 2xl:px-14 2xl:py-18 rounded-xl transition-all duration-1000 ease-out transform delay-400 ${
+                className={`px-6 py-8 sm:px-6 sm:py-8 md:px-8 md:py-10 lg:px-8 lg:py-10 xl:px-12 xl:py-16 2xl:px-14 2xl:py-18 rounded-xl transition-all duration-1500 ease-out transform delay-400 ${
                   visibleCards.includes(2) 
                     ? 'translate-y-0 opacity-100' 
                     : 'translate-y-8 opacity-0'

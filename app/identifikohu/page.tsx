@@ -61,7 +61,9 @@ export default function LoginPage() {
             {/* Business registration link */}
             <div className="text-center">
               <p className="text-white/80 text-sm md:text-base">
-                Dëshironi të listoni biznesin tuaj?{" "}
+                Dëshironi të listoni biznesin tuaj?
+              </p>
+              <p className="text-center mt-2">
                 <Link 
                   href="/regjistro-biznesin" 
                   className="text-white hover:text-white/80 font-semibold underline underline-offset-4 transition-colors"
