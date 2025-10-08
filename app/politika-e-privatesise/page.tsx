@@ -134,7 +134,7 @@ export default function PrivacyPolicyPage() {
             </CardHeader>
             <CardContent className="space-y-4">
               <p className="text-gray-700">
-                Ne nuk shesim, nuk marrëm me qira dhe nuk ndajmë informacionin tuaj personal me palë të treta, 
+                Ne nuk shesim dhe nuk ndajmë informacionin tuaj personal me palë të treta, 
                 përveç në rastet e mëposhtme:
               </p>
               <ul className="list-disc list-inside space-y-2 text-gray-700">

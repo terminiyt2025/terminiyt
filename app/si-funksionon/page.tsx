@@ -256,7 +256,7 @@ export default function SiFunksiononPage() {
 
               {/* Third box */}
               <div 
-                className="md:px-6 md:py-8 sm:px-4 sm:py-6 lg:px-8 lg:py-10 px-12 py-15  rounded-xl"
+                className="md:px-6 md:py-8 sm:px-4 sm:py-6 lg:px-8 lg:py-10 xl:px-12 xl:py-16 2xl:px-14 2xl:py-18 rounded-xl"
                 style={{ 
                   backgroundColor: '#F4F4F4',
                   borderRadius: '12px'
