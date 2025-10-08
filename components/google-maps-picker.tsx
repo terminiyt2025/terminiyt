@@ -35,13 +35,7 @@ export function GoogleMapsPicker({
     address: string
     latitude: number
     longitude: number
-  } | null>(
-    initialLatitude && initialLongitude ? {
-      address: initialAddress,
-      latitude: initialLatitude,
-      longitude: initialLongitude
-    } : null
-  )
+  } | null>(null)
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState<string | null>(null)
   const [retryKey, setRetryKey] = useState(0)
