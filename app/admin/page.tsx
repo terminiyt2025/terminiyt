@@ -83,7 +83,8 @@ export default function AdminDashboard() {
   const [filteredBusinesses, setFilteredBusinesses] = useState<Business[]>([])
   const [searchTerm, setSearchTerm] = useState("")
   const [expandedCard, setExpandedCard] = useState<number | string | null>(null)
-  const [debugInfo, setDebugInfo] = useState<string>('')
+  const [showBusinessModal, setShowBusinessModal] = useState(false)
+  const [selectedBusiness, setSelectedBusiness] = useState<Business | null>(null)
   const [editingBusiness, setEditingBusiness] = useState<number | null>(null)
   const [editFormData, setEditFormData] = useState<any>({})
   const [categories, setCategories] = useState<any[]>([])
@@ -456,32 +457,11 @@ export default function AdminDashboard() {
   }
 
   const handleViewBusiness = (business: Business) => {
-    // Ultra-simple approach - just toggle the state directly
-    try {
-      setDebugInfo(`Simple click: ${business?.name || 'Unknown'}`)
-      
-      if (!business) {
-        setDebugInfo('No business data')
-        return
-      }
-      
-      const businessId = business.id || business.name
-      const isCurrentlyExpanded = expandedCard === businessId
-      
-      // Simple toggle - no complex logic
-      if (isCurrentlyExpanded) {
-        setExpandedCard(null)
-        setDebugInfo('Collapsed')
-      } else {
-        setExpandedCard(businessId)
-        setDebugInfo('Expanded')
-      }
-      
-    } catch (error) {
-      setDebugInfo(`Simple Error: ${error.message}`)
-      // Just reset to null on any error
-      setExpandedCard(null)
-    }
+    if (!business) return
+    
+    // Instead of expanding the card, open a simple modal
+    setSelectedBusiness(business)
+    setShowBusinessModal(true)
   }
 
   const handleEditBusiness = (business: Business) => {
@@ -963,14 +943,6 @@ export default function AdminDashboard() {
             </div>
           </div>
 
-          {/* Debug Panel - Temporary */}
-          {debugInfo && (
-            <div className="mb-4 p-3 bg-yellow-100 border border-yellow-400 rounded-lg">
-              <p className="text-sm text-yellow-800 font-mono">
-                Debug: {debugInfo}
-              </p>
-            </div>
-          )}
 
         {/* Stats Cards */}
         <div className="grid grid-cols-2 md:grid-cols-2 lg:grid-cols-4 xl:grid-cols-4 2xl:grid-cols-4 gap-4 mb-6">
@@ -3376,6 +3348,51 @@ export default function AdminDashboard() {
                 </div>
               )
             })()}
+          </div>
+        </div>
+      )}
+
+      {/* Simple Business Modal */}
+      {showBusinessModal && selectedBusiness && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
+          <div className="bg-white rounded-lg max-w-2xl w-full max-h-[80vh] overflow-y-auto">
+            <div className="p-6">
+              <div className="flex justify-between items-center mb-4">
+                <h2 className="text-xl font-bold">{selectedBusiness.name}</h2>
+                <button
+                  onClick={() => {
+                    setShowBusinessModal(false)
+                    setSelectedBusiness(null)
+                  }}
+                  className="text-gray-500 hover:text-gray-700"
+                >
+                  ✕
+                </button>
+              </div>
+              
+              <div className="space-y-4">
+                <div>
+                  <strong>Email:</strong> {selectedBusiness.account_email}
+                </div>
+                <div>
+                  <strong>Phone:</strong> {selectedBusiness.phone}
+                </div>
+                <div>
+                  <strong>Address:</strong> {selectedBusiness.address}
+                </div>
+                <div>
+                  <strong>City:</strong> {selectedBusiness.city}
+                </div>
+                <div>
+                  <strong>Owner:</strong> {selectedBusiness.owner_name}
+                </div>
+                {selectedBusiness.description && (
+                  <div>
+                    <strong>Description:</strong> {selectedBusiness.description}
+                  </div>
+                )}
+              </div>
+            </div>
           </div>
         </div>
       )}
