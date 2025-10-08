@@ -917,7 +917,7 @@ export default function AdminDashboard() {
   }
 
   if (isLoading) {
-  return (
+    return (
       <div className="min-h-screen bg-gradient-to-br from-gray-800 to-teal-800">
         <Header transparent={true} />
         <div className="container mx-auto px-4 py-32">
@@ -929,8 +929,8 @@ export default function AdminDashboard() {
           </div>
         </div>
       </div>
-  )
-}
+    )
+  }
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-gray-800 to-teal-800">
@@ -1766,6 +1766,7 @@ export default function AdminDashboard() {
                         </div>
                       </div>
                     ) : (
+                      <>
                         {editingBusiness === business.id ? (
                       <div>
                             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
@@ -3047,6 +3048,7 @@ export default function AdminDashboard() {
                         </div>
                         </>
                         )}
+                      </>
                     )}
                 </CardContent>
                     ) : (
