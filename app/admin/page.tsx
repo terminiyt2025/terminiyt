@@ -1,24 +1,6 @@
 "use client"
 
 import { useState, useEffect } from "react"
-
-// Mobile detection hook
-const useIsMobile = () => {
-  const [isMobile, setIsMobile] = useState(false)
-  
-  useEffect(() => {
-    const checkMobile = () => {
-      setIsMobile(window.innerWidth < 768)
-    }
-    
-    checkMobile()
-    window.addEventListener('resize', checkMobile)
-    
-    return () => window.removeEventListener('resize', checkMobile)
-  }, [])
-  
-  return isMobile
-}
 import { useRouter } from "next/navigation"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
@@ -94,7 +76,6 @@ interface Business {
 }
 
 export default function AdminDashboard() {
-  const isMobile = useIsMobile()
   const [isAuthenticated, setIsAuthenticated] = useState(false)
   const [isLoading, setIsLoading] = useState(true)
   const [admin, setAdmin] = useState<any>(null)
@@ -459,13 +440,7 @@ export default function AdminDashboard() {
   }
 
   const handleViewBusiness = (business: Business) => {
-    try {
-      setExpandedCard(expandedCard === business.id ? null : business.id)
-    } catch (error) {
-      console.error('Error expanding business card:', error)
-      // Fallback: just close any expanded card
-      setExpandedCard(null)
-    }
+    setExpandedCard(expandedCard === business.id ? null : business.id)
   }
 
   const handleEditBusiness = (business: Business) => {
@@ -917,7 +892,7 @@ export default function AdminDashboard() {
   }
 
   if (isLoading) {
-    return (
+  return (
       <div className="min-h-screen bg-gradient-to-br from-gray-800 to-teal-800">
         <Header transparent={true} />
         <div className="container mx-auto px-4 py-32">
@@ -929,8 +904,8 @@ export default function AdminDashboard() {
           </div>
         </div>
       </div>
-    )
-  }
+  )
+}
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-gray-800 to-teal-800">
@@ -1661,38 +1636,29 @@ export default function AdminDashboard() {
                                 <Button 
                                   size="sm" 
                                   variant="ghost" 
-                                  className="bg-gradient-to-r from-red-600 to-red-700 hover:from-red-500 hover:to-red-600 text-white h-8 w-8 p-0 font-medium shadow-md transition-all duration-300 group"
+                                  className="bg-gradient-to-r from-red-600 to-red-700 hover:from-red-500 hover:to-red-600 text-white h-8 w-8 p-0 font-medium shadow-md transition-all duration-300"
                                   onClick={() => confirmDelete(business.id)}
                                   title="Fshi biznesin"
                                 >
                                   <Trash2 className="w-4 h-4" />
-                                  <span className="absolute -top-8 left-1/2 transform -translate-x-1/2 bg-gray-800 text-white text-xs px-2 py-1 rounded opacity-0 group-hover:opacity-100 transition-opacity duration-300 whitespace-nowrap">
-                                    Fshi
-                                  </span>
                                 </Button>
                                 <Button 
                                   size="sm" 
                                   variant="ghost" 
-                                  className="bg-gradient-to-r from-gray-800 to-teal-800 hover:from-gray-700 hover:to-teal-700 text-white h-8 w-8 p-0 font-medium shadow-md transition-all duration-300 group"
+                                  className="bg-gradient-to-r from-gray-800 to-teal-800 hover:from-gray-700 hover:to-teal-700 text-white h-8 w-8 p-0 font-medium shadow-md transition-all duration-300"
                                   onClick={() => handleEditBusiness(business)}
                                   title="Modifiko"
                                 >
                                   <Edit className="w-4 h-4" />
-                                  <span className="absolute -top-8 left-1/2 transform -translate-x-1/2 bg-gray-800 text-white text-xs px-2 py-1 rounded opacity-0 group-hover:opacity-100 transition-opacity duration-300 whitespace-nowrap">
-                                    Modifiko
-                                  </span>
                                 </Button>
                                 <Button 
                                   size="sm" 
                                   variant="ghost" 
-                                  className="bg-gradient-to-r from-gray-600 to-gray-700 hover:from-gray-500 hover:to-gray-600 text-white h-8 w-8 p-0 font-medium shadow-md transition-all duration-300 group"
+                                  className="bg-gradient-to-r from-gray-600 to-gray-700 hover:from-gray-500 hover:to-gray-600 text-white h-8 w-8 p-0 font-medium shadow-md transition-all duration-300"
                                   onClick={() => handleViewBusiness(business)}
                                   title="Mbyll"
                                 >
                                   <X className="w-4 h-4" />
-                                  <span className="absolute -top-8 left-1/2 transform -translate-x-1/2 bg-gray-800 text-white text-xs px-2 py-1 rounded opacity-0 group-hover:opacity-100 transition-opacity duration-300 whitespace-nowrap">
-                                    Mbyll
-                                  </span>
                                 </Button>
                               </>
                             ) : (
@@ -1700,14 +1666,11 @@ export default function AdminDashboard() {
                               <Button 
                                 size="sm" 
                                 variant="ghost" 
-                                className="bg-gradient-to-r from-blue-600 to-blue-700 hover:from-blue-500 hover:to-blue-600 text-white h-8 w-8 p-0 font-medium shadow-md transition-all duration-300 group"
+                                className="bg-gradient-to-r from-blue-600 to-blue-700 hover:from-blue-500 hover:to-blue-600 text-white h-8 w-8 p-0 font-medium shadow-md transition-all duration-300"
                                 onClick={() => handleViewBusiness(business)}
                                 title="Shiko"
                               >
                                 <Eye className="w-4 h-4" />
-                                <span className="absolute -top-8 left-1/2 transform -translate-x-1/2 bg-gray-800 text-white text-xs px-2 py-1 rounded opacity-0 group-hover:opacity-100 transition-opacity duration-300 whitespace-nowrap">
-                                  Shiko
-                                </span>
                               </Button>
                             )}
                           </div>
@@ -1717,56 +1680,6 @@ export default function AdminDashboard() {
                     {expandedCard === business.id ? (
                       // Expanded View - Full Details
                   <CardContent className="space-y-4">
-                    {isMobile ? (
-                      // Simplified mobile view
-                      <div className="space-y-4">
-                        <div className="bg-white rounded-lg p-4 border">
-                          <h4 className="font-semibold text-gray-800 mb-3">Informacione Biznesi</h4>
-                          <div className="space-y-2 text-sm">
-                            <div><strong>Emri:</strong> {business.name}</div>
-                            <div><strong>Pronari:</strong> {business.owner_name}</div>
-                            <div><strong>Email:</strong> {business.account_email}</div>
-                            <div><strong>Telefon:</strong> {business.phone}</div>
-                            <div><strong>Qyteti:</strong> {business.city}</div>
-                            <div><strong>Adresa:</strong> {business.address}</div>
-                            <div><strong>Status:</strong> 
-                              <span className={`ml-2 px-2 py-1 rounded text-xs ${
-                                business.is_active ? 'bg-green-100 text-green-800' : 'bg-red-100 text-red-800'
-                              }`}>
-                                {business.is_active ? 'Aktiv' : 'Jo Aktiv'}
-                              </span>
-                            </div>
-                            <div><strong>Verifikuar:</strong> 
-                              <span className={`ml-2 px-2 py-1 rounded text-xs ${
-                                business.is_verified ? 'bg-blue-100 text-blue-800' : 'bg-gray-100 text-gray-800'
-                              }`}>
-                                {business.is_verified ? 'Po' : 'Jo'}
-                              </span>
-                            </div>
-                          </div>
-                        </div>
-                        <div className="flex gap-2">
-                          <Button
-                            size="sm"
-                            onClick={() => handleEditBusiness(business)}
-                            className="flex-1 bg-gradient-to-r from-gray-800 to-teal-800 hover:from-gray-700 hover:to-teal-700 text-white"
-                          >
-                            <Edit className="w-4 h-4 mr-2" />
-                            Modifiko
-                          </Button>
-                          <Button
-                            size="sm"
-                            variant="outline"
-                            onClick={() => handleViewBusinessReservations(business)}
-                            className="flex-1"
-                          >
-                            <Eye className="w-4 h-4 mr-2" />
-                            Rezervimet
-                          </Button>
-                        </div>
-                      </div>
-                    ) : (
-                      <>
                         {editingBusiness === business.id ? (
                       <div>
                             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
@@ -2734,23 +2647,17 @@ export default function AdminDashboard() {
                               <div className="flex space-x-2 justify-end">
                                 <Button 
                                   onClick={() => handleEditBusiness(business)}
-                                  className="bg-gradient-to-r from-gray-800 to-teal-800 hover:from-gray-700 hover:to-teal-700 text-white h-8 w-8 p-0 font-medium shadow-md transition-all duration-300 group"
+                                  className="bg-gradient-to-r from-gray-800 to-teal-800 hover:from-gray-700 hover:to-teal-700 text-white h-8 w-8 p-0 font-medium shadow-md transition-all duration-300"
                                   title="Ruaj"
                                 >
                                   <Save className="w-4 h-4" />
-                                  <span className="absolute -top-8 left-1/2 transform -translate-x-1/2 bg-gray-800 text-white text-xs px-2 py-1 rounded opacity-0 group-hover:opacity-100 transition-opacity duration-300 whitespace-nowrap">
-                                    Ruaj
-                                  </span>
                                 </Button>
                                 <Button 
                                   onClick={handleCancelEdit}
-                                  className="bg-gradient-to-r from-gray-600 to-gray-700 hover:from-gray-500 hover:to-gray-600 text-white h-8 w-8 p-0 font-medium shadow-md transition-all duration-300 group"
+                                  className="bg-gradient-to-r from-gray-600 to-gray-700 hover:from-gray-500 hover:to-gray-600 text-white h-8 w-8 p-0 font-medium shadow-md transition-all duration-300"
                                   title="Anulo"
                                 >
                                   <X className="w-4 h-4" />
-                                  <span className="absolute -top-8 left-1/2 transform -translate-x-1/2 bg-gray-800 text-white text-xs px-2 py-1 rounded opacity-0 group-hover:opacity-100 transition-opacity duration-300 whitespace-nowrap">
-                                    Anulo
-                                  </span>
                                 </Button>
                     </div>
                             </div>
@@ -3048,8 +2955,6 @@ export default function AdminDashboard() {
                         </div>
                         </>
                         )}
-                      </>
-                    )}
                 </CardContent>
                     ) : (
                       // Compact View
