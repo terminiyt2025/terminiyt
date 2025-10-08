@@ -207,12 +207,18 @@ export default function HomePage() {
                               </div>
                             ) : (
                               <Select value={selectedCategory} onValueChange={setSelectedCategory}>
-                                <SelectTrigger className="w-40">
+                                <SelectTrigger className="w-28 md:w-40">
                                   <SelectValue placeholder="Kategoria" />
                                 </SelectTrigger>
                                 <SelectContent>
                                   <SelectItem value="all" className="hover:bg-gray-100 focus:bg-gray-100 hover:text-black focus:text-black">Të Gjitha</SelectItem>
-                                  {categories.map((category) => (
+                                  {categories
+                                    .sort((a, b) => {
+                                      if (a.name === "Të tjera") return 1;
+                                      if (b.name === "Të tjera") return -1;
+                                      return a.name.localeCompare(b.name);
+                                    })
+                                    .map((category) => (
                                     <SelectItem key={category.id} value={String(category.id)} className="hover:bg-gray-100 focus:bg-gray-100 hover:text-black focus:text-black">
                                       {category.name}
                                     </SelectItem>
@@ -241,7 +247,7 @@ export default function HomePage() {
                               </div>
                             ) : (
                               <Select value={selectedCity} onValueChange={setSelectedCity}>
-                                <SelectTrigger className="w-32">
+                                <SelectTrigger className="w-24 md:w-32">
                                   <SelectValue placeholder="Qyteti" />
                                 </SelectTrigger>
                                 <SelectContent>
@@ -288,11 +294,17 @@ export default function HomePage() {
                               </SelectTrigger>
                               <SelectContent>
                                 <SelectItem value="all" className="hover:bg-gray-100 focus:bg-gray-100 hover:text-black focus:text-black">Të Gjitha</SelectItem>
-                                {categories.map((category) => (
-                                  <SelectItem key={category.id} value={String(category.id)} className="hover:bg-gray-100 focus:bg-gray-100 hover:text-black focus:text-black">
-                                    {category.name}
-                                  </SelectItem>
-                                ))}
+                                {categories
+                                  .sort((a, b) => {
+                                    if (a.name === "Të tjera") return 1;
+                                    if (b.name === "Të tjera") return -1;
+                                    return a.name.localeCompare(b.name);
+                                  })
+                                  .map((category) => (
+                                    <SelectItem key={category.id} value={String(category.id)} className="hover:bg-gray-100 focus:bg-gray-100 hover:text-black focus:text-black">
+                                      {category.name}
+                                    </SelectItem>
+                                  ))}
                               </SelectContent>
                             </Select>
                           )}

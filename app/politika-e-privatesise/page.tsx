@@ -19,10 +19,11 @@ export default function PrivacyPolicyPage() {
           <div className="text-center mb-12">
             <div className="flex items-center justify-center mb-4">
               <Shield className="w-12 h-12 mr-3" style={{ color: '#92BDB4' }} />
-              <h1 className="text-4xl font-bold text-white">Politika e Privatësisë</h1>
+              <h1 className="text-2xl md:text-4xl font-bold text-white">Politika e Privatësisë</h1>
             </div>
-            <p className="text-xl text-gray-200">
-              TerminiYt.com - Rezervo shërbimet tuaja lokale në Kosovë
+            <p className="text-sm md:text-xl text-gray-200">
+              <span className="block">TerminiYt.com</span>
+              <span className="block">Rezervo shërbimet tuaja lokale në Kosovë</span>
             </p>
             <p className="text-sm text-gray-300 mt-2">
               E përditësuar më: 30 Shtator 2025
@@ -31,7 +32,7 @@ export default function PrivacyPolicyPage() {
 
           <Card className="mb-8 bg-white border-gray-200 shadow-lg">
             <CardHeader>
-              <CardTitle className="flex items-center text-2xl font-bold bg-gradient-to-r from-gray-800 to-teal-800 bg-clip-text text-transparent">
+              <CardTitle className="flex items-center text-lg md:text-2xl font-bold bg-gradient-to-r from-gray-800 to-teal-800 bg-clip-text text-transparent">
                 <Eye className="w-6 h-6 text-teal-800 mr-3" />
                 1. Informacioni që Mbledhim
               </CardTitle>
@@ -74,7 +75,7 @@ export default function PrivacyPolicyPage() {
 
           <Card className="mb-8 bg-white border-gray-200 shadow-lg">
             <CardHeader>
-              <CardTitle className="flex items-center text-2xl font-bold bg-gradient-to-r from-gray-800 to-teal-800 bg-clip-text text-transparent">
+              <CardTitle className="flex items-center text-lg md:text-2xl font-bold bg-gradient-to-r from-gray-800 to-teal-800 bg-clip-text text-transparent">
                 <Database className="w-6 h-6 text-teal-800 mr-3" />
                 2. Si Përdorim Informacionin
               </CardTitle>
@@ -105,7 +106,7 @@ export default function PrivacyPolicyPage() {
 
           <Card className="mb-8 bg-white border-gray-200 shadow-lg">
             <CardHeader>
-              <CardTitle className="flex items-center text-2xl font-bold bg-gradient-to-r from-gray-800 to-teal-800 bg-clip-text text-transparent">
+              <CardTitle className="flex items-center text-lg md:text-2xl font-bold bg-gradient-to-r from-gray-800 to-teal-800 bg-clip-text text-transparent">
                 <Lock className="w-6 h-6 text-teal-800 mr-3" />
                 3. Siguria e të Dhënave
               </CardTitle>
@@ -127,7 +128,7 @@ export default function PrivacyPolicyPage() {
 
           <Card className="mb-8 bg-white border-gray-200 shadow-lg">
             <CardHeader>
-              <CardTitle className="text-2xl font-bold bg-gradient-to-r from-gray-800 to-teal-800 bg-clip-text text-transparent">
+              <CardTitle className="text-lg md:text-2xl font-bold bg-gradient-to-r from-gray-800 to-teal-800 bg-clip-text text-transparent">
                 4. Ndarja e Informacionit
               </CardTitle>
             </CardHeader>
@@ -147,7 +148,7 @@ export default function PrivacyPolicyPage() {
 
           <Card className="mb-8 bg-white border-gray-200 shadow-lg">
             <CardHeader>
-              <CardTitle className="text-2xl font-bold bg-gradient-to-r from-gray-800 to-teal-800 bg-clip-text text-transparent">
+              <CardTitle className="text-lg md:text-2xl font-bold bg-gradient-to-r from-gray-800 to-teal-800 bg-clip-text text-transparent">
                 5. Cookies dhe Teknologji të Ngjashme
               </CardTitle>
             </CardHeader>
@@ -169,7 +170,7 @@ export default function PrivacyPolicyPage() {
 
           <Card className="mb-8 bg-white border-gray-200 shadow-lg">
             <CardHeader>
-              <CardTitle className="text-2xl font-bold bg-gradient-to-r from-gray-800 to-teal-800 bg-clip-text text-transparent">
+              <CardTitle className="text-lg md:text-2xl font-bold bg-gradient-to-r from-gray-800 to-teal-800 bg-clip-text text-transparent">
                 6. Të Drejtat Tuaja
               </CardTitle>
             </CardHeader>
@@ -190,7 +191,7 @@ export default function PrivacyPolicyPage() {
 
           <Card className="mb-8 bg-white border-gray-200 shadow-lg">
             <CardHeader>
-              <CardTitle className="text-2xl font-bold bg-gradient-to-r from-gray-800 to-teal-800 bg-clip-text text-transparent">
+              <CardTitle className="text-lg md:text-2xl font-bold bg-gradient-to-r from-gray-800 to-teal-800 bg-clip-text text-transparent">
                 7. Ruajtja e të Dhënave
               </CardTitle>
             </CardHeader>
@@ -212,7 +213,7 @@ export default function PrivacyPolicyPage() {
 
           <Card className="mb-8 bg-white border-gray-200 shadow-lg">
             <CardHeader>
-              <CardTitle className="text-2xl font-bold bg-gradient-to-r from-gray-800 to-teal-800 bg-clip-text text-transparent">
+              <CardTitle className="text-lg md:text-2xl font-bold bg-gradient-to-r from-gray-800 to-teal-800 bg-clip-text text-transparent">
                 8. Ndryshimet në Këtë Politikë
               </CardTitle>
             </CardHeader>
@@ -231,7 +232,7 @@ export default function PrivacyPolicyPage() {
 
           <Card className="mb-8 bg-white border-gray-200 shadow-lg">
             <CardHeader>
-              <CardTitle className="flex items-center text-2xl font-bold bg-gradient-to-r from-gray-800 to-teal-800 bg-clip-text text-transparent">
+              <CardTitle className="flex items-center text-lg md:text-2xl font-bold bg-gradient-to-r from-gray-800 to-teal-800 bg-clip-text text-transparent">
                 <Mail className="w-6 h-6 text-teal-800 mr-3" />
                 9. Kontakti
               </CardTitle>
