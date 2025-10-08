@@ -1700,17 +1700,26 @@ export default function AdminDashboard() {
                                 >
                                   <Edit className="w-4 h-4" />
                                 </Button>
-                                {!isMobile && (
-                                  <Button 
-                                    size="sm" 
-                                    variant="ghost" 
-                                    className="bg-gradient-to-r from-gray-600 to-gray-700 hover:from-gray-500 hover:to-gray-600 text-white h-8 w-8 p-0 font-medium shadow-md transition-all duration-300"
-                                    onClick={() => handleViewBusiness(business)}
-                                    title="Mbyll"
-                                  >
-                                    <X className="w-4 h-4" />
-                                  </Button>
-                                )}
+                                <Button 
+                                  size="sm" 
+                                  variant="ghost" 
+                                  className="bg-gradient-to-r from-gray-600 to-gray-700 hover:from-gray-500 hover:to-gray-600 text-white h-8 w-8 p-0 font-medium shadow-md transition-all duration-300"
+                                  onClick={() => {
+                                    if (editingBusiness === business.id) {
+                                      // Cancel editing
+                                      setEditingBusiness(null)
+                                      setEditFormData({})
+                                    } else {
+                                      // Close card (desktop only)
+                                      if (!isMobile) {
+                                        handleViewBusiness(business)
+                                      }
+                                    }
+                                  }}
+                                  title={editingBusiness === business.id ? "Anulo" : "Mbyll"}
+                                >
+                                  <X className="w-4 h-4" />
+                                </Button>
                               </>
                             ) : (
                               // When collapsed (desktop only), show only eye button
