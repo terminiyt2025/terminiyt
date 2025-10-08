@@ -184,7 +184,7 @@ export default function SiFunksiononPage() {
 
      
       {/* How It Works Steps */}
-      <section className="py-16 px-4">
+      <section className="py-16 px-[15px] md:px-4">
         <div className="container mx-auto">
           <div className="text-left md:text-center mb-12">
             <h2 className="text-3xl md:text-5xl font-heading font-bold md:mb-6 mb-3 text-balance">
