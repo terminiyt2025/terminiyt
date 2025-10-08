@@ -86,6 +86,8 @@ export default function AdminDashboard() {
   const [isToggling, setIsToggling] = useState(false)
   const [debugInfo, setDebugInfo] = useState<string>('')
   const [isChromeMobile, setIsChromeMobile] = useState(false)
+  const [clickCount, setClickCount] = useState(0)
+  const [lastClickTime, setLastClickTime] = useState(0)
 
   // Detect Chrome mobile on component mount
   useEffect(() => {
@@ -94,6 +96,45 @@ export default function AdminDashboard() {
     const isMobile = /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(userAgent)
     setIsChromeMobile(isChrome && isMobile)
     setDebugInfo(`Browser: ${isChrome ? 'Chrome' : 'Other'} | Mobile: ${isMobile}`)
+  }, [])
+
+  // Reset click count periodically to prevent accumulation
+  useEffect(() => {
+    const resetInterval = setInterval(() => {
+      setClickCount(0)
+      setDebugInfo('Click count reset')
+    }, 30000) // Reset every 30 seconds
+
+    return () => clearInterval(resetInterval)
+  }, [])
+
+  // Cleanup effect to prevent memory leaks
+  useEffect(() => {
+    return () => {
+      // Cleanup on component unmount
+      setExpandedCard(null)
+      setEditingBusiness(null)
+      setEditFormData({})
+      setIsToggling(false)
+      setClickCount(0)
+    }
+  }, [])
+
+  // Add visibility change listener to reset state when page becomes hidden
+  useEffect(() => {
+    const handleVisibilityChange = () => {
+      if (document.hidden) {
+        // Reset state when page becomes hidden to prevent conflicts
+        setExpandedCard(null)
+        setEditingBusiness(null)
+        setEditFormData({})
+        setIsToggling(false)
+        setDebugInfo('Page hidden, state reset')
+      }
+    }
+
+    document.addEventListener('visibilitychange', handleVisibilityChange)
+    return () => document.removeEventListener('visibilitychange', handleVisibilityChange)
   }, [])
   const [editingBusiness, setEditingBusiness] = useState<number | null>(null)
   const [editFormData, setEditFormData] = useState<any>({})
@@ -467,19 +508,37 @@ export default function AdminDashboard() {
   }
 
   const handleViewBusiness = (business: Business) => {
+    const currentTime = Date.now()
+    const newClickCount = clickCount + 1
+    
     try {
-      const debugMsg = `Clicked: ${business?.name || 'Unknown'} | Current: ${expandedCard} | Toggling: ${isToggling} | Chrome: ${isChromeMobile}`
+      // Track clicks and prevent memory issues
+      setClickCount(newClickCount)
+      setLastClickTime(currentTime)
+      
+      const debugMsg = `Click #${newClickCount}: ${business?.name || 'Unknown'} | Current: ${expandedCard} | Toggling: ${isToggling} | Chrome: ${isChromeMobile}`
       setDebugInfo(debugMsg)
       
-      // Prevent rapid clicking
-      if (isToggling) {
-        setDebugInfo('Already toggling, skipping...')
+      // Prevent rapid clicking and memory accumulation
+      if (isToggling || (currentTime - lastClickTime < 300)) {
+        setDebugInfo(`Blocked: ${isToggling ? 'Toggling' : 'Too fast'} (${currentTime - lastClickTime}ms)`)
+        return
+      }
+      
+      // Reset after too many clicks to prevent memory issues
+      if (newClickCount > 20) {
+        setDebugInfo('Too many clicks, resetting...')
+        setClickCount(0)
+        setExpandedCard(null)
+        setEditingBusiness(null)
+        setEditFormData({})
+        setIsToggling(false)
         return
       }
       
       // Validate business data
-      if (!business) {
-        setDebugInfo('Business is null/undefined')
+      if (!business || (!business.id && !business.name)) {
+        setDebugInfo('Invalid business data')
         return
       }
       
@@ -498,30 +557,56 @@ export default function AdminDashboard() {
       // Toggle expanded state with additional safety
       const newExpandedState = expandedCard === businessId ? null : businessId
       
-      // Chrome mobile fix - use requestAnimationFrame for state updates
-      if (isChromeMobile) {
-        requestAnimationFrame(() => {
+      // Use a more robust state update method
+      const updateState = () => {
+        try {
           setExpandedCard(newExpandedState)
-          setDebugInfo(`Chrome: Set to: ${newExpandedState}`)
-        })
-      } else {
-        setExpandedCard(newExpandedState)
-        setDebugInfo(`Set to: ${newExpandedState}`)
+          setDebugInfo(`Set to: ${newExpandedState} (Click #${newClickCount})`)
+        } catch (stateError) {
+          setDebugInfo(`State Error: ${stateError.message}`)
+          // Force reset on state error
+          setExpandedCard(null)
+          setEditingBusiness(null)
+          setEditFormData({})
+        }
       }
       
-      // Reset toggling state after a short delay
+      // Chrome mobile fix - use multiple fallback methods
+      if (isChromeMobile) {
+        // Try requestAnimationFrame first
+        if (window.requestAnimationFrame) {
+          requestAnimationFrame(updateState)
+        } else {
+          // Fallback to setTimeout
+          setTimeout(updateState, 0)
+        }
+      } else {
+        updateState()
+      }
+      
+      // Reset toggling state after a delay
+      const resetDelay = isChromeMobile ? 1500 : 800
       setTimeout(() => {
-        setIsToggling(false)
-        setDebugInfo('Ready for next click')
-      }, isChromeMobile ? 1000 : 500) // Longer delay for Chrome
+        try {
+          setIsToggling(false)
+          setDebugInfo(`Ready (Click #${newClickCount})`)
+        } catch (resetError) {
+          setDebugInfo(`Reset Error: ${resetError.message}`)
+        }
+      }, resetDelay)
       
     } catch (error) {
-      setDebugInfo(`ERROR: ${error.message}`)
-      // Fallback: ensure state is clean
-      setExpandedCard(null)
-      setEditingBusiness(null)
-      setEditFormData({})
-      setIsToggling(false)
+      setDebugInfo(`ERROR: ${error.message} (Click #${newClickCount})`)
+      // Comprehensive fallback: ensure all state is clean
+      try {
+        setExpandedCard(null)
+        setEditingBusiness(null)
+        setEditFormData({})
+        setIsToggling(false)
+        setClickCount(0)
+      } catch (fallbackError) {
+        setDebugInfo(`Fallback Error: ${fallbackError.message}`)
+      }
     }
   }
 
