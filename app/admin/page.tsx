@@ -85,6 +85,16 @@ export default function AdminDashboard() {
   const [expandedCard, setExpandedCard] = useState<number | string | null>(null)
   const [isToggling, setIsToggling] = useState(false)
   const [debugInfo, setDebugInfo] = useState<string>('')
+  const [isChromeMobile, setIsChromeMobile] = useState(false)
+
+  // Detect Chrome mobile on component mount
+  useEffect(() => {
+    const userAgent = navigator.userAgent
+    const isChrome = userAgent.includes('Chrome') && !userAgent.includes('Safari')
+    const isMobile = /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(userAgent)
+    setIsChromeMobile(isChrome && isMobile)
+    setDebugInfo(`Browser: ${isChrome ? 'Chrome' : 'Other'} | Mobile: ${isMobile}`)
+  }, [])
   const [editingBusiness, setEditingBusiness] = useState<number | null>(null)
   const [editFormData, setEditFormData] = useState<any>({})
   const [categories, setCategories] = useState<any[]>([])
@@ -158,10 +168,10 @@ export default function AdminDashboard() {
       } catch (error) {
         console.error('Error parsing admin auth data:', error)
         localStorage.removeItem('adminAuth')
-        router.push('/admin/login')
+        router.push('/identifikohu')
       }
     } else {
-      router.push('/admin/login')
+      router.push('/identifikohu')
     }
     
     // Small delay to prevent header flash
@@ -458,7 +468,7 @@ export default function AdminDashboard() {
 
   const handleViewBusiness = (business: Business) => {
     try {
-      const debugMsg = `Clicked: ${business?.name || 'Unknown'} | Current: ${expandedCard} | Toggling: ${isToggling}`
+      const debugMsg = `Clicked: ${business?.name || 'Unknown'} | Current: ${expandedCard} | Toggling: ${isToggling} | Chrome: ${isChromeMobile}`
       setDebugInfo(debugMsg)
       
       // Prevent rapid clicking
@@ -487,14 +497,23 @@ export default function AdminDashboard() {
       
       // Toggle expanded state with additional safety
       const newExpandedState = expandedCard === businessId ? null : businessId
-      setExpandedCard(newExpandedState)
-      setDebugInfo(`Set to: ${newExpandedState}`)
+      
+      // Chrome mobile fix - use requestAnimationFrame for state updates
+      if (isChromeMobile) {
+        requestAnimationFrame(() => {
+          setExpandedCard(newExpandedState)
+          setDebugInfo(`Chrome: Set to: ${newExpandedState}`)
+        })
+      } else {
+        setExpandedCard(newExpandedState)
+        setDebugInfo(`Set to: ${newExpandedState}`)
+      }
       
       // Reset toggling state after a short delay
       setTimeout(() => {
         setIsToggling(false)
         setDebugInfo('Ready for next click')
-      }, 500)
+      }, isChromeMobile ? 1000 : 500) // Longer delay for Chrome
       
     } catch (error) {
       setDebugInfo(`ERROR: ${error.message}`)
@@ -1742,7 +1761,14 @@ export default function AdminDashboard() {
                                 onClick={(e) => {
                                   e.preventDefault()
                                   e.stopPropagation()
-                                  handleViewBusiness(business)
+                                  // Chrome mobile fix - use setTimeout to prevent event conflicts
+                                  setTimeout(() => {
+                                    handleViewBusiness(business)
+                                  }, 0)
+                                }}
+                                onTouchStart={(e) => {
+                                  // Chrome mobile touch fix
+                                  e.preventDefault()
                                 }}
                                 title="Shiko"
                               >
