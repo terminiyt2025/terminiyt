@@ -144,8 +144,8 @@ export default function HomePage() {
       <Header transparent={true} />
 
       {/* Interactive Map Section - Full Width - First After Navbar */}
-      <section className="w-full bg-gradient-to-r  from-gray-800 to-teal-800 text-white py-10 pt-24 px-[15px] md:px-0">
-        <div className="w-full">
+      <section className="w-full bg-gradient-to-r  from-gray-800 to-teal-800 text-white py-10 pt-24">
+        <div className="w-full container">
           {/* Map Title and Slogan */}
           <div className="text-center mb-8">
             <h2 className="text-2xl md:text-4xl font-heading font-bold text-foreground mb-3 text-white">
