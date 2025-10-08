@@ -90,7 +90,7 @@ export default function SiFunksiononPage() {
       <Header transparent={true} />
 
       {/* Hero Section */}
-      <section className="py-20 md:py-32 px-4 bg-gradient-to-r  from-gray-800 to-teal-800 text-white">
+      <section className="py-12 md:py-32 px-4 bg-gradient-to-r  from-gray-800 to-teal-800 text-white">
         <div className="container mx-auto text-center">
           <h1 className="text-2xl md:text-5xl font-heading font-bold mb-3 text-balance leading-tight">
           Platformë rezervimesh për<br className="hidden md:block" /> eksperienca të paharrueshme.          </h1>
@@ -117,7 +117,7 @@ export default function SiFunksiononPage() {
               {/* First set of services */}
               {services.map((service, index) => (
                 <div key={`first-${service.id}`} className="flex-shrink-0 px-3">
-                  <div className="relative md:w-160 w-80 h-40 md:h-80 rounded-2xl overflow-hidden transition-transform duration-300 cursor-pointer">
+                  <div className="relative md:w-160 w-80 h-48 md:h-80 rounded-2xl overflow-hidden transition-transform duration-300 cursor-pointer">
                     <Image
                       src={service.image}
                       alt={service.name}
@@ -188,7 +188,7 @@ export default function SiFunksiononPage() {
         <div className="container mx-auto">
           <div className="text-left md:text-center mb-12">
             <h2 className="text-3xl md:text-5xl font-heading font-bold md:mb-6 mb-3 text-balance">
-              Pse ta përdorni TerminiYt.com?
+              Pse ta përdorni <span className="bg-gradient-to-r from-gray-800 to-teal-800 bg-clip-text text-transparent">TerminiYt.com</span>?
             </h2>
             <p className="text-xl text-muted-foreground max-w-2xl mx-auto">
               Gjetja dhe rezervimi i shërbimeve lokale nuk ka qenë kurrë më e lehtë
@@ -199,10 +199,10 @@ export default function SiFunksiononPage() {
           <div className="space-y-6">
             {/* First box - 100% width with video */}
             <div 
-              className="w-full p-6 md:p-16 rounded-2xl"
+              className="w-full px-2 py-4 md:px-16 md:py-16 rounded-2xl"
               style={{ 
                 backgroundColor: '#F4F4F4 ',
-                borderRadius: '20px'
+                borderRadius: '12px'
               }}
             >
               <div className="grid md:grid-cols-2 gap-8 items-center">
@@ -232,10 +232,10 @@ export default function SiFunksiononPage() {
             <div className="grid md:grid-cols-2 gap-6">
               {/* Second box */}
               <div 
-  className="md:p-20 p-6 rounded-2xl"
+  className="md:px-20 md:py-20 px-2 py-4 rounded-xl"
   style={{ 
     backgroundColor: '#F4F4F4',
-    borderRadius: '20px'
+    borderRadius: '12px'
   }}
 >
   <h3 className="text-3xl md:text-4xl lg:text-5xl font-heading font-bold mb-6 text-balance">
@@ -253,17 +253,17 @@ export default function SiFunksiononPage() {
 
               {/* Third box */}
               <div 
-                className="md:p-20 p-6 rounded-2xl"
+                className="md:px-20 md:py-20 px-2 py-4 rounded-xl"
                 style={{ 
                   backgroundColor: '#F4F4F4',
-                  borderRadius: '20px'
+                  borderRadius: '12px'
                 }}
               >
                 <h3 className="text-3xl md:text-4xl lg:text-5xl font-heading font-bold mb-6 text-balance">
-                  Shto pjestarë e ekipit tuaj
+                Shto anëtarë të ekipit
                 </h3>
                 <p className="text-sm md:text-xl text-muted-foreground max-w-2xl mx-auto">
-                Menaxhoni ekipin tuaj dhe mbani ata të informuar me njoftime, duke siguruar që të gjithë të jenë të koordinuar. </p>
+                Çdo anëtar ka kalendarin e vet për të menaxhuar rezervimet dhe njoftimet, duke mbajtur ekipin gjithmonë të sinkronizuar. </p>
                 <div className="flex justify-center items-center">
   <img 
     src="/stafi.png" 
@@ -360,7 +360,7 @@ export default function SiFunksiononPage() {
                   <Button 
                     size="lg" 
                     variant="outline" 
-                    className="bg-white border-white text-gray-800 hover:bg-gray-100"
+                    className="text-lg text-white bg-transparent hover:bg-transparent"
                     asChild
                   >
                     <Link href="mailto:info@terminiyt.com">
@@ -370,7 +370,7 @@ export default function SiFunksiononPage() {
                   <Button 
                     size="lg" 
                     variant="outline" 
-                    className="bg-transparent border-white text-white hover:bg-white/10"
+                    className="bg-white border-white text-teal-800 text-lg hover:bg-white hover:text-teal-800"
                     asChild
                   >
                     <Link href="tel:+38344123456">
