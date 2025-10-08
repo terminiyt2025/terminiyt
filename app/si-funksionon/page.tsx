@@ -90,7 +90,7 @@ export default function SiFunksiononPage() {
       <Header transparent={true} />
 
       {/* Hero Section */}
-      <section className="py-12 md:py-32 px-4 bg-gradient-to-r  from-gray-800 to-teal-800 text-white">
+      <section className="py-16 md:py-32 px-4 bg-gradient-to-r  from-gray-800 to-teal-800 text-white">
         <div className="container mx-auto text-center">
           <h1 className="text-2xl md:text-5xl font-heading font-bold mb-3 text-balance leading-tight">
           Platformë rezervimesh për<br className="hidden md:block" /> eksperienca të paharrueshme.          </h1>
@@ -149,7 +149,7 @@ export default function SiFunksiononPage() {
               {/* Duplicate set for seamless loop */}
               {services.map((service, index) => (
                 <div key={`second-${service.id}`} className="flex-shrink-0 px-3">
-                  <div className="relative w-[calc(100vw/1.5-20px)] md:w-160 h-64 md:h-80 rounded-2xl overflow-hidden transition-transform duration-300 cursor-pointer">
+                  <div className="relative w-[calc(100vw/1.5-20px)] md:w-160 w-80 h-48 md:h-80 rounded-2xl overflow-hidden transition-transform duration-300 cursor-pointer">
                     <Image
                       src={service.image}
                       alt={service.name}
@@ -187,7 +187,7 @@ export default function SiFunksiononPage() {
       <section className="py-16 px-[15px] md:px-4">
         <div className="container mx-auto">
           <div className="text-left md:text-center mb-12">
-            <h2 className="text-3xl md:text-5xl font-heading font-bold md:mb-6 mb-3 text-balance">
+            <h2 className="text-4xl md:text-5xl font-heading font-bold md:mb-6 mb-3 text-balance">
               Pse ta përdorni <span className="bg-gradient-to-r from-gray-800 to-teal-800 bg-clip-text text-transparent">TerminiYt.com</span>?
             </h2>
             <p className="text-xl text-muted-foreground max-w-2xl mx-auto">
@@ -207,7 +207,7 @@ export default function SiFunksiononPage() {
             >
               <div className="grid md:grid-cols-2 gap-8 items-center">
                 <div>
-                  <h3 className="text-3xl md:text-4xl lg:text-5xl font-heading font-bold mb-6 text-balance">
+                  <h3 className="text-3xl md:text-4xl lg:text-5xl font-heading font-bold mb-6 text-balance bg-gradient-to-r from-gray-800 to-teal-800 bg-clip-text text-transparent">
                     Termine Online
                   </h3>
                   <p className="text-sm md:text-xl text-muted-foreground max-w-2xl mx-auto">
@@ -220,6 +220,9 @@ export default function SiFunksiononPage() {
                     autoPlay
                     loop
                     muted
+                    playsInline
+                    preload="auto"
+                    webkit-playsinline="true"
                   >
                     <source src="/Book.mp4" type="video/mp4" />
                     Your browser does not support the video tag.
@@ -238,7 +241,7 @@ export default function SiFunksiononPage() {
     borderRadius: '12px'
   }}
 >
-  <h3 className="text-3xl md:text-4xl lg:text-5xl font-heading font-bold mb-6 text-balance">
+  <h3 className="text-3xl md:text-4xl lg:text-5xl font-heading font-bold mb-6 text-balance bg-gradient-to-r from-gray-800 to-teal-800 bg-clip-text text-transparent">
     Shërbimet e Biznesit
   </h3>
   <p className="text-sm md:text-xl text-muted-foreground max-w-2xl mx-auto">
@@ -253,13 +256,13 @@ export default function SiFunksiononPage() {
 
               {/* Third box */}
               <div 
-                className="md:px-20 md:py-20 px-2 py-4 rounded-xl"
+                className="md:px-6 md:py-8 sm:px-4 sm:py-6 lg:px-8 lg:py-10 px-12 py-15  rounded-xl"
                 style={{ 
                   backgroundColor: '#F4F4F4',
                   borderRadius: '12px'
                 }}
               >
-                <h3 className="text-3xl md:text-4xl lg:text-5xl font-heading font-bold mb-6 text-balance">
+                <h3 className="text-2xl md:text-2xl lg:text-4xl font-heading font-bold mb-3 lg:md-6 text-balance bg-gradient-to-r from-gray-800 to-teal-800 bg-clip-text text-transparent">
                 Shto anëtarë të ekipit
                 </h3>
                 <p className="text-sm md:text-xl text-muted-foreground max-w-2xl mx-auto">
