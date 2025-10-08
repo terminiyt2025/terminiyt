@@ -23,14 +23,12 @@ export default function LoginPage() {
         
 
           {/* Welcome Section */}
-          <div className="text-center mb-4 md:mb-8">
+          <div className="text-center mb-2 md:mb-4">
             <div className="inline-flex items-center gap-2 bg-white/10 backdrop-blur-sm text-white px-6 py-2 rounded-full text-sm font-medium mb-4 md:mb-6">
               <span className="w-2 h-2 bg-white rounded-full animate-pulse"></span>
               Mirë se vini përsëri
             </div>
-            <h1 className="text-3xl md:text-4xl font-heading font-bold text-white mb-4">
-              Hyr në Llogari
-            </h1>
+            
             
           </div>
 
