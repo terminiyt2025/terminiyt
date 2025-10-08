@@ -79,15 +79,15 @@ export default function ReservationsPage() {
              await fetchBlockedSlots(businessId)
            } else {
             console.log('No business ID found')
-            router.push('/login')
+            router.push('/identifikohu')
           }
         } else {
           console.log('No business auth data found')
-          router.push('/login')
+          router.push('/identifikohu')
         }
       } catch (error) {
         console.error('Auth check error:', error)
-        router.push('/login')
+        router.push('/identifikohu')
       } finally {
         setIsLoading(false)
       }

@@ -313,12 +313,6 @@ export function Header({ transparent = false, className = "" }: HeaderProps) {
                   
                   {/* Dropdown menu */}
                   <div className="absolute right-0 mt-2 w-48 bg-white rounded-md shadow-lg py-1 z-50 opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all duration-200">
-                    <Link 
-                      href="/my-bookings" 
-                      className="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 transition-colors"
-                    >
-                      Rezervimet e Mia
-                    </Link>
                     {user?.role === "admin" && (
                       <Link 
                         href="/admin" 
@@ -363,7 +357,7 @@ export function Header({ transparent = false, className = "" }: HeaderProps) {
                   size="sm"
                   className="p-2 hover:bg-transparent flex items-start justify-center"
                 >
-                  <Menu className="h-14 w-14 text-white" />
+                  <Menu className="h-18 w-18 text-white" />
                 </Button>
               </DropdownMenuTrigger>
               <DropdownMenuContent className="w-56" align="end">
@@ -444,12 +438,6 @@ export function Header({ transparent = false, className = "" }: HeaderProps) {
                       </div>
                     </div>
                     <DropdownMenuSeparator />
-                    <DropdownMenuItem asChild>
-                      <Link href="/my-bookings" className="flex items-center">
-                        <Calendar className="mr-2 h-4 w-4" />
-                        Rezervimet e Mia
-                      </Link>
-                    </DropdownMenuItem>
                     {user?.role === "admin" && (
                       <DropdownMenuItem asChild>
                         <Link href="/admin" className="flex items-center">

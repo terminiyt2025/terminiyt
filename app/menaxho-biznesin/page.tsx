@@ -90,14 +90,14 @@ export default function BusinessPanel() {
             await fetchBusinessData(businessId)
             await fetchCategories()
         } else {
-            router.push('/login')
+            router.push('/identifikohu')
         }
       } catch (error) {
           console.error('Auth check error:', error)
-          router.push('/login')
+          router.push('/identifikohu')
       }
     } else {
-        router.push('/login')
+        router.push('/identifikohu')
     }
       setIsLoading(false)
     }
