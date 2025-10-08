@@ -170,6 +170,7 @@ video::-webkit-media-controls-enclosure {
   .container {
     padding-left: 15px !important;
     padding-right: 15px !important;
+    max-width: none !important;
   }
   
   .main-content {
@@ -194,6 +195,7 @@ video::-webkit-media-controls-enclosure {
   .container {
     padding-left: 25px !important;
     padding-right: 25px !important;
+    max-width: none !important;
   }
   
   .main-content {
@@ -224,6 +226,7 @@ video::-webkit-media-controls-enclosure {
   .container {
     padding-left: 25px !important;
     padding-right: 25px !important;
+    max-width: none !important;
   }
   
   .main-content {
@@ -248,6 +251,7 @@ video::-webkit-media-controls-enclosure {
   .container {
     padding-left: 50px !important;
     padding-right: 50px !important;
+    max-width: none !important;
   }
   
   .main-content {
@@ -272,6 +276,7 @@ video::-webkit-media-controls-enclosure {
   .container {
     padding-left: 100px !important;
     padding-right: 100px !important;
+    max-width: none !important;
   }
   
   .main-content {
