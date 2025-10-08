@@ -83,59 +83,7 @@ export default function AdminDashboard() {
   const [filteredBusinesses, setFilteredBusinesses] = useState<Business[]>([])
   const [searchTerm, setSearchTerm] = useState("")
   const [expandedCard, setExpandedCard] = useState<number | string | null>(null)
-  const [isToggling, setIsToggling] = useState(false)
   const [debugInfo, setDebugInfo] = useState<string>('')
-  const [isChromeMobile, setIsChromeMobile] = useState(false)
-  const [clickCount, setClickCount] = useState(0)
-  const [lastClickTime, setLastClickTime] = useState(0)
-
-  // Detect Chrome mobile on component mount
-  useEffect(() => {
-    const userAgent = navigator.userAgent
-    const isChrome = userAgent.includes('Chrome') && !userAgent.includes('Safari')
-    const isMobile = /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(userAgent)
-    setIsChromeMobile(isChrome && isMobile)
-    setDebugInfo(`Browser: ${isChrome ? 'Chrome' : 'Other'} | Mobile: ${isMobile}`)
-  }, [])
-
-  // Reset click count periodically to prevent accumulation
-  useEffect(() => {
-    const resetInterval = setInterval(() => {
-      setClickCount(0)
-      setDebugInfo('Click count reset')
-    }, 30000) // Reset every 30 seconds
-
-    return () => clearInterval(resetInterval)
-  }, [])
-
-  // Cleanup effect to prevent memory leaks
-  useEffect(() => {
-    return () => {
-      // Cleanup on component unmount
-      setExpandedCard(null)
-      setEditingBusiness(null)
-      setEditFormData({})
-      setIsToggling(false)
-      setClickCount(0)
-    }
-  }, [])
-
-  // Add visibility change listener to reset state when page becomes hidden
-  useEffect(() => {
-    const handleVisibilityChange = () => {
-      if (document.hidden) {
-        // Reset state when page becomes hidden to prevent conflicts
-        setExpandedCard(null)
-        setEditingBusiness(null)
-        setEditFormData({})
-        setIsToggling(false)
-        setDebugInfo('Page hidden, state reset')
-      }
-    }
-
-    document.addEventListener('visibilitychange', handleVisibilityChange)
-    return () => document.removeEventListener('visibilitychange', handleVisibilityChange)
-  }, [])
   const [editingBusiness, setEditingBusiness] = useState<number | null>(null)
   const [editFormData, setEditFormData] = useState<any>({})
   const [categories, setCategories] = useState<any[]>([])
@@ -508,105 +456,31 @@ export default function AdminDashboard() {
   }
 
   const handleViewBusiness = (business: Business) => {
-    const currentTime = Date.now()
-    const newClickCount = clickCount + 1
-    
+    // Ultra-simple approach - just toggle the state directly
     try {
-      // Track clicks and prevent memory issues
-      setClickCount(newClickCount)
-      setLastClickTime(currentTime)
+      setDebugInfo(`Simple click: ${business?.name || 'Unknown'}`)
       
-      const debugMsg = `Click #${newClickCount}: ${business?.name || 'Unknown'} | Current: ${expandedCard} | Toggling: ${isToggling} | Chrome: ${isChromeMobile}`
-      setDebugInfo(debugMsg)
-      
-      // Prevent rapid clicking and memory accumulation
-      if (isToggling || (currentTime - lastClickTime < 300)) {
-        setDebugInfo(`Blocked: ${isToggling ? 'Toggling' : 'Too fast'} (${currentTime - lastClickTime}ms)`)
+      if (!business) {
+        setDebugInfo('No business data')
         return
       }
       
-      // Reset after too many clicks to prevent memory issues
-      if (newClickCount > 20) {
-        setDebugInfo('Too many clicks, resetting...')
-        setClickCount(0)
-        setExpandedCard(null)
-        setEditingBusiness(null)
-        setEditFormData({})
-        setIsToggling(false)
-        return
-      }
-      
-      // Validate business data
-      if (!business || (!business.id && !business.name)) {
-        setDebugInfo('Invalid business data')
-        return
-      }
-      
-      setIsToggling(true)
-      setDebugInfo('Processing...')
-      
-      // Use business.id or fallback to business.name for identification
       const businessId = business.id || business.name
+      const isCurrentlyExpanded = expandedCard === businessId
       
-      // Clear any editing state when switching businesses
-      if (editingBusiness !== businessId) {
-        setEditingBusiness(null)
-        setEditFormData({})
-      }
-      
-      // Toggle expanded state with additional safety
-      const newExpandedState = expandedCard === businessId ? null : businessId
-      
-      // Use a more robust state update method
-      const updateState = () => {
-        try {
-          setExpandedCard(newExpandedState)
-          setDebugInfo(`Set to: ${newExpandedState} (Click #${newClickCount})`)
-        } catch (stateError) {
-          setDebugInfo(`State Error: ${stateError.message}`)
-          // Force reset on state error
-          setExpandedCard(null)
-          setEditingBusiness(null)
-          setEditFormData({})
-        }
-      }
-      
-      // Chrome mobile fix - use multiple fallback methods
-      if (isChromeMobile) {
-        // Try requestAnimationFrame first
-        if (window.requestAnimationFrame) {
-          requestAnimationFrame(updateState)
-        } else {
-          // Fallback to setTimeout
-          setTimeout(updateState, 0)
-        }
+      // Simple toggle - no complex logic
+      if (isCurrentlyExpanded) {
+        setExpandedCard(null)
+        setDebugInfo('Collapsed')
       } else {
-        updateState()
+        setExpandedCard(businessId)
+        setDebugInfo('Expanded')
       }
-      
-      // Reset toggling state after a delay
-      const resetDelay = isChromeMobile ? 1500 : 800
-      setTimeout(() => {
-        try {
-          setIsToggling(false)
-          setDebugInfo(`Ready (Click #${newClickCount})`)
-        } catch (resetError) {
-          setDebugInfo(`Reset Error: ${resetError.message}`)
-        }
-      }, resetDelay)
       
     } catch (error) {
-      setDebugInfo(`ERROR: ${error.message} (Click #${newClickCount})`)
-      // Comprehensive fallback: ensure all state is clean
-      try {
-        setExpandedCard(null)
-        setEditingBusiness(null)
-        setEditFormData({})
-        setIsToggling(false)
-        setClickCount(0)
-      } catch (fallbackError) {
-        setDebugInfo(`Fallback Error: ${fallbackError.message}`)
-      }
+      setDebugInfo(`Simple Error: ${error.message}`)
+      // Just reset to null on any error
+      setExpandedCard(null)
     }
   }
 
@@ -1843,18 +1717,7 @@ export default function AdminDashboard() {
                                 size="sm" 
                                 variant="ghost" 
                                 className="bg-gradient-to-r from-blue-600 to-blue-700 hover:from-blue-500 hover:to-blue-600 text-white h-8 w-8 p-0 font-medium shadow-md transition-all duration-300"
-                                onClick={(e) => {
-                                  e.preventDefault()
-                                  e.stopPropagation()
-                                  // Chrome mobile fix - use setTimeout to prevent event conflicts
-                                  setTimeout(() => {
-                                    handleViewBusiness(business)
-                                  }, 0)
-                                }}
-                                onTouchStart={(e) => {
-                                  // Chrome mobile touch fix
-                                  e.preventDefault()
-                                }}
+                                onClick={() => handleViewBusiness(business)}
                                 title="Shiko"
                               >
                                 <Eye className="w-4 h-4" />
