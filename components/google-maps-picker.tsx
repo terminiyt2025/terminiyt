@@ -266,8 +266,13 @@ export function GoogleMapsPicker({
           setError(null)
         }
 
-        const apiKey = process.env.NEXT_PUBLIC_GOOGLE_MAPS_API_KEY || "AIzaSyCKFf7PZGHjOdhhOvzY5x61x30f_yFKt_0"
+        const apiKey = process.env.NEXT_PUBLIC_GOOGLE_MAPS_API_KEY
         console.log("Google Maps API Key:", apiKey ? "Present" : "Missing")
+        
+        if (!apiKey) {
+          setError("Google Maps API key is not configured. Please contact the administrator.")
+          return
+        }
         
         // Check if component is still mounted before creating loader
         if (!isMounted) {
