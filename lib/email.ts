@@ -1,15 +1,23 @@
 import nodemailer from 'nodemailer'
 
 // Create transporter for Hostinger SMTP
-const transporter = nodemailer.createTransport({
-  host: process.env.SMTP_HOST || 'smtp.hostinger.com',
-  port: parseInt(process.env.SMTP_PORT || '587'),
-  secure: false, // true for 465, false for other ports
-  auth: {
-    user: process.env.SMTP_USER,
-    pass: process.env.SMTP_PASS,
-  },
-})
+let transporter: any = null
+
+try {
+  if (process.env.SMTP_HOST && process.env.SMTP_USER && process.env.SMTP_PASS) {
+    transporter = nodemailer.createTransport({
+      host: process.env.SMTP_HOST,
+      port: parseInt(process.env.SMTP_PORT || '587'),
+      secure: false, // true for 465, false for other ports
+      auth: {
+        user: process.env.SMTP_USER,
+        pass: process.env.SMTP_PASS,
+      },
+    })
+  }
+} catch (error) {
+  console.error('Failed to create email transporter:', error)
+}
 
 // Email sending function
 export async function sendEmail({
@@ -24,6 +32,11 @@ export async function sendEmail({
   text?: string
 }) {
   try {
+    if (!transporter) {
+      console.log('Email transporter not configured')
+      return { success: false, error: 'Email transporter not configured' }
+    }
+
     const info = await transporter.sendMail({
       from: `"${process.env.FROM_NAME || 'TerminiYt.com'}" <${process.env.FROM_EMAIL || 'info@terminiyt.com'}>`,
       to,

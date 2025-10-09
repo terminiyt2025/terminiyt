@@ -95,8 +95,8 @@ export async function POST(request: NextRequest) {
       }
     })
 
-    // Send emails if business exists
-    if (business) {
+    // Send emails if business exists and SMTP is configured
+    if (business && process.env.SMTP_HOST && process.env.SMTP_USER && process.env.SMTP_PASS) {
       try {
         const emailData = {
           businessName: business.name,
@@ -160,6 +160,8 @@ export async function POST(request: NextRequest) {
         console.error('Email sending failed:', emailError)
         // Don't fail the booking if email fails
       }
+    } else {
+      console.log('Email sending skipped - SMTP not configured')
     }
 
     return NextResponse.json(booking)
