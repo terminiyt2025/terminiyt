@@ -65,7 +65,7 @@ export function SignupForm() {
 
       toast({
         title: "Account created!",
-        description: "Welcome to ServiceConnect. You can now book services.",
+        description: "Welcome to TerminiYt.com. You can now book services.",
       })
 
       router.push("/")

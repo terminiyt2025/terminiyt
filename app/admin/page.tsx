@@ -170,7 +170,7 @@ export default function AdminDashboard() {
         setIsAuthenticated(true)
         fetchStats()
         fetchCategories()
-        document.title = "Admin Panel - ServiceConnect"
+        document.title = "Admin Panel - TerminiYt.com"
       } catch (error) {
         console.error('Error parsing admin auth data:', error)
         localStorage.removeItem('adminAuth')

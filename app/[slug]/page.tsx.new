@@ -88,7 +88,7 @@ export default function BusinessPage() {
 
   useEffect(() => {
     if (business) {
-      document.title = `${business.name} - ServiceConnect`
+      document.title = `${business.name} - TerminiYt.com`
     }
   }, [business])
 
@@ -115,7 +115,7 @@ export default function BusinessPage() {
               <div className="w-24 h-24 mx-auto mb-6 bg-white/10 backdrop-blur-sm rounded-full flex items-center justify-center">
                 <Image 
                   src="/logo.png" 
-                  alt="ServiceConnect Logo" 
+                  alt="TerminiYt.com Logo" 
                   width={48} 
                   height={48}
                   className="w-12 h-12"

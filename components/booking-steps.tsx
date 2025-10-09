@@ -478,9 +478,9 @@ export function BookingSteps({ business }: BookingStepsProps) {
                   <div className={`text-left mb-1 transition-all duration-700 ease-out ${
                     showWelcome ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-4'
                   }`}>
-                    <p className="text-gray-600 text-md">Mirëseerdhet në</p>
+                    <p className="text-gray-600 text-sm md:text-md">Mirëseerdhet në</p>
                   </div>
-                  <h2 className={`text-3xl font-bold text-gray-900 mb-2 transition-all duration-700 ease-out ${
+                  <h2 className={`text-2xl md:text-3xl font-bold text-gray-900 mb-2 transition-all duration-700 ease-out ${
                     showBusinessName ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-4'
                   }`}>
                     {business.name}
@@ -492,7 +492,7 @@ export function BookingSteps({ business }: BookingStepsProps) {
               <div className={`text-center pt-4  transition-all duration-700 ease-out ${
                 showInstruction ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-4'
               }`}>
-                <p className="text-gray-600 text-sm md:text-md  p-0">Plotësoni hapat më poshtë për të rezervuar terminin tuaj</p>
+                <p className="text-gray-600 text-xs md:text-sm p-0">Plotësoni hapat më poshtë për të rezervuar terminin tuaj</p>
               </div>
               
               {/* Choose Another Service Button - Show when service is selected */}
@@ -517,7 +517,7 @@ export function BookingSteps({ business }: BookingStepsProps) {
             {/* Service Selection */}
             {!selectedService && (
               <div className="text-center">
-                <h3 className="text-md md:text-lg font-bold text-gray-900 mb-1">Zgjidhni shërbimin që dëshironi të rezervoni</h3>
+                <h3 className="text-sm md:text-lg font-bold text-gray-900 mb-1">Zgjidhni shërbimin që dëshironi të rezervoni</h3>
               </div>
             )}
 
@@ -546,7 +546,7 @@ export function BookingSteps({ business }: BookingStepsProps) {
                           {/* Service Header */}
                           <div className="flex items-start justify-between">
                             <div className="flex-1">
-                              <h4 className="text-lg font-bold text-gray-900 ">{service.name}</h4>
+                              <h4 className="text-md md:text-lg font-bold text-gray-900 ">{service.name}</h4>
                               {service.description && (
                                 <p className="text-sm text-gray-600">{service.description}</p>
                               )}
@@ -554,7 +554,7 @@ export function BookingSteps({ business }: BookingStepsProps) {
                             {service.price && service.price > 0 && (
                               <div className="ml-3 text-right">
                                 <div className="bg-gradient-to-r from-gray-800 to-teal-800 px-2 py-1 rounded-md">
-                                  <span className="text-lg font-bold text-white">{service.price}€</span>
+                                  <span className="text-md md:text-lg font-bold text-white">{service.price}€</span>
                                 </div>
                               </div>
                             )}
@@ -593,9 +593,9 @@ export function BookingSteps({ business }: BookingStepsProps) {
               // Always show staff selection if there are staff members
               if (availableStaff.length > 0) {
                 return (
-                  <div className="space-y-4">
+                  <div className="md:space-y-3 space-y-2">
                     <div className="text-center">
-                      <h3 className="text-xl font-bold text-gray-900 mb-2">Zgjidhni stafin që do të ofrojë shërbimin "{selectedService.name}"</h3>
+                      <h3 className="text-sm md:text-xl font-bold text-gray-900 mb-2">Zgjidhni stafin që do të ofrojë shërbimin "{selectedService.name}"</h3>
                     </div>
                     
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
@@ -666,7 +666,7 @@ export function BookingSteps({ business }: BookingStepsProps) {
             {/* Calendar - Show first, disappear after date selection */}
             {!selectedDate && (
               <div className="flex justify-center items-center min-h-[400px] md:min-h-[450px] lg:min-h-[500px]">
-                <div className="w-full max-w-xs sm:max-w-sm md:max-w-md mx-auto px-4">
+                <div className="w-full max-w-sm sm:max-w-md md:max-w-lg mx-auto px-4">
                   <h4 className="text-xl md:text-2xl font-bold text-gray-900 mb-4 md:mb-6 text-center">Zgjidhni Datën</h4>
                   <div className="bg-white rounded-xl shadow-xl border-2 border-gray-100 px-3 py-4 sm:px-4 sm:py-6 md:px-6 md:py-8 mx-auto">
                     <div className="flex justify-center">

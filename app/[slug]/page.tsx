@@ -90,7 +90,7 @@ export default function BusinessPage() {
   // Update page title when business data is loaded
   useEffect(() => {
     if (business) {
-      document.title = `${business.name} - ServiceConnect`;
+      document.title = `${business.name} - TerminiYt.com`;
     }
   }, [business]);
 
@@ -115,7 +115,7 @@ export default function BusinessPage() {
               <div className=" flex items-center justify-center">
                 <Image 
                   src="/logo.png" 
-                  alt="ServiceConnect Logo" 
+                  alt="TerminiYt.com Logo" 
                   width={120} 
                   height={70}
                   className="w-48 h-20"
