@@ -523,7 +523,13 @@ export function BookingSteps({ business }: BookingStepsProps) {
 
             {/* Service Options - Only show if no service selected */}
             {!selectedService && (
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+              <div className={`grid gap-3 ${
+                business.services?.length === 1 
+                  ? 'grid-cols-1 max-w-md mx-auto' 
+                  : business.services?.length === 2 
+                    ? 'grid-cols-1 md:grid-cols-2' 
+                    : 'grid-cols-1 md:grid-cols-2'
+              }`}>
                 {business.services && business.services.length > 0 ? (
                   business.services.map((service: any, index: number) => (
                     <Card 
@@ -595,10 +601,16 @@ export function BookingSteps({ business }: BookingStepsProps) {
                 return (
                   <div className="md:space-y-3 space-y-2">
                     <div className="text-center">
-                      <h3 className="text-sm md:text-xl font-bold text-gray-900 mb-2">Zgjidhni stafin që dëshironi të ofrojë shërbimin "{selectedService.name} për ju:"</h3>
+                      <h3 className="text-sm md:text-xl font-bold text-gray-900 mb-2">Zgjidhni stafin që dëshironi të ofrojë shërbimin "{selectedService.name}" për ju:</h3>
                     </div>
                     
-                    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3">
+                    <div className={`grid gap-3 ${
+                      availableStaff.length === 1 
+                        ? 'grid-cols-1 max-w-md mx-auto' 
+                        : availableStaff.length === 2 
+                          ? 'grid-cols-1 md:grid-cols-2' 
+                          : 'grid-cols-1 md:grid-cols-2 lg:grid-cols-3'
+                    }`}>
                       {availableStaff.map((member: any, index: number) => (
                         <Card 
                           key={index} 
@@ -675,7 +687,7 @@ export function BookingSteps({ business }: BookingStepsProps) {
                         selected={selectedDate}
                         onSelect={handleDateSelect}
                         disabled={isDateDisabled}
-                        className="scale-90 sm:scale-95 md:scale-95 origin-center [&_.rdp-caption]:!text-lg sm:[&_.rdp-caption]:!text-xl [&_.rdp-caption]:!font-bold [&_.rdp-caption]:!text-gray-800 [&_.rdp-caption]:!mb-3 sm:[&_.rdp-caption]:!mb-4 [&_.rdp-nav_button]:!w-8 [&_.rdp-nav_button]:!h-8 sm:[&_.rdp-nav_button]:!w-10 sm:[&_.rdp-nav_button]:!h-10 [&_.rdp-nav_button]:!text-base sm:[&_.rdp-nav_button]:!text-lg [&_.rdp-nav_button]:!font-bold [&_.rdp-weekday]:!text-sm sm:[&_.rdp-weekday]:!text-base [&_.rdp-weekday]:!font-semibold [&_.rdp-weekday]:!text-gray-600 [&_.rdp-weekday]:!py-1 sm:[&_.rdp-weekday]:!py-2 [&_.rdp-day]:!w-8 [&_.rdp-day]:!h-8 sm:[&_.rdp-day]:!w-10 sm:[&_.rdp-day]:!h-10 md:[&_.rdp-day]:!w-12 md:[&_.rdp-day]:!h-12 [&_.rdp-day]:!text-sm sm:[&_.rdp-day]:!text-base [&_.rdp-day]:!font-medium [&_.rdp-day]:!rounded-lg [&_.rdp-day]:!transition-all [&_.rdp-day]:!duration-200 [&_[data-selected-single=true]]:!bg-gradient-to-r [&_[data-selected-single=true]]:!from-gray-800 [&_[data-selected-single=true]]:!to-teal-800 [&_[data-selected-single=true]]:!text-white [&_[data-selected-single=true]]:!border-0 [&_[data-selected-single=true]]:!rounded-lg [&_[data-selected-single=true]]:!shadow-lg [&_[data-selected-single=true]]:!scale-105 [&_td.rdp-today]:!bg-gradient-to-r [&_td.rdp-today]:!from-gray-600 [&_td.rdp-today]:!to-gray-700 [&_td.rdp-today]:!text-white [&_td.rdp-today]:!border-0 [&_td.rdp-today]:!rounded-lg [&_td.rdp-today]:!shadow-md [&_td.rdp-today[data-selected-single=true]]:!bg-gradient-to-r [&_td.rdp-today[data-selected-single=true]]:!from-gray-800 [&_td.rdp-today[data-selected-single=true]]:!to-teal-800 [&_td.rdp-today[data-selected-single=true]]:!text-white [&_td.rdp-today[data-selected-single=true]]:!border-0 [&_td.rdp-today[data-selected-single=true]]:!rounded-lg [&_td.rdp-today[data-selected-single=true]]:!shadow-lg [&_td.rdp-today[data-selected-single=true]]:!scale-105 [&_.rdp-day]:hover:!bg-gradient-to-r [&_.rdp-day]:hover:!from-gray-700 [&_.rdp-day]:hover:!to-teal-700 [&_.rdp-day]:hover:!text-white [&_.rdp-day]:hover:!rounded-lg [&_.rdp-day]:hover:!shadow-md [&_.rdp-day]:hover:!scale-105 [&_.rdp-button_previous]:!bg-transparent [&_.rdp-button_previous]:hover:!bg-transparent [&_.rdp-button_previous]:hover:!bg-gradient-to-r [&_.rdp-button_previous]:hover:!from-gray-600 [&_.rdp-button_previous]:hover:!to-gray-700 [&_.rdp-button_previous]:hover:!text-white [&_.rdp-button_previous]:hover:!rounded-lg [&_.rdp-button_previous]:hover:!shadow-lg [&_.rdp-button_previous]:hover:!border-0 [&_.rdp-button_next]:!bg-transparent [&_.rdp-button_next]:hover:!bg-transparent [&_.rdp-button_next]:hover:!bg-gradient-to-r [&_.rdp-button_next]:hover:!from-gray-600 [&_.rdp-button_next]:hover:!to-gray-700 [&_.rdp-button_next]:hover:!text-white [&_.rdp-button_next]:hover:!rounded-lg [&_.rdp-button_next]:hover:!shadow-lg [&_.rdp-button_next]:hover:!border-0"
+                        className="scale-95 sm:scale-100 md:scale-95 origin-center [&_.rdp-caption]:!text-lg sm:[&_.rdp-caption]:!text-xl [&_.rdp-caption]:!font-bold [&_.rdp-caption]:!text-gray-800 [&_.rdp-caption]:!mb-3 sm:[&_.rdp-caption]:!mb-4 [&_.rdp-nav_button]:!w-8 [&_.rdp-nav_button]:!h-8 sm:[&_.rdp-nav_button]:!w-10 sm:[&_.rdp-nav_button]:!h-10 [&_.rdp-nav_button]:!text-base sm:[&_.rdp-nav_button]:!text-lg [&_.rdp-nav_button]:!font-bold [&_.rdp-weekday]:!text-sm sm:[&_.rdp-weekday]:!text-base [&_.rdp-weekday]:!font-semibold [&_.rdp-weekday]:!text-gray-600 [&_.rdp-weekday]:!py-1 sm:[&_.rdp-weekday]:!py-2 [&_.rdp-day]:!w-8 [&_.rdp-day]:!h-8 sm:[&_.rdp-day]:!w-10 sm:[&_.rdp-day]:!h-10 md:[&_.rdp-day]:!w-12 md:[&_.rdp-day]:!h-12 [&_.rdp-day]:!text-sm sm:[&_.rdp-day]:!text-base [&_.rdp-day]:!font-medium [&_.rdp-day]:!rounded-lg [&_.rdp-day]:!transition-all [&_.rdp-day]:!duration-200 [&_[data-selected-single=true]]:!bg-gradient-to-r [&_[data-selected-single=true]]:!from-gray-800 [&_[data-selected-single=true]]:!to-teal-800 [&_[data-selected-single=true]]:!text-white [&_[data-selected-single=true]]:!border-0 [&_[data-selected-single=true]]:!rounded-lg [&_[data-selected-single=true]]:!shadow-lg [&_[data-selected-single=true]]:!scale-105 [&_td.rdp-today]:!bg-gradient-to-r [&_td.rdp-today]:!from-gray-600 [&_td.rdp-today]:!to-gray-700 [&_td.rdp-today]:!text-white [&_td.rdp-today]:!border-0 [&_td.rdp-today]:!rounded-lg [&_td.rdp-today]:!shadow-md [&_td.rdp-today[data-selected-single=true]]:!bg-gradient-to-r [&_td.rdp-today[data-selected-single=true]]:!from-gray-800 [&_td.rdp-today[data-selected-single=true]]:!to-teal-800 [&_td.rdp-today[data-selected-single=true]]:!text-white [&_td.rdp-today[data-selected-single=true]]:!border-0 [&_td.rdp-today[data-selected-single=true]]:!rounded-lg [&_td.rdp-today[data-selected-single=true]]:!shadow-lg [&_td.rdp-today[data-selected-single=true]]:!scale-105 [&_.rdp-day]:hover:!bg-gradient-to-r [&_.rdp-day]:hover:!from-gray-700 [&_.rdp-day]:hover:!to-teal-700 [&_.rdp-day]:hover:!text-white [&_.rdp-day]:hover:!rounded-lg [&_.rdp-day]:hover:!shadow-md [&_.rdp-day]:hover:!scale-105 [&_.rdp-button_previous]:!bg-transparent [&_.rdp-button_previous]:hover:!bg-transparent [&_.rdp-button_previous]:hover:!bg-gradient-to-r [&_.rdp-button_previous]:hover:!from-gray-600 [&_.rdp-button_previous]:hover:!to-gray-700 [&_.rdp-button_previous]:hover:!text-white [&_.rdp-button_previous]:hover:!rounded-lg [&_.rdp-button_previous]:hover:!shadow-lg [&_.rdp-button_previous]:hover:!border-0 [&_.rdp-button_next]:!bg-transparent [&_.rdp-button_next]:hover:!bg-transparent [&_.rdp-button_next]:hover:!bg-gradient-to-r [&_.rdp-button_next]:hover:!from-gray-600 [&_.rdp-button_next]:hover:!to-gray-700 [&_.rdp-button_next]:hover:!text-white [&_.rdp-button_next]:hover:!rounded-lg [&_.rdp-button_next]:hover:!shadow-lg [&_.rdp-button_next]:hover:!border-0"
                         locale={sq}
                       />
                     </div>

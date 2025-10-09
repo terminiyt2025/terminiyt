@@ -610,6 +610,32 @@ export default function AdminDashboard() {
         }
       }
 
+      // Validate that each service has at least one staff member assigned
+      if (editFormData.services && editFormData.services.length > 0) {
+        const servicesWithoutStaff = []
+        
+        for (const service of editFormData.services) {
+          if (!service.name || service.name.trim() === '') continue // Skip empty services
+          
+          const hasStaffAssigned = editFormData.staff && editFormData.staff.some((staffMember: any) => 
+            staffMember.services && staffMember.services.includes(service.name)
+          )
+          
+          if (!hasStaffAssigned) {
+            servicesWithoutStaff.push(service.name)
+          }
+        }
+        
+        if (servicesWithoutStaff.length > 0) {
+          toast({
+            title: "Gabim!",
+            description: `Shërbimet e mëposhtme duhet të kenë të paktën një staf të caktuar: ${servicesWithoutStaff.join(', ')}`,
+            variant: "destructive",
+          })
+          return
+        }
+      }
+
       // Prepare data for API (exclude confirm_password)
       const { confirm_password, ...apiData } = editFormData
       
@@ -1707,16 +1733,28 @@ export default function AdminDashboard() {
                                     <X className="w-4 h-4" />
                                   </Button>
                                 ) : (
-                                  // When not editing, show edit button
-                                  <Button 
-                                    size="sm" 
-                                    variant="ghost" 
-                                    className="bg-gradient-to-r from-gray-800 to-teal-800 hover:from-gray-700 hover:to-teal-700 text-white h-8 w-8 p-0 font-medium shadow-md transition-all duration-300"
-                                    onClick={() => handleEditBusiness(business)}
-                                    title="Modifiko"
-                                  >
-                                    <Edit className="w-4 h-4" />
-                                  </Button>
+                                  // When not editing, show edit and close buttons
+                                  <>
+                                    <Button 
+                                      size="sm" 
+                                      variant="ghost" 
+                                      className="bg-gradient-to-r from-gray-800 to-teal-800 hover:from-gray-700 hover:to-teal-700 text-white h-8 w-8 p-0 font-medium shadow-md transition-all duration-300"
+                                      onClick={() => handleEditBusiness(business)}
+                                      title="Modifiko"
+                                    >
+                                      <Edit className="w-4 h-4" />
+                                    </Button>
+                                    
+                                    <Button 
+                                      size="sm" 
+                                      variant="ghost" 
+                                      className="bg-gradient-to-r from-gray-600 to-gray-700 hover:from-gray-500 hover:to-gray-600 text-white h-8 w-8 p-0 font-medium shadow-md transition-all duration-300"
+                                      onClick={() => setExpandedCard(null)}
+                                      title="Mbyll"
+                                    >
+                                      <X className="w-4 h-4" />
+                                    </Button>
+                                  </>
                                 )}
                               </>
                             ) : (

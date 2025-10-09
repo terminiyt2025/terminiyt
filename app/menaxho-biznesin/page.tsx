@@ -221,6 +221,32 @@ export default function BusinessPanel() {
     if (!business) return
 
     try {
+      // Validate that each service has at least one staff member assigned
+      if (editData.services && editData.services.length > 0) {
+        const servicesWithoutStaff = []
+        
+        for (const service of editData.services) {
+          if (!service.name || service.name.trim() === '') continue // Skip empty services
+          
+          const hasStaffAssigned = editData.staff && editData.staff.some((staffMember: any) => 
+            staffMember.services && staffMember.services.includes(service.name)
+          )
+          
+          if (!hasStaffAssigned) {
+            servicesWithoutStaff.push(service.name)
+          }
+        }
+        
+        if (servicesWithoutStaff.length > 0) {
+          toast({
+            title: "Gabim!",
+            description: `Shërbimet e mëposhtme duhet të kenë të paktën një staf të caktuar: ${servicesWithoutStaff.join(', ')}`,
+            variant: "destructive",
+          })
+          return
+        }
+      }
+
       const updateData = {
         ...editData,
         ...(passwordData.new_password && passwordData.new_password === passwordData.confirm_password ? {
