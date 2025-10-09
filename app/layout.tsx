@@ -1,21 +1,15 @@
 import type React from "react"
 import type { Metadata } from "next"
-import { Space_Grotesk, DM_Sans } from "next/font/google"
+import { Outfit } from "next/font/google"
 import { Analytics } from "@vercel/analytics/next"
 import { Suspense } from "react"
 import { Toaster } from "@/components/ui/toaster"
 import "./globals.css"
 
-const spaceGrotesk = Space_Grotesk({
+const outfit = Outfit({
   subsets: ["latin"],
   display: "swap",
-  variable: "--font-space-grotesk",
-})
-
-const dmSans = DM_Sans({
-  subsets: ["latin"],
-  display: "swap",
-  variable: "--font-dm-sans",
+  variable: "--font-outfit",
 })
 
 export const metadata: Metadata = {
@@ -47,7 +41,7 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="en">
-      <body className={`font-sans ${dmSans.variable} ${spaceGrotesk.variable}`} suppressHydrationWarning={true}>
+      <body className={`font-sans ${outfit.variable}`} suppressHydrationWarning={true}>
         <Suspense fallback={null}>{children}</Suspense>
         <Toaster />
         <Analytics />

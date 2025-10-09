@@ -1,6 +1,6 @@
 @import "tailwindcss";
 @import "tw-animate-css";
-@import url('https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700&display=swap');
+/* Outfit font is imported via Next.js font optimization */
 
 
 @custom-variant dark (&:is(.dark *));
@@ -79,10 +79,10 @@
 }
 
 @theme inline {
-  /* i heqim DM Sans dhe Space Grotesk, dhe vendosim Outfit */
-  --font-sans: "Outfit", sans-serif;
+  /* Using Outfit font via Next.js font optimization */
+  --font-sans: var(--font-outfit), "Outfit", sans-serif;
   --font-mono: var(--font-geist-mono);
-  --font-heading: "Outfit", sans-serif;
+  --font-heading: var(--font-outfit), "Outfit", sans-serif;
 
   --color-background: var(--background);
   --color-foreground: var(--foreground);
@@ -125,13 +125,13 @@
 @layer base {
   * {
     @apply border-border outline-ring/50;
-    font-family: "Outfit", sans-serif;
+    font-family: var(--font-outfit), "Outfit", sans-serif;
   }
   body {
     @apply bg-background text-foreground;
   }
   .font-heading {
-    font-family: "Outfit", sans-serif;
+    font-family: var(--font-outfit), "Outfit", sans-serif;
   }
 }
 video::-webkit-media-controls {

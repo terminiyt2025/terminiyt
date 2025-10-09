@@ -1,7 +1,7 @@
 @import 'tailwindcss';
 @import 'tw-animate-css';
 @import 'tw-animate-css';
-@import url('https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700&display=swap');
+/* Outfit font is imported via Next.js font optimization */
 @custom-variant dark (&:is(.dark *));
 
 :root {
@@ -118,7 +118,7 @@
 @layer base {
   * {
     @apply border-border outline-ring/50;
-    font-family: 'Outfit', sans-serif;
+    font-family: var(--font-outfit), 'Outfit', sans-serif;
   }
 
   body {
