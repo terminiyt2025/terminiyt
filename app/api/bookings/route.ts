@@ -55,16 +55,28 @@ export async function POST(request: NextRequest) {
   try {
     const body = await request.json()
     console.log('Creating booking with data:', body)
+    console.log('Business ID from request:', body.businessId)
+    console.log('Business ID type:', typeof body.businessId)
 
     // Validate required fields
     const requiredFields = ['businessId', 'serviceName', 'appointmentDate', 'appointmentTime', 'customerName', 'customerEmail', 'customerPhone']
     for (const field of requiredFields) {
       if (!body[field]) {
+        console.log(`Missing required field: ${field}, value:`, body[field])
         return NextResponse.json(
           { error: `Missing required field: ${field}` },
           { status: 400 }
         )
       }
+    }
+
+    // Validate businessId is a valid number
+    if (isNaN(parseInt(body.businessId))) {
+      console.log('Invalid businessId:', body.businessId)
+      return NextResponse.json(
+        { error: 'ID i biznesit është i detyrueshëm' },
+        { status: 400 }
+      )
     }
 
     // Create the booking
@@ -79,7 +91,7 @@ export async function POST(request: NextRequest) {
         customerEmail: body.customerEmail,
         customerPhone: body.customerPhone,
         notes: body.notes || null,
-        totalPrice: body.totalPrice || null,
+        totalPrice: body.totalPrice ? parseFloat(body.totalPrice.toString()) : null,
         serviceDuration: body.serviceDuration || 30, // Default 30 minutes if not specified
         status: 'CONFIRMED'
       }
@@ -106,7 +118,7 @@ export async function POST(request: NextRequest) {
           serviceName: body.serviceName,
           date: format(new Date(body.appointmentDate), "EEEE, d MMMM", { locale: sq }),
           time: body.appointmentTime,
-          price: body.totalPrice || 0,
+          price: body.totalPrice ? parseFloat(body.totalPrice.toString()) : 0,
           staffName: body.staffName || 'Nuk është caktuar',
           duration: body.serviceDuration || 30,
           notes: body.notes

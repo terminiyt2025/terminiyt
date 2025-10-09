@@ -387,6 +387,8 @@ export function BookingSteps({ business }: BookingStepsProps) {
   const onSubmit = async (data: ContactFormData) => {
     setIsSubmitting(true)
     console.log("Booking form submitted with data:", data)
+    console.log("Business object:", business)
+    console.log("Business ID:", business?.id)
 
     try {
       // Create booking data
@@ -400,7 +402,7 @@ export function BookingSteps({ business }: BookingStepsProps) {
         customerEmail: data.customerEmail,
         customerPhone: data.customerPhone,
         notes: data.notes || '',
-        totalPrice: selectedService?.price || 0,
+        totalPrice: selectedService?.price ? parseFloat(selectedService.price.toString()) : 0,
         serviceDuration: (() => {
           const duration = selectedService?.duration || 30
           // If duration is a string like "30 min", extract the number
