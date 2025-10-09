@@ -682,12 +682,25 @@ export function GoogleMaps({ businesses: propBusinesses, categories, selectedCat
                     <div className="space-y-1">
                       {Object.entries(selectedBusiness.operating_hours)
                         .filter(([day, hours]: [string, any]) => !hours.closed)
-                        .map(([day, hours]: [string, any]) => (
-                          <div key={day} className="flex justify-between text-sm">
-                            <span className="font-medium text-gray-700 capitalize">{day}:</span>
-                            <span className="text-gray-600">{hours.open} - {hours.close}</span>
-                          </div>
-                        ))}
+                        .map(([day, hours]: [string, any]) => {
+                          // Albanian day names
+                          const dayNames: { [key: string]: string } = {
+                            monday: 'E Hënë',
+                            tuesday: 'E Martë', 
+                            wednesday: 'E Mërkurë',
+                            thursday: 'E Enjte',
+                            friday: 'E Premte',
+                            saturday: 'E Shtunë',
+                            sunday: 'E Dielë'
+                          }
+                          
+                          return (
+                            <div key={day} className="flex justify-between text-sm">
+                              <span className="font-medium text-gray-700">{dayNames[day] || day}:</span>
+                              <span className="text-gray-600">{hours.open} - {hours.close}</span>
+                            </div>
+                          )
+                        })}
                     </div>
                   </div>
                 )}

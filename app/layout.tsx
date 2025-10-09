@@ -42,9 +42,9 @@ export default function RootLayout({
   return (
     <html lang="en">
       <body className={`font-sans ${outfit.variable}`} suppressHydrationWarning={true}>
-        <Suspense fallback={null}>{children}</Suspense>
-        <Toaster />
-        <Analytics />
+          <Suspense fallback={null}>{children}</Suspense>
+          <Toaster />
+          <Analytics />
       </body>
     </html>
   )

@@ -301,10 +301,10 @@ export default function HomePage() {
                                     return a.name.localeCompare(b.name);
                                   })
                                   .map((category) => (
-                                    <SelectItem key={category.id} value={String(category.id)} className="hover:bg-gray-100 focus:bg-gray-100 hover:text-black focus:text-black">
-                                      {category.name}
-                                    </SelectItem>
-                                  ))}
+                                  <SelectItem key={category.id} value={String(category.id)} className="hover:bg-gray-100 focus:bg-gray-100 hover:text-black focus:text-black">
+                                    {category.name}
+                                  </SelectItem>
+                                ))}
                               </SelectContent>
                             </Select>
                           )}
@@ -628,8 +628,8 @@ export default function HomePage() {
             <DialogHeader>
               <DialogTitle className="text-xl font-bold">
                 <div className="block">
-                  {modalType === 'staff-sherbimet' && 'Staff & Shërbimet'}
-                  {modalType === 'orari' && 'Orari i Punës'}
+                  {modalType === 'staff-sherbimet' && 'Stafi & Shërbimet'}
+                {modalType === 'orari' && 'Orari i Punës'}
                 </div>
                 <div className="block text-lg font-medium text-gray-600 mt-1">
                   {selectedBusiness.name}
@@ -646,7 +646,7 @@ export default function HomePage() {
                       <div className="w-6 h-6 bg-gradient-to-br from-gray-800 to-teal-800 rounded-full flex items-center justify-center">
                         <User className="w-4 h-4 text-white" />
                       </div>
-                      Stafi:
+                      Anëtarët e stafit:
                     </h3>
                     {selectedBusiness.staff && selectedBusiness.staff.length > 0 ? (
                       <div className="space-y-2">
@@ -673,7 +673,7 @@ export default function HomePage() {
                       <div className="w-6 h-6 bg-gradient-to-br from-gray-800 to-teal-800 rounded-full flex items-center justify-center">
                         <Star className="w-4 h-4 text-white" />
                       </div>
-                      Shërbimet:
+                      Shërbimet e biznesit:
                     </h3>
                     {selectedBusiness.services && selectedBusiness.services.length > 0 ? (
                       <div className="space-y-3">
@@ -682,9 +682,9 @@ export default function HomePage() {
                             <div className="flex justify-between items-start mb-2">
                               <h4 className="font-semibold text-gray-900">{service.name} ({service.duration})</h4>
                               {service.price && service.price > 0 && (
-                                <span className="bg-gradient-to-br from-gray-800 to-teal-800 bg-clip-text text-transparent font-bold">
-                                  {service.price}€
-                                </span>
+                              <span className="bg-gradient-to-br from-gray-800 to-teal-800 bg-clip-text text-transparent font-bold">
+                                {service.price}€
+                              </span>
                               )}
                             </div>
                             {service.description && (
@@ -700,7 +700,7 @@ export default function HomePage() {
                             {/* Staff badges for this service */}
                             {selectedBusiness.staff && selectedBusiness.staff.length > 0 && (
                               <div className="flex flex-wrap gap-2">
-                                {selectedBusiness.staff
+                                <span className="text-sm">Këtë shërbim e ofron:</span> {selectedBusiness.staff
                                   .filter((staffMember: any) => {
                                     // First check if staff member is active
                                     if (staffMember.isActive === false) {
@@ -752,9 +752,20 @@ export default function HomePage() {
                         const isClosed = hours && (hours.closed === true || hours.closed === 'true' || hours.closed === 1)
                         const hasHours = hours && hours.open && hours.close && !isClosed
                         
+                        // Albanian day names
+                        const dayNames: { [key: string]: string } = {
+                          monday: 'E Hënë',
+                          tuesday: 'E Martë', 
+                          wednesday: 'E Mërkurë',
+                          thursday: 'E Enjte',
+                          friday: 'E Premte',
+                          saturday: 'E Shtunë',
+                          sunday: 'E Dielë'
+                        }
+                        
                         return (
                           <div key={day} className="flex justify-between items-center p-3 border rounded-lg">
-                            <span className="font-medium text-gray-900 capitalize">{day}:</span>
+                            <span className="font-medium text-gray-900">{dayNames[day]}:</span>
                             <span className={`text-sm ${isClosed ? 'text-red-600' : hasHours ? 'text-green-600' : 'text-red-600'}`}>
                               {isClosed ? 'Mbyllur' : hasHours ? `${hours.open} - ${hours.close}` : 'Mbyllur'}
                             </span>

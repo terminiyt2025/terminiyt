@@ -247,13 +247,13 @@ export default function SiFunksiononPage() {
                   <h3 className="text-3xl md:text-4xl lg:text-5xl font-heading font-bold mb-6 text-balance bg-gradient-to-r from-gray-800 to-teal-800 bg-clip-text text-transparent">
                     Termine Online
                   </h3>
-                  <p className="text-sm md:text-xl text-muted-foreground max-w-2xl mx-auto">
+                  <p className="text-sm md:text-xl text-muted-foreground max-w-2xl ">
                   Klientët mund të zgjedhin ditën dhe orën që i përshtatet më shumë, duke marrë parasysh orarin e punës së biznesit, pa nevojën për telefonata ose pritje në vend.                  </p>
                 </div>
                 <div className="relative">
                   <video 
-                    className="w-full h-64 md:h-80 rounded-xl object-cover"
-                    poster="/placeholder.jpg"
+                    className="w-full h-64 md:h-80 2xl:h-[480px] rounded-xl object-cover"
+                  
                     autoPlay
                     loop
                     muted
@@ -286,7 +286,7 @@ export default function SiFunksiononPage() {
   <h3 className="text-3xl md:text-4xl lg:text-5xl font-heading font-bold mb-6 text-balance bg-gradient-to-r from-gray-800 to-teal-800 bg-clip-text text-transparent">
     Shërbimet e Biznesit
   </h3>
-  <p className="text-sm md:text-xl text-muted-foreground max-w-2xl mx-auto">
+  <p className="text-sm md:text-xl text-muted-foreground max-w-2xl ">
   Biznesi mund të shtojë lehtësisht shërbimet e ndryshme, ndërsa klientët kanë mundësinë të zgjedhin atë që i përshtatet më mirë nevojave të tyre.  </p>
  <img 
   src="/sherbimet.png" 
@@ -312,7 +312,7 @@ export default function SiFunksiononPage() {
                 <h3 className="text-3xl md:text-4xl lg:text-5xl font-heading font-bold mb-6 text-balance bg-gradient-to-r from-gray-800 to-teal-800 bg-clip-text text-transparent">
                 Shto anëtarë të ekipit
                 </h3>
-                <p className="text-sm md:text-xl text-muted-foreground max-w-2xl mx-auto">
+                <p className="text-sm md:text-xl text-muted-foreground max-w-2xl ">
                 Çdo anëtar ka kalendarin e vet për të menaxhuar rezervimet dhe njoftimet, duke mbajtur ekipin gjithmonë të sinkronizuar. </p>
                 <div className="flex justify-center items-center">
   <img 

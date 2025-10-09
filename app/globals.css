@@ -276,7 +276,7 @@ video::-webkit-media-controls-enclosure {
   .container {
     padding-left: 100px !important;
     padding-right: 100px !important;
-    max-width: none !important;
+    max-width: 2120px !important;
   }
   
   .main-content {
