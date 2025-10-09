@@ -103,6 +103,7 @@ export async function POST(request: NextRequest) {
       select: { 
         name: true, 
         accountEmail: true,
+        phone: true,
         staff: true 
       }
     })
@@ -110,6 +111,15 @@ export async function POST(request: NextRequest) {
     // Send emails if business exists and SMTP is configured
     if (business && process.env.SMTP_HOST && process.env.SMTP_USER && process.env.SMTP_PASS) {
       try {
+        // Get staff phone number if staff is selected
+        let staffPhone = null
+        if (body.staffName && business.staff && Array.isArray(business.staff)) {
+          const selectedStaff = business.staff.find((staff: any) => 
+            staff.name === body.staffName && staff.isActive !== false
+          ) as any
+          staffPhone = selectedStaff?.phone || null
+        }
+
         const emailData = {
           businessName: business.name,
           customerName: body.customerName,
@@ -120,6 +130,7 @@ export async function POST(request: NextRequest) {
           time: body.appointmentTime,
           price: body.totalPrice ? parseFloat(body.totalPrice.toString()) : 0,
           staffName: body.staffName || 'Nuk është caktuar',
+          staffPhone: staffPhone || business.phone,
           duration: body.serviceDuration || 30,
           notes: body.notes
         }
@@ -152,20 +163,6 @@ export async function POST(request: NextRequest) {
           }
         }
 
-        // 3. Send notification email to business owner
-        if (business.accountEmail) {
-          const adminEmail = emailTemplates.staffNotification({
-            ...emailData,
-            staffName: 'Pronari i Biznesit'
-          })
-          
-          await sendEmail({
-            to: business.accountEmail,
-            subject: `Rezervim i Ri - ${business.name}`,
-            html: adminEmail.html,
-            text: adminEmail.text
-          })
-        }
 
         console.log('All emails sent successfully')
       } catch (emailError) {

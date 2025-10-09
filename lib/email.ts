@@ -57,141 +57,99 @@ export async function sendEmail({
 export const emailTemplates = {
   // Email sent to customer confirming their booking
   customerConfirmation: (bookingData: any) => ({
-    subject: `Rezervimi u Konfirmua - ${bookingData.businessName}`,
+    subject: `✅ Rezervimi juaj u konfirmua me sukses! - TerminiYt.com`,
     html: `
-      <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; padding: 20px;">
-        <div style="text-align: center; margin-bottom: 30px;">
-          <h1 style="color: #1f2937; margin: 0;">TerminiYt.com</h1>
-          <p style="color: #6b7280; margin: 5px 0;">Rezervimet tuaja lokale</p>
-        </div>
+      <div style="font-family: 'Outfit', sans-serif; max-width: 600px; margin: 0 auto;">
         
-        <h2 style="color: #1f2937; text-align: center;">✅ Rezervimi u Konfirmua!</h2>
+        <p style="font-size: 16px; margin-bottom: 20px;">Përshëndetje <strong>${bookingData.customerName}</strong>,</p>
+        <p style="font-size: 16px; margin-bottom: 30px;">Rezervimi juaj me biznesin <strong>${bookingData.businessName}</strong> është konfirmuar me sukses.</p>
         
-        <p style="font-size: 16px;">Përshëndetje <strong>${bookingData.customerName}</strong>,</p>
-        <p style="font-size: 16px;">Rezervimi juaj me <strong>${bookingData.businessName}</strong> është konfirmuar me sukses.</p>
+        <h3 style="font-size: 18px; margin-bottom: 20px;">📅 Detajet e Rezervimit:</h3>
+        <p style="margin: 10px 0;"><strong> Biznesi:</strong> ${bookingData.businessName}</p>
+        <p style="margin: 10px 0;"><strong> Shërbimi:</strong> ${bookingData.serviceName}</p>
+        <p style="margin: 10px 0;"><strong> Stafi:</strong> ${bookingData.staffName}</p>
+        <p style="margin: 10px 0;"><strong> Data:</strong> ${bookingData.date}</p>
+        <p style="margin: 10px 0;"><strong> Ora:</strong> ${bookingData.time}</p>
+          <p style="margin: 10px 0;"><strong> Kohëzgjatja:</strong> ${bookingData.duration} minuta</p>
+        ${bookingData.notes ? `<p style="margin: 10px 0;"><strong> Shënime:</strong> ${bookingData.notes}</p>` : ''}
         
-        <div style="background: linear-gradient(135deg, #f9fafb 0%, #f3f4f6 100%); padding: 25px; border-radius: 12px; margin: 25px 0; border-left: 4px solid #0f766e;">
-          <h3 style="color: #1f2937; margin-top: 0; font-size: 18px;">📅 Detajet e Rezervimit:</h3>
-          <div style="display: grid; gap: 10px;">
-            <p style="margin: 5px 0;"><strong>🏢 Biznesi:</strong> ${bookingData.businessName}</p>
-            <p style="margin: 5px 0;"><strong>🛠️ Shërbimi:</strong> ${bookingData.serviceName}</p>
-            <p style="margin: 5px 0;"><strong>👤 Stafi:</strong> ${bookingData.staffName}</p>
-            <p style="margin: 5px 0;"><strong>📅 Data:</strong> ${bookingData.date}</p>
-            <p style="margin: 5px 0;"><strong>🕐 Ora:</strong> ${bookingData.time}</p>
-            <p style="margin: 5px 0;"><strong>💰 Çmimi:</strong> ${bookingData.price}€</p>
-            ${bookingData.notes ? `<p style="margin: 5px 0;"><strong>📝 Shënime:</strong> ${bookingData.notes}</p>` : ''}
-          </div>
-        </div>
+        <h4 style="font-size: 16px;">ℹ️ Informacione të Rëndësishme:</h4>
+        <ul style="margin: 0;">
+          <li style="margin: 8px 0;">Ju lutemi arrini 5-10 minuta para orës së caktuar</li>
+            <li style="margin: 8px 0;">Nëse dëshironi të bëni ndryshime apo ta anuloni këtë terminin, ju lutemi kontaktoni në numrin: ${bookingData.staffPhone}</li>
+        </ul>
         
-        <div style="background: #f0f9ff; padding: 20px; border-radius: 8px; margin: 25px 0;">
-          <h4 style="color: #1e40af; margin-top: 0;">ℹ️ Informacione të Rëndësishme:</h4>
-          <ul style="color: #1e40af; margin: 0; padding-left: 20px;">
-            <li>Ju lutemi arrini 5-10 minuta para orës së caktuar</li>
-            <li>Nëse nuk mund të arrini, ju lutemi na kontaktoni sa më parë</li>
-            <li>Rezervimi juaj është i garantuar për orën e zgjedhur</li>
-          </ul>
-        </div>
-        
-        <div style="text-align: center; margin-top: 30px; padding-top: 20px; border-top: 1px solid #e5e7eb;">
-          <p style="color: #6b7280; font-size: 14px;">Faleminderit që zgjodhët TerminiYt.com!</p>
-          <p style="color: #6b7280; font-size: 14px;">Ekipi i TerminiYt.com</p>
-          <p style="color: #6b7280; font-size: 12px; margin-top: 15px;">
-            <a href="mailto:info@terminiyt.com" style="color: #0f766e;">info@terminiyt.com</a> | 
-            <a href="https://terminiyt.com" style="color: #0f766e;">terminiyt.com</a>
+        <div style="text-align: center; margin-top: 40px; padding-top: 20px; border-top: 1px solid #ccc;">
+          <p style="font-size: 14px; margin: 10px 0;">Faleminderit që zgjodhët TerminiYt.com!</p>
+          <p style="font-size: 12px; margin-top: 20px;">
+            <a href="mailto:info@terminiyt.com">info@terminiyt.com</a> | 
+            <a href="https://terminiyt.com">terminiyt.com</a>
           </p>
         </div>
       </div>
     `,
     text: `
-      TerminiYt.com - Rezervimet tuaja lokale
-      
-      ✅ Rezervimi u Konfirmua!
       
       Përshëndetje ${bookingData.customerName},
       
-      Rezervimi juaj me ${bookingData.businessName} është konfirmuar me sukses.
+      Rezervimi juaj me biznesin ${bookingData.businessName} është konfirmuar me sukses.
       
       📅 Detajet e Rezervimit:
-      🏢 Biznesi: ${bookingData.businessName}
-      🛠️ Shërbimi: ${bookingData.serviceName}
-      👤 Stafi: ${bookingData.staffName}
-      📅 Data: ${bookingData.date}
-      🕐 Ora: ${bookingData.time}
-      💰 Çmimi: ${bookingData.price}€
-      ${bookingData.notes ? `📝 Shënime: ${bookingData.notes}` : ''}
+      Biznesi: ${bookingData.businessName}
+      Shërbimi: ${bookingData.serviceName}
+      Stafi: ${bookingData.staffName}
+      Data: ${bookingData.date}
+      Ora: ${bookingData.time}
+      Kohëzgjatja: ${bookingData.duration} minuta
+      ${bookingData.notes ? `Shënime: ${bookingData.notes}` : ''}
       
       ℹ️ Informacione të Rëndësishme:
       • Ju lutemi arrini 5-10 minuta para orës së caktuar
-      • Nëse nuk mund të arrini, ju lutemi na kontaktoni sa më parë
-      • Rezervimi juaj është i garantuar për orën e zgjedhur
+       • Nëse dëshironi ndryshime apo anulime, ju lutemi kontaktoni në numrin: ${bookingData.staffPhone}
       
       Faleminderit që zgjodhët TerminiYt.com!
-      Ekipi i TerminiYt.com
-      
       info@terminiyt.com | terminiyt.com
     `
   }),
 
   // Email sent to staff member about their new booking
   staffNotification: (bookingData: any) => ({
-    subject: `Rezervim i Ri për Ju - ${bookingData.businessName}`,
+    subject: `Rezervim i Ri - ${bookingData.businessName}`,
     html: `
-      <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; padding: 20px;">
-        <div style="text-align: center; margin-bottom: 30px;">
-          <h1 style="color: #1f2937; margin: 0;">TerminiYt.com</h1>
-          <p style="color: #6b7280; margin: 5px 0;">Sistemi i rezervimeve</p>
-        </div>
+      <div style="font-family: 'Outfit', sans-serif; max-width: 600px; margin: 0 auto;">
         
-        <h2 style="color: #1f2937; text-align: center;">📋 Rezervim i Ri për Ju</h2>
+        <p style="font-size: 16px; margin-bottom: 20px;">Përshëndetje <strong>${bookingData.staffName}</strong>,</p>
+        <p style="font-size: 16px; margin-bottom: 30px;">Ju keni një rezervim të ri në <strong>${bookingData.businessName}</strong>.</p>
         
-        <p style="font-size: 16px;">Përshëndetje <strong>${bookingData.staffName}</strong>,</p>
-        <p style="font-size: 16px;">Ju keni një rezervim të ri në <strong>${bookingData.businessName}</strong>.</p>
+        <h3 style="font-size: 18px; margin-bottom: 20px;">👤 Informacionet e Klientit:</h3>
+        <p style="margin: 10px 0;"><strong> Emri:</strong> ${bookingData.customerName}</p>
+        <p style="margin: 10px 0;"><strong> Email:</strong> ${bookingData.customerEmail}</p>
+        <p style="margin: 10px 0;"><strong> Telefon:</strong> ${bookingData.customerPhone}</p>
         
-        <div style="background: linear-gradient(135deg, #fef3c7 0%, #fde68a 100%); padding: 25px; border-radius: 12px; margin: 25px 0; border-left: 4px solid #f59e0b;">
-          <h3 style="color: #92400e; margin-top: 0; font-size: 18px;">👤 Informacionet e Klientit:</h3>
-          <div style="display: grid; gap: 10px;">
-            <p style="margin: 5px 0;"><strong>Emri:</strong> ${bookingData.customerName}</p>
-            <p style="margin: 5px 0;"><strong>Email:</strong> ${bookingData.customerEmail}</p>
-            <p style="margin: 5px 0;"><strong>Telefon:</strong> ${bookingData.customerPhone}</p>
-          </div>
-        </div>
+        <h3 style="font-size: 18px; margin: 30px 0 20px 0;">📅 Detajet e Rezervimit:</h3>
+        <p style="margin: 10px 0;"><strong> Shërbimi:</strong> ${bookingData.serviceName}</p>
+        <p style="margin: 10px 0;"><strong> Data:</strong> ${bookingData.date}</p>
+        <p style="margin: 10px 0;"><strong> Ora:</strong> ${bookingData.time}</p>
+        <p style="margin: 10px 0;"><strong> Kohëzgjatja:</strong> ${bookingData.duration} minuta</p>
+        ${bookingData.notes ? `<p style="margin: 10px 0;"><strong> Shënime nga klienti:</strong> ${bookingData.notes}</p>` : ''}
         
-        <div style="background: linear-gradient(135deg, #f9fafb 0%, #f3f4f6 100%); padding: 25px; border-radius: 12px; margin: 25px 0; border-left: 4px solid #0f766e;">
-          <h3 style="color: #1f2937; margin-top: 0; font-size: 18px;">📅 Detajet e Rezervimit:</h3>
-          <div style="display: grid; gap: 10px;">
-            <p style="margin: 5px 0;"><strong>🛠️ Shërbimi:</strong> ${bookingData.serviceName}</p>
-            <p style="margin: 5px 0;"><strong>📅 Data:</strong> ${bookingData.date}</p>
-            <p style="margin: 5px 0;"><strong>🕐 Ora:</strong> ${bookingData.time}</p>
-            <p style="margin: 5px 0;"><strong>⏱️ Kohëzgjatja:</strong> ${bookingData.duration} minuta</p>
-            <p style="margin: 5px 0;"><strong>💰 Çmimi:</strong> ${bookingData.price}€</p>
-            ${bookingData.notes ? `<p style="margin: 5px 0;"><strong>📝 Shënime nga klienti:</strong> ${bookingData.notes}</p>` : ''}
-          </div>
-        </div>
+        <h4 style="font-size: 16px;">📋 Çfarë duhet të bëni:</h4>
+        <ul style="margin: 0;">
+          <li style="margin: 8px 0;">Kontrolloni kalendarin tuaj për këtë rezervim</li>
+          <li style="margin: 8px 0;">Sigurohuni që jeni i disponueshëm në kohën e caktuar</li>
+          <li style="margin: 8px 0;">Kontaktoni klientin nëse ka nevojë për ndonjë informacion shtesë</li>
+        </ul>
         
-        <div style="background: #f0f9ff; padding: 20px; border-radius: 8px; margin: 25px 0;">
-          <h4 style="color: #1e40af; margin-top: 0;">📋 Çfarë duhet të bëni:</h4>
-          <ul style="color: #1e40af; margin: 0; padding-left: 20px;">
-            <li>Kontrolloni kalendarin tuaj për këtë rezervim</li>
-            <li>Sigurohuni që jeni i disponueshëm në kohën e caktuar</li>
-            <li>Kontaktoni klientin nëse ka nevojë për ndonjë informacion shtesë</li>
-            <li>Përgatituni për shërbimin e rezervuar</li>
-          </ul>
-        </div>
-        
-        <div style="text-align: center; margin-top: 30px; padding-top: 20px; border-top: 1px solid #e5e7eb;">
-          <p style="color: #6b7280; font-size: 14px;">Ky email u dërgua automatikisht nga sistemi i rezervimeve.</p>
-          <p style="color: #6b7280; font-size: 12px; margin-top: 15px;">
-            <a href="mailto:info@terminiyt.com" style="color: #0f766e;">info@terminiyt.com</a> | 
-            <a href="https://terminiyt.com" style="color: #0f766e;">terminiyt.com</a>
+        <div style="text-align: center; margin-top: 40px; padding-top: 20px; border-top: 1px solid #ccc;">
+          <p style="font-size: 14px; margin: 10px 0;">Ky email u dërgua automatikisht nga sistemi i rezervimeve.</p>
+          <p style="font-size: 12px; margin-top: 20px;">
+            <a href="mailto:info@terminiyt.com">info@terminiyt.com</a> | 
+            <a href="https://terminiyt.com">terminiyt.com</a>
           </p>
         </div>
       </div>
     `,
     text: `
-      TerminiYt.com - Sistemi i rezervimeve
-      
-      📋 Rezervim i Ri për Ju
-      
       Përshëndetje ${bookingData.staffName},
       
       Ju keni një rezervim të ri në ${bookingData.businessName}.
@@ -202,20 +160,86 @@ export const emailTemplates = {
       Telefon: ${bookingData.customerPhone}
       
       📅 Detajet e Rezervimit:
-      🛠️ Shërbimi: ${bookingData.serviceName}
-      📅 Data: ${bookingData.date}
-      🕐 Ora: ${bookingData.time}
-      ⏱️ Kohëzgjatja: ${bookingData.duration} minuta
-      💰 Çmimi: ${bookingData.price}€
-      ${bookingData.notes ? `📝 Shënime nga klienti: ${bookingData.notes}` : ''}
+      Shërbimi: ${bookingData.serviceName}
+      Data: ${bookingData.date}
+      Ora: ${bookingData.time}
+      Kohëzgjatja: ${bookingData.duration} minuta
+      ${bookingData.notes ? `Shënime nga klienti: ${bookingData.notes}` : ''}
       
       📋 Çfarë duhet të bëni:
       • Kontrolloni kalendarin tuaj për këtë rezervim
       • Sigurohuni që jeni i disponueshëm në kohën e caktuar
       • Kontaktoni klientin nëse ka nevojë për ndonjë informacion shtesë
-      • Përgatituni për shërbimin e rezervuar
+
       
       Ky email u dërgua automatikisht nga sistemi i rezervimeve.
+      
+      info@terminiyt.com | terminiyt.com
+    `
+  }),
+
+  // Email sent to customer as reminder 30 minutes before appointment
+  bookingReminder: (bookingData: any) => ({
+    subject: `⏰ Rikujtim: Rezervimi juaj fillon në 30 minuta - TerminiYt.com`,
+    html: `
+      <div style="font-family: 'Outfit', sans-serif; max-width: 600px; margin: 0 auto;">
+        
+        <p style="font-size: 16px; margin-bottom: 20px;">Përshëndetje <strong>${bookingData.customerName}</strong>,</p>
+        <p style="font-size: 16px; margin-bottom: 30px;">Ky është një rikujtim që rezervimi juaj me <strong>${bookingData.businessName}</strong> fillon në <strong>30 minuta</strong>.</p>
+        
+        <h3 style="font-size: 18px; margin-bottom: 20px;">📅 Detajet e Rezervimit:</h3>
+        <p style="margin: 10px 0;"><strong> Biznesi:</strong> ${bookingData.businessName}</p>
+        <p style="margin: 10px 0;"><strong> Shërbimi:</strong> ${bookingData.serviceName}</p>
+        <p style="margin: 10px 0;"><strong> Stafi:</strong> ${bookingData.staffName}</p>
+        <p style="margin: 10px 0;"><strong> Data:</strong> ${bookingData.date}</p>
+        <p style="margin: 10px 0;"><strong> Ora:</strong> ${bookingData.time}</p>
+        <p style="margin: 10px 0;"><strong> Kohëzgjatja:</strong> ${bookingData.duration} minuta</p>
+        ${bookingData.notes ? `<p style="margin: 10px 0;"><strong> Shënime:</strong> ${bookingData.notes}</p>` : ''}
+        
+        <h4 style="font-size: 16px;">⏰ Rikujtim i Rëndësishëm:</h4>
+        <ul style="margin: 0;">
+          <li style="margin: 8px 0;">Ju lutemi arrini 5-10 minuta para orës së caktuar</li>
+          <li style="margin: 8px 0;">Sigurohuni që keni marrë me vete dokumentet e nevojshme</li>
+          <li style="margin: 8px 0;">Nëse nuk mund të arrini, ju lutemi kontaktoni në numrin: ${bookingData.staffPhone}</li>
+        </ul>
+        
+        <div style="background-color: #f8f9fa; padding: 20px; border-radius: 8px; margin: 20px 0;">
+          <p style="margin: 0; font-size: 14px; color: #666;">
+            <strong>💡 Këshillë:</strong> Nëse keni pyetje apo nevojë për ndryshime, kontaktoni biznesin sa më shpejt që të jetë e mundur.
+          </p>
+        </div>
+        
+        <div style="text-align: center; margin-top: 40px; padding-top: 20px; border-top: 1px solid #ccc;">
+          <p style="font-size: 14px; margin: 10px 0;">Faleminderit që zgjodhët TerminiYt.com!</p>
+          <p style="font-size: 12px; margin-top: 20px;">
+            <a href="mailto:info@terminiyt.com">info@terminiyt.com</a> | 
+            <a href="https://terminiyt.com">terminiyt.com</a>
+          </p>
+        </div>
+      </div>
+    `,
+    text: `
+      Përshëndetje ${bookingData.customerName},
+      
+      Ky është një rikujtim që rezervimi juaj me ${bookingData.businessName} fillon në 30 minuta.
+      
+      📅 Detajet e Rezervimit:
+      Biznesi: ${bookingData.businessName}
+      Shërbimi: ${bookingData.serviceName}
+      Stafi: ${bookingData.staffName}
+      Data: ${bookingData.date}
+      Ora: ${bookingData.time}
+      Kohëzgjatja: ${bookingData.duration} minuta
+      ${bookingData.notes ? `Shënime: ${bookingData.notes}` : ''}
+      
+      ⏰ Rikujtim i Rëndësishëm:
+      • Ju lutemi arrini 5-10 minuta para orës së caktuar
+      • Sigurohuni që keni marrë me vete dokumentet e nevojshme
+      • Nëse nuk mund të arrini, ju lutemi kontaktoni në numrin: ${bookingData.staffPhone}
+      
+      💡 Këshillë: Nëse keni pyetje apo nevojë për ndryshime, kontaktoni biznesin sa më shpejt që të jetë e mundur.
+      
+      Faleminderit që zgjodhët TerminiYt.com!
       
       info@terminiyt.com | terminiyt.com
     `

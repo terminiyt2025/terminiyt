@@ -106,10 +106,15 @@ export default function AdminDashboard() {
   const [categories, setCategories] = useState<any[]>([])
   const [uploadingImage, setUploadingImage] = useState(false)
   const [uploadingLogo, setUploadingLogo] = useState(false)
+  const [validationErrors, setValidationErrors] = useState<any>({})
   const [selectedImage, setSelectedImage] = useState<string | null>(null)
   const [showDeleteDialog, setShowDeleteDialog] = useState(false)
   const [businessToDelete, setBusinessToDelete] = useState<number | null>(null)
   const [deleting, setDeleting] = useState(false)
+  const [showServiceDeleteDialog, setShowServiceDeleteDialog] = useState(false)
+  const [serviceToDelete, setServiceToDelete] = useState<any>(null)
+  const [showStaffDeleteDialog, setShowStaffDeleteDialog] = useState(false)
+  const [staffToDelete, setStaffToDelete] = useState<any>(null)
   const [stats, setStats] = useState<AdminStats>({
     totalBusinesses: 0,
     totalBookings: 0,
@@ -590,6 +595,9 @@ export default function AdminDashboard() {
 
   const handleSaveBusiness = async (businessId: number) => {
     try {
+      // Clear previous validation errors
+      setValidationErrors({})
+      
       // Validate password if provided
       if (editFormData.new_password && editFormData.new_password !== '') {
         if (editFormData.new_password !== editFormData.confirm_password) {
@@ -604,6 +612,119 @@ export default function AdminDashboard() {
           toast({
             title: "Gabim!",
             description: "Fjalëkalimi duhet të jetë së paku 6 karaktere.",
+            variant: "destructive",
+          })
+          return
+        }
+      }
+
+      // Validate staff members have required fields
+      const staffErrors: any = {}
+      if (editFormData.staff && editFormData.staff.length > 0) {
+        const invalidStaff = []
+        
+        for (let i = 0; i < editFormData.staff.length; i++) {
+          const staffMember = editFormData.staff[i]
+          // Check if staff member has any data (name, email, or phone)
+          const hasAnyData = (staffMember.name && staffMember.name.trim() !== '') || 
+                           (staffMember.email && staffMember.email.trim() !== '') || 
+                           (staffMember.phone && staffMember.phone.trim() !== '')
+          
+          if (hasAnyData) {
+            // If staff member has any data, all required fields must be present
+            if (!staffMember.name || staffMember.name.trim() === '') {
+              staffErrors[`staff_${i}_name`] = 'Emri është i detyrueshëm'
+              invalidStaff.push(`Stafi ${i + 1} - mungon emri`)
+            }
+            if (!staffMember.email || staffMember.email.trim() === '') {
+              staffErrors[`staff_${i}_email`] = 'Email është i detyrueshëm'
+              invalidStaff.push(`Stafi ${i + 1} - mungon email`)
+            }
+            if (!staffMember.phone || staffMember.phone.trim() === '') {
+              staffErrors[`staff_${i}_phone`] = 'Telefoni është i detyrueshëm'
+              invalidStaff.push(`Stafi ${i + 1} - mungon telefoni`)
+            }
+            
+            // Check if staff has at least one service assigned
+            if (!staffMember.services || staffMember.services.length === 0) {
+              staffErrors[`staff_${i}_services`] = 'Duhet të ketë të paktën një shërbim të caktuar'
+              invalidStaff.push(`Stafi ${i + 1} - duhet të ketë të paktën një shërbim`)
+            }
+          } else {
+            // If staff member has no data, it's invalid
+            staffErrors[`staff_${i}_name`] = 'Stafi duhet të ketë të paktën emrin'
+            invalidStaff.push(`Stafi ${i + 1} - duhet të ketë të paktën emrin`)
+          }
+        }
+        
+        if (invalidStaff.length > 0) {
+          setValidationErrors(staffErrors)
+          toast({
+            title: "Gabim!",
+            description: `Stafi i mëposhtëm ka fusha të munguara: ${invalidStaff.join(', ')}`,
+            variant: "destructive",
+          })
+          return
+        }
+      }
+
+      // Validate services have required fields
+      const serviceErrors: any = {}
+      if (editFormData.services && editFormData.services.length > 0) {
+        const invalidServices = []
+        
+        for (let i = 0; i < editFormData.services.length; i++) {
+          const service = editFormData.services[i]
+          // Check if service has any data (name, duration, cost, or description)
+          const hasAnyData = (service.name && service.name.trim() !== '') || 
+                           (service.duration && service.duration !== '') || 
+                           (service.cost && service.cost.trim() !== '') || 
+                           (service.description && service.description.trim() !== '')
+          
+          if (hasAnyData) {
+            // If service has any data, required fields must be present
+            if (!service.name || service.name.trim() === '') {
+              serviceErrors[`service_${i}_name`] = 'Emri është i detyrueshëm'
+              invalidServices.push(`Shërbimi ${i + 1} - mungon emri`)
+            }
+            if (!service.duration || service.duration === '') {
+              serviceErrors[`service_${i}_duration`] = 'Kohëzgjatja është e detyrueshme'
+              invalidServices.push(`Shërbimi ${i + 1} - mungon kohëzgjatja`)
+            }
+          } else {
+            // If service has no data, it's invalid
+            serviceErrors[`service_${i}_name`] = 'Shërbimi duhet të ketë të paktën emrin'
+            invalidServices.push(`Shërbimi ${i + 1} - duhet të ketë të paktën emrin`)
+          }
+        }
+        
+        if (invalidServices.length > 0) {
+          setValidationErrors({...staffErrors, ...serviceErrors})
+          toast({
+            title: "Gabim!",
+            description: `Shërbimet e mëposhtme kanë fusha të munguara: ${invalidServices.join(', ')}`,
+            variant: "destructive",
+          })
+          return
+        }
+      }
+
+      // Validate that staff members have at least one service assigned
+      if (editFormData.staff && editFormData.staff.length > 0) {
+        const staffWithoutServices = []
+        
+        for (const staffMember of editFormData.staff) {
+          if (!staffMember.name || staffMember.name.trim() === '') continue // Skip empty staff
+          
+          if (!staffMember.services || staffMember.services.length === 0) {
+            staffWithoutServices.push(`${staffMember.name} - nuk ka shërbime të caktuara`)
+          }
+        }
+        
+        if (staffWithoutServices.length > 0) {
+          toast({
+            title: "Gabim!",
+            description: `Stafi i mëposhtëm nuk ka shërbime të caktuara: ${staffWithoutServices.join(', ')}`,
             variant: "destructive",
           })
           return
@@ -681,6 +802,7 @@ export default function AdminDashboard() {
   const handleCancelEdit = () => {
     setEditingBusiness(null)
     setEditFormData({})
+    setValidationErrors({})
   }
 
   const handleDeleteBusiness = async (businessId: number) => {
@@ -2318,10 +2440,20 @@ export default function AdminDashboard() {
                                                   services: newServices,
                                                   staff: newStaff
                                                 })
+                                                
+                                                // Clear validation error when user starts typing
+                                                if (validationErrors[`service_${index}_name`]) {
+                                                  const newErrors = {...validationErrors}
+                                                  delete newErrors[`service_${index}_name`]
+                                                  setValidationErrors(newErrors)
+                                                }
                                               }}
                                               placeholder="Emri i shërbimit"
-                                              className="px-2 py-1 border border-gray-300 rounded text-xs"
+                                              className={`px-2 py-1 border rounded text-xs ${validationErrors[`service_${index}_name`] ? 'border-red-500' : 'border-gray-300'}`}
                                             />
+                                            {validationErrors[`service_${index}_name`] && (
+                                              <p className="text-red-500 text-xs mt-1">{validationErrors[`service_${index}_name`]}</p>
+                                            )}
                                             <div className="relative">
                                               <input
                                                 type="text"
@@ -2357,8 +2489,15 @@ export default function AdminDashboard() {
                                                     s.id === service.id ? { ...s, duration: e.target.value } : s
                                                   )
                                                   setEditFormData({...editFormData, services: newServices})
+                                                  
+                                                  // Clear validation error when user selects duration
+                                                  if (validationErrors[`service_${index}_duration`]) {
+                                                    const newErrors = {...validationErrors}
+                                                    delete newErrors[`service_${index}_duration`]
+                                                    setValidationErrors(newErrors)
+                                                  }
                                                 }}
-                                              className="px-2 py-1 border border-gray-300 rounded text-xs"
+                                              className={`px-2 py-1 border rounded text-xs ${validationErrors[`service_${index}_duration`] ? 'border-red-500' : 'border-gray-300'}`}
                                             >
                                               <option value="15 min">15 min</option>
                                               <option value="30 min">30 min</option>
@@ -2381,29 +2520,13 @@ export default function AdminDashboard() {
                                               <option value="8 orë">8 orë</option>
                                               <option value="1 ditë">1 ditë</option>
                                             </select>
+                                            {validationErrors[`service_${index}_duration`] && (
+                                              <p className="text-red-500 text-xs mt-1">{validationErrors[`service_${index}_duration`]}</p>
+                                            )}
                                             <button
                                               onClick={() => {
-                                                const serviceName = service.name
-                                                
-                                                // Remove the service
-                                                const newServices = (editFormData.services || []).filter((s: any) => s.id !== service.id)
-                                                
-                                                // Remove the service from all staff members
-                                                const newStaff = (editFormData.staff || []).map((staffMember: any) => {
-                                                  if (staffMember.services && staffMember.services.includes(serviceName)) {
-                                                    return {
-                                                      ...staffMember,
-                                                      services: staffMember.services.filter((serviceName: string) => serviceName !== service.name)
-                                                    }
-                                                  }
-                                                  return staffMember
-                                                })
-                                                
-                                                setEditFormData({
-                                                  ...editFormData, 
-                                                  services: newServices,
-                                                  staff: newStaff
-                                                })
+                                                setServiceToDelete({ service, index })
+                                                setShowServiceDeleteDialog(true)
                                               }}
                                               className="bg-gradient-to-r from-red-600 to-red-700 hover:from-red-500 hover:to-red-600 text-white p-1 rounded transition-all duration-300"
                                             >
@@ -2446,10 +2569,19 @@ export default function AdminDashboard() {
                                                 const newStaff = [...(editFormData.staff || [])]
                                                 newStaff[index] = { ...member, name: e.target.value }
                                                 setEditFormData({...editFormData, staff: newStaff})
+                                                // Clear validation error when user starts typing
+                                                if (validationErrors[`staff_${index}_name`]) {
+                                                  const newErrors = {...validationErrors}
+                                                  delete newErrors[`staff_${index}_name`]
+                                                  setValidationErrors(newErrors)
+                                                }
                                               }}
                                               placeholder="Emri i stafit"
-                                              className="px-2 py-1 border border-gray-300 rounded text-xs"
+                                              className={`px-2 py-1 border rounded text-xs ${validationErrors[`staff_${index}_name`] ? 'border-red-500' : 'border-gray-300'}`}
                                             />
+                                            {validationErrors[`staff_${index}_name`] && (
+                                              <p className="text-red-500 text-xs mt-1">{validationErrors[`staff_${index}_name`]}</p>
+                                            )}
                                             <input
                                               type="email"
                                               value={member.email || ''}
@@ -2457,10 +2589,19 @@ export default function AdminDashboard() {
                                                 const newStaff = [...(editFormData.staff || [])]
                                                 newStaff[index] = { ...member, email: e.target.value }
                                                 setEditFormData({...editFormData, staff: newStaff})
+                                                // Clear validation error when user starts typing
+                                                if (validationErrors[`staff_${index}_email`]) {
+                                                  const newErrors = {...validationErrors}
+                                                  delete newErrors[`staff_${index}_email`]
+                                                  setValidationErrors(newErrors)
+                                                }
                                               }}
                                               placeholder="Email"
-                                              className="px-2 py-1 border border-gray-300 rounded text-xs"
+                                              className={`px-2 py-1 border rounded text-xs ${validationErrors[`staff_${index}_email`] ? 'border-red-500' : 'border-gray-300'}`}
                                             />
+                                            {validationErrors[`staff_${index}_email`] && (
+                                              <p className="text-red-500 text-xs mt-1">{validationErrors[`staff_${index}_email`]}</p>
+                                            )}
                                           </div>
                                           <div className="grid grid-cols-2 gap-2 mb-2">
                                             <input
@@ -2470,10 +2611,19 @@ export default function AdminDashboard() {
                                                 const newStaff = [...(editFormData.staff || [])]
                                                 newStaff[index] = { ...member, phone: e.target.value }
                                                 setEditFormData({...editFormData, staff: newStaff})
+                                                // Clear validation error when user starts typing
+                                                if (validationErrors[`staff_${index}_phone`]) {
+                                                  const newErrors = {...validationErrors}
+                                                  delete newErrors[`staff_${index}_phone`]
+                                                  setValidationErrors(newErrors)
+                                                }
                                               }}
                                               placeholder="Telefon"
-                                              className="px-2 py-1 border border-gray-300 rounded text-xs"
+                                              className={`px-2 py-1 border rounded text-xs ${validationErrors[`staff_${index}_phone`] ? 'border-red-500' : 'border-gray-300'}`}
                                             />
+                                            {validationErrors[`staff_${index}_phone`] && (
+                                              <p className="text-red-500 text-xs mt-1">{validationErrors[`staff_${index}_phone`]}</p>
+                                            )}
                                             <div className="flex items-center">
                                               <label className="flex items-center text-xs">
                                                 <input
@@ -2522,6 +2672,11 @@ export default function AdminDashboard() {
                                             </div>
                                             {(!editFormData.services || editFormData.services.length === 0) && (
                                               <div className="text-xs text-gray-400">Shtoni shërbime për të caktuar stafin</div>
+                                            )}
+                                            {validationErrors[`staff_${index}_services`] && (
+                                              <div className="text-xs text-red-500 mt-1">
+                                                {validationErrors[`staff_${index}_services`]}
+                                              </div>
                                             )}
                                           </div>
                                           
@@ -2620,8 +2775,8 @@ export default function AdminDashboard() {
                                             </div>
                                             <button
                                               onClick={() => {
-                                                const newStaff = (editFormData.staff || []).filter((_: any, i: number) => i !== index)
-                                                setEditFormData({...editFormData, staff: newStaff})
+                                                setStaffToDelete({ member, index })
+                                                setShowStaffDeleteDialog(true)
                                               }}
                                               className="bg-gradient-to-r from-red-600 to-red-700 hover:from-red-500 hover:to-red-600 text-white p-1 rounded transition-all duration-300"
                                             >
@@ -3425,8 +3580,118 @@ export default function AdminDashboard() {
           </div>
         </div>
       )}
+        </div>
 
-      </div>
-      </div>
+      {/* Service Delete Confirmation Dialog */}
+      {showServiceDeleteDialog && serviceToDelete && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+          <div className="bg-white rounded-lg p-6 max-w-md w-full mx-4">
+            <div className="flex items-center mb-4">
+              <div className="flex-shrink-0 w-10 h-10 mx-auto bg-red-100 rounded-full flex items-center justify-center">
+                <svg className="w-6 h-6 text-red-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-2.5L13.732 4c-.77-.833-1.964-.833-2.732 0L3.732 16.5c-.77.833.192 2.5 1.732 2.5z" />
+                </svg>
+              </div>
+            </div>
+            <div className="text-center">
+              <h3 className="text-lg font-medium text-gray-900 mb-2">
+                Konfirmo Fshirjen
+              </h3>
+              <p className="text-sm text-gray-500 mb-6">
+                A jeni të sigurt që doni të fshini shërbimin "{serviceToDelete.service.name || 'Shërbimi pa emër'}"? Ky veprim nuk mund të anulohet.
+              </p>
+              <div className="flex space-x-3 justify-center">
+                <Button
+                  onClick={() => {
+                    setShowServiceDeleteDialog(false)
+                    setServiceToDelete(null)
+                  }}
+                  className="px-4 py-2 bg-gradient-to-r from-gray-600 to-gray-700 hover:from-gray-500 hover:to-gray-600 text-white"
+                >
+                  Anulo
+                </Button>
+                <Button
+                  onClick={() => {
+                    const serviceName = serviceToDelete.service.name
+                    
+                    // Remove the service
+                    const newServices = (editFormData.services || []).filter((s: any) => s.id !== serviceToDelete.service.id)
+                    
+                    // Remove the service from all staff members
+                    const newStaff = (editFormData.staff || []).map((staffMember: any) => {
+                      if (staffMember.services && staffMember.services.includes(serviceName)) {
+                        return {
+                          ...staffMember,
+                          services: staffMember.services.filter((serviceName: string) => serviceName !== serviceToDelete.service.name)
+                        }
+                      }
+                      return staffMember
+                    })
+                    
+                    setEditFormData({
+                      ...editFormData, 
+                      services: newServices,
+                      staff: newStaff
+                    })
+                    
+                    setShowServiceDeleteDialog(false)
+                    setServiceToDelete(null)
+                  }}
+                  className="px-4 py-2 bg-gradient-to-r from-red-600 to-red-700 hover:from-red-500 hover:to-red-600 text-white"
+                >
+                  Fshi
+                </Button>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Staff Delete Confirmation Dialog */}
+      {showStaffDeleteDialog && staffToDelete && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+          <div className="bg-white rounded-lg p-6 max-w-md w-full mx-4">
+            <div className="flex items-center mb-4">
+              <div className="flex-shrink-0 w-10 h-10 mx-auto bg-red-100 rounded-full flex items-center justify-center">
+                <svg className="w-6 h-6 text-red-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-2.5L13.732 4c-.77-.833-1.964-.833-2.732 0L3.732 16.5c-.77.833.192 2.5 1.732 2.5z" />
+                </svg>
+              </div>
+            </div>
+            <div className="text-center">
+              <h3 className="text-lg font-medium text-gray-900 mb-2">
+                Konfirmo Fshirjen
+              </h3>
+              <p className="text-sm text-gray-500 mb-6">
+                A jeni të sigurt që doni të fshini stafin "{staffToDelete.member.name || 'Stafi pa emër'}"? Ky veprim nuk mund të anulohet.
+              </p>
+              <div className="flex space-x-3 justify-center">
+                <Button
+                  onClick={() => {
+                    setShowStaffDeleteDialog(false)
+                    setStaffToDelete(null)
+                  }}
+                  className="px-4 py-2 bg-gradient-to-r from-gray-600 to-gray-700 hover:from-gray-500 hover:to-gray-600 text-white"
+                >
+                  Anulo
+                </Button>
+                <Button
+                  onClick={() => {
+                    const newStaff = (editFormData.staff || []).filter((_: any, i: number) => i !== staffToDelete.index)
+                    setEditFormData({...editFormData, staff: newStaff})
+                    
+                    setShowStaffDeleteDialog(false)
+                    setStaffToDelete(null)
+                  }}
+                  className="px-4 py-2 bg-gradient-to-r from-red-600 to-red-700 hover:from-red-500 hover:to-red-600 text-white"
+                >
+                  Fshi
+                </Button>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
+    </div>
   )
 }

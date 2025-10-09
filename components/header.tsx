@@ -336,7 +336,7 @@ export function Header({ transparent = false, className = "" }: HeaderProps) {
               <div className="flex items-center space-x-3">
                 <Button size="lg" variant="outline" asChild className="text-lg text-white bg-transparent hover:bg-transparent"
                 >
-                  <Link href="/identifikohu">Kycu</Link>
+                  <Link href="/identifikohu">Kyçu</Link>
                 </Button>
                 <Button 
                   asChild

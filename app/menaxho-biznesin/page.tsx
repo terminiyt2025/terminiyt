@@ -74,6 +74,11 @@ export default function BusinessPanel() {
     reason: ''
   })
   const [showPasswordFields, setShowPasswordFields] = useState(false)
+  const [validationErrors, setValidationErrors] = useState<any>({})
+  const [showServiceDeleteDialog, setShowServiceDeleteDialog] = useState(false)
+  const [serviceToDelete, setServiceToDelete] = useState<any>(null)
+  const [showStaffDeleteDialog, setShowStaffDeleteDialog] = useState(false)
+  const [staffToDelete, setStaffToDelete] = useState<any>(null)
   const { toast } = useToast()
   const router = useRouter()
 
@@ -215,12 +220,129 @@ export default function BusinessPanel() {
     })
     setShowPasswordFields(false)
     setIsEditing(false)
+    setValidationErrors({})
   }
 
   const saveChanges = async () => {
     if (!business) return
 
     try {
+      // Clear previous validation errors
+      setValidationErrors({})
+      
+      // Validate staff members have required fields
+      const staffErrors: any = {}
+      if (editData.staff && editData.staff.length > 0) {
+        const invalidStaff = []
+        
+        for (let i = 0; i < editData.staff.length; i++) {
+          const staffMember = editData.staff[i]
+          // Check if staff member has any data (name, email, or phone)
+          const hasAnyData = (staffMember.name && staffMember.name.trim() !== '') || 
+                           (staffMember.email && staffMember.email.trim() !== '') || 
+                           (staffMember.phone && staffMember.phone.trim() !== '')
+          
+          if (hasAnyData) {
+            // If staff member has any data, all required fields must be present
+            if (!staffMember.name || staffMember.name.trim() === '') {
+              staffErrors[`staff_${i}_name`] = 'Emri është i detyrueshëm'
+              invalidStaff.push(`Stafi ${i + 1} - mungon emri`)
+            }
+            if (!staffMember.email || staffMember.email.trim() === '') {
+              staffErrors[`staff_${i}_email`] = 'Email është i detyrueshëm'
+              invalidStaff.push(`Stafi ${i + 1} - mungon email`)
+            }
+            if (!staffMember.phone || staffMember.phone.trim() === '') {
+              staffErrors[`staff_${i}_phone`] = 'Telefoni është i detyrueshëm'
+              invalidStaff.push(`Stafi ${i + 1} - mungon telefoni`)
+            }
+            
+            // Check if staff has at least one service assigned
+            if (!staffMember.services || staffMember.services.length === 0) {
+              staffErrors[`staff_${i}_services`] = 'Duhet të ketë të paktën një shërbim të caktuar'
+              invalidStaff.push(`Stafi ${i + 1} - duhet të ketë të paktën një shërbim`)
+            }
+          } else {
+            // If staff member has no data, it's invalid
+            staffErrors[`staff_${i}_name`] = 'Të dhënat e stafit janë të detyrueshme'
+            invalidStaff.push(`Të dhënat e stafit janë të detyrueshme`)
+          }
+        }
+        
+        if (invalidStaff.length > 0) {
+          setValidationErrors(staffErrors)
+          toast({
+            title: "Gabim!",
+            description: `Stafi i mëposhtëm ka fusha të munguara: ${invalidStaff.join(', ')}`,
+            variant: "destructive",
+          })
+          return
+        }
+      }
+
+      // Validate services have required fields
+      const serviceErrors: any = {}
+      if (editData.services && editData.services.length > 0) {
+        const invalidServices = []
+        
+        for (let i = 0; i < editData.services.length; i++) {
+          const service = editData.services[i]
+          // Check if service has any data (name, duration, cost, or description)
+          const hasAnyData = (service.name && service.name.trim() !== '') || 
+                           (service.duration && service.duration !== '') || 
+                           (service.cost && service.cost.trim() !== '') || 
+                           (service.description && service.description.trim() !== '')
+          
+          if (hasAnyData) {
+            // If service has any data, required fields must be present
+            if (!service.name || service.name.trim() === '') {
+              serviceErrors[`service_${i}_name`] = 'Emri është i detyrueshëm'
+              invalidServices.push(`Shërbimi ${i + 1} - mungon emri`)
+            }
+            if (!service.duration || service.duration === '') {
+              serviceErrors[`service_${i}_duration`] = 'Kohëzgjatja është e detyrueshme'
+              invalidServices.push(`Shërbimi ${i + 1} - mungon kohëzgjatja`)
+            }
+          } else {
+            // If service has no data, it's invalid
+            serviceErrors[`service_${i}_name`] = 'Të dhënat e shërbimit janë të detyrueshme'
+            invalidServices.push(`Të dhënat e shërbimit janë të detyrueshme`)
+          }
+        }
+        
+        if (invalidServices.length > 0) {
+          setValidationErrors({...staffErrors, ...serviceErrors})
+          toast({
+            title: "Gabim!",
+            description: `Shërbimet e mëposhtme kanë fusha të munguara: ${invalidServices.join(', ')}`,
+            variant: "destructive",
+          })
+          return
+        }
+      }
+
+      // Validate that staff members have at least one service assigned
+      if (editData.staff && editData.staff.length > 0) {
+        const staffWithoutServices = []
+        
+        for (const staffMember of editData.staff) {
+          if (!staffMember.name || staffMember.name.trim() === '') continue // Skip empty staff
+          
+          if (!staffMember.services || staffMember.services.length === 0) {
+            staffWithoutServices.push(`${staffMember.name} - nuk ka shërbime të caktuara`)
+          }
+        }
+        
+        if (staffWithoutServices.length > 0) {
+          toast({
+            title: "Gabim!",
+            description: `Stafi i mëposhtëm nuk ka shërbime të caktuara: ${staffWithoutServices.join(', ')}`,
+            variant: "destructive",
+          })
+          return
+        }
+      }
+
       // Validate that each service has at least one staff member assigned
       if (editData.services && editData.services.length > 0) {
         const servicesWithoutStaff = []
@@ -897,12 +1019,22 @@ export default function BusinessPanel() {
                                       services: newServices,
                                       staff: newStaff
                                     })
+                                    
+                                    // Clear validation error when user starts typing
+                                    if (validationErrors[`service_${index}_name`]) {
+                                      const newErrors = {...validationErrors}
+                                      delete newErrors[`service_${index}_name`]
+                                      setValidationErrors(newErrors)
+                                    }
                                   }
                                 }}
                                 disabled={!isEditing}
                             placeholder="Emri i shërbimit"
-                            className="px-2 py-1 border border-gray-300 rounded text-xs"
+                            className={`px-2 py-1 border rounded text-xs ${validationErrors[`service_${index}_name`] ? 'border-red-500' : 'border-gray-300'}`}
                           />
+                          {validationErrors[`service_${index}_name`] && (
+                            <p className="text-red-500 text-xs mt-1">{validationErrors[`service_${index}_name`]}</p>
+                          )}
                           <div className="relative">
                             <input
                               type="text"
@@ -945,10 +1077,17 @@ export default function BusinessPanel() {
                                   s.id === service.id ? { ...s, duration: e.target.value } : s
                                 )
                                 setEditData({...editData, services: newServices})
+                                
+                                // Clear validation error when user selects duration
+                                if (validationErrors[`service_${index}_duration`]) {
+                                  const newErrors = {...validationErrors}
+                                  delete newErrors[`service_${index}_duration`]
+                                  setValidationErrors(newErrors)
+                                }
                                   }
                                 }}
                                 disabled={!isEditing}
-                            className="px-2 py-1 border border-gray-300 rounded text-xs"
+                            className={`px-2 py-1 border rounded text-xs ${validationErrors[`service_${index}_duration`] ? 'border-red-500' : 'border-gray-300'}`}
                           >
                             <option value="15 min">15 min</option>
                             <option value="30 min">30 min</option>
@@ -971,11 +1110,14 @@ export default function BusinessPanel() {
                             <option value="8 orë">8 orë</option>
                             <option value="1 ditë">1 ditë</option>
                           </select>
+                          {validationErrors[`service_${index}_duration`] && (
+                            <p className="text-red-500 text-xs mt-1">{validationErrors[`service_${index}_duration`]}</p>
+                          )}
                           {isEditing && (
                             <button
                                 onClick={() => {
-                                const newServices = (editData.services || []).filter((s: any) => s.id !== service.id)
-                                setEditData({...editData, services: newServices})
+                                setServiceToDelete({ service, index })
+                                setShowServiceDeleteDialog(true)
                                 }}
                               className="bg-gradient-to-r from-red-500 to-red-700 hover:from-red-600 hover:to-red-800 text-white p-1 rounded transition-all duration-300"
                               >
@@ -1022,12 +1164,22 @@ export default function BusinessPanel() {
                                     const newStaff = [...(editData.staff || [])]
                                 newStaff[index] = { ...member, name: e.target.value }
                                 setEditData({...editData, staff: newStaff})
+                                
+                                // Clear validation error when user starts typing
+                                if (validationErrors[`staff_${index}_name`]) {
+                                  const newErrors = {...validationErrors}
+                                  delete newErrors[`staff_${index}_name`]
+                                  setValidationErrors(newErrors)
+                                }
                                   }
                                 }}
                                 disabled={!isEditing}
                             placeholder="Emri i stafit"
-                            className="px-2 py-1 border border-gray-300 rounded text-xs"
+                            className={`px-2 py-1 border rounded text-xs ${validationErrors[`staff_${index}_name`] ? 'border-red-500' : 'border-gray-300'}`}
                           />
+                          {validationErrors[`staff_${index}_name`] && (
+                            <p className="text-red-500 text-xs mt-1">{validationErrors[`staff_${index}_name`]}</p>
+                          )}
                           <input
                             type="email"
                             value={member.email || ''}
@@ -1036,12 +1188,22 @@ export default function BusinessPanel() {
                                 const newStaff = [...(editData.staff || [])]
                                 newStaff[index] = { ...member, email: e.target.value }
                                 setEditData({...editData, staff: newStaff})
+                                
+                                // Clear validation error when user starts typing
+                                if (validationErrors[`staff_${index}_email`]) {
+                                  const newErrors = {...validationErrors}
+                                  delete newErrors[`staff_${index}_email`]
+                                  setValidationErrors(newErrors)
+                                }
                               }
                             }}
                             disabled={!isEditing}
                             placeholder="Email"
-                            className="px-2 py-1 border border-gray-300 rounded text-xs"
+                            className={`px-2 py-1 border rounded text-xs ${validationErrors[`staff_${index}_email`] ? 'border-red-500' : 'border-gray-300'}`}
                               />
+                          {validationErrors[`staff_${index}_email`] && (
+                            <p className="text-red-500 text-xs mt-1">{validationErrors[`staff_${index}_email`]}</p>
+                          )}
                             </div>
                         <div className="grid grid-cols-1 gap-4 mb-2">
                           <input
@@ -1052,12 +1214,22 @@ export default function BusinessPanel() {
                                     const newStaff = [...(editData.staff || [])]
                                 newStaff[index] = { ...member, phone: e.target.value }
                                 setEditData({...editData, staff: newStaff})
+                                
+                                // Clear validation error when user starts typing
+                                if (validationErrors[`staff_${index}_phone`]) {
+                                  const newErrors = {...validationErrors}
+                                  delete newErrors[`staff_${index}_phone`]
+                                  setValidationErrors(newErrors)
+                                }
                                   }
                                 }}
                                 disabled={!isEditing}
                             placeholder="Telefoni"
-                            className="px-2 py-1 border border-gray-300 rounded text-xs"
+                            className={`px-2 py-1 border rounded text-xs ${validationErrors[`staff_${index}_phone`] ? 'border-red-500' : 'border-gray-300'}`}
                           />
+                          {validationErrors[`staff_${index}_phone`] && (
+                            <p className="text-red-500 text-xs mt-1">{validationErrors[`staff_${index}_phone`]}</p>
+                          )}
                           <div className="flex items-center">
                             <label className="flex items-center text-xs">
                               <input
@@ -1142,22 +1314,38 @@ export default function BusinessPanel() {
                                     </select>
                                   </div>
                                   {isEditing && (
-                                    <button
-                                      onClick={() => {
-                                        const newStaff = [...(editData.staff || [])]
-                                        newStaff[index].breakTimes = newStaff[index].breakTimes.filter((_: any, i: number) => i !== breakIndex)
-                                        setEditData({...editData, staff: newStaff})
-                                      }}
-                                      className="bg-gradient-to-r from-red-500 to-red-700 hover:from-red-600 hover:to-red-800 text-white p-1 rounded text-xs transition-all duration-300"
-                                      title="Fshi pushimin"
-                                    >
-                                      <Trash2 className="w-3 h-3" />
-                                    </button>
+                                    <div className="flex space-x-1">
+                                      <button
+                                        onClick={() => {
+                                          const newStaff = [...(editData.staff || [])]
+                                          if (!newStaff[index].breakTimes) newStaff[index].breakTimes = []
+                                          newStaff[index].breakTimes.push({ startTime: '', endTime: '' })
+                                          setEditData({...editData, staff: newStaff})
+                                        }}
+                                        className="bg-gradient-to-r from-gray-800 to-teal-800 hover:from-gray-700 hover:to-teal-700 text-white p-1 rounded text-xs transition-all duration-300"
+                                        title="Shto Pushim"
+                                      >
+                                        <svg className="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 6v6m0 0v6m0-6h6m-6 0H6" />
+                                        </svg>
+                                      </button>
+                                      <button
+                                        onClick={() => {
+                                          const newStaff = [...(editData.staff || [])]
+                                          newStaff[index].breakTimes = newStaff[index].breakTimes.filter((_: any, i: number) => i !== breakIndex)
+                                          setEditData({...editData, staff: newStaff})
+                                        }}
+                                        className="bg-gradient-to-r from-red-500 to-red-700 hover:from-red-600 hover:to-red-800 text-white p-1 rounded text-xs transition-all duration-300"
+                                        title="Fshi pushimin"
+                                      >
+                                        <Trash2 className="w-3 h-3" />
+                                      </button>
+                                    </div>
                                   )}
                                 </div>
                               )
                             })}
-                            {isEditing && (
+                            {isEditing && (member.breakTimes || []).length === 0 && (
                               <button
                                 onClick={() => {
                                   const newStaff = [...(editData.staff || [])]
@@ -1211,6 +1399,11 @@ export default function BusinessPanel() {
                             <div className="text-xs text-gray-400">Shtoni shërbime për të caktuar stafin</div>
                               )}
                             </div>
+                            {validationErrors[`staff_${index}_services`] && (
+                              <div className="text-xs text-red-500 mt-1">
+                                {validationErrors[`staff_${index}_services`]}
+                              </div>
+                            )}
                         <div className="flex justify-between items-center">
                           <div className="text-xs text-gray-500">
                             Shërbimet: {member.services?.map((service: any) => typeof service === 'string' ? service : service.name).filter((name: any) => name && name.trim() !== '').join(', ') || 'Asnjë'}
@@ -1218,8 +1411,8 @@ export default function BusinessPanel() {
                           {isEditing && (
                             <button
                                 onClick={() => {
-                                const newStaff = (editData.staff || []).filter((_: any, i: number) => i !== index)
-                                setEditData({...editData, staff: newStaff})
+                                setStaffToDelete({ member, index })
+                                setShowStaffDeleteDialog(true)
                                 }}
                               className="bg-gradient-to-r from-red-500 to-red-700 hover:from-red-600 hover:to-red-800 text-white p-1 rounded transition-all duration-300"
                               >
@@ -1418,6 +1611,117 @@ export default function BusinessPanel() {
               >
                 Dërgo Kërkesën
               </Button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Service Delete Confirmation Dialog */}
+      {showServiceDeleteDialog && serviceToDelete && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+          <div className="bg-white rounded-lg p-6 max-w-md w-full mx-4">
+            <div className="flex items-center mb-4">
+              <div className="flex-shrink-0 w-10 h-10 mx-auto bg-red-100 rounded-full flex items-center justify-center">
+                <svg className="w-6 h-6 text-red-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-2.5L13.732 4c-.77-.833-1.964-.833-2.732 0L3.732 16.5c-.77.833.192 2.5 1.732 2.5z" />
+                </svg>
+              </div>
+            </div>
+            <div className="text-center">
+              <h3 className="text-lg font-medium text-gray-900 mb-2">
+                Konfirmo Fshirjen
+              </h3>
+              <p className="text-sm text-gray-500 mb-6">
+                A jeni të sigurt që doni të fshini shërbimin "{serviceToDelete.service.name || 'Shërbimi pa emër'}"? Ky veprim nuk mund të anulohet.
+              </p>
+              <div className="flex space-x-3 justify-center">
+                <Button
+                  onClick={() => {
+                    setShowServiceDeleteDialog(false)
+                    setServiceToDelete(null)
+                  }}
+                  className="px-4 py-2 bg-gradient-to-r from-gray-600 to-gray-700 hover:from-gray-500 hover:to-gray-600 text-white"
+                >
+                  Anulo
+                </Button>
+                <Button
+                  onClick={() => {
+                    const serviceName = serviceToDelete.service.name
+                    
+                    // Remove the service
+                    const newServices = (editData.services || []).filter((s: any) => s.id !== serviceToDelete.service.id)
+                    
+                    // Remove the service from all staff members
+                    const newStaff = (editData.staff || []).map((staffMember: any) => {
+                      if (staffMember.services && staffMember.services.includes(serviceName)) {
+                        return {
+                          ...staffMember,
+                          services: staffMember.services.filter((serviceName: string) => serviceName !== serviceToDelete.service.name)
+                        }
+                      }
+                      return staffMember
+                    })
+                    
+                    setEditData({
+                      ...editData, 
+                      services: newServices,
+                      staff: newStaff
+                    })
+                    
+                    setShowServiceDeleteDialog(false)
+                    setServiceToDelete(null)
+                  }}
+                  className="px-4 py-2 bg-gradient-to-r from-red-600 to-red-700 hover:from-red-500 hover:to-red-600 text-white"
+                >
+                  Fshi
+                </Button>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Staff Delete Confirmation Dialog */}
+      {showStaffDeleteDialog && staffToDelete && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+          <div className="bg-white rounded-lg p-6 max-w-md w-full mx-4">
+            <div className="flex items-center mb-4">
+              <div className="flex-shrink-0 w-10 h-10 mx-auto bg-red-100 rounded-full flex items-center justify-center">
+                <svg className="w-6 h-6 text-red-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-2.5L13.732 4c-.77-.833-1.964-.833-2.732 0L3.732 16.5c-.77.833.192 2.5 1.732 2.5z" />
+                </svg>
+              </div>
+            </div>
+            <div className="text-center">
+              <h3 className="text-lg font-medium text-gray-900 mb-2">
+                Konfirmo Fshirjen
+              </h3>
+              <p className="text-sm text-gray-500 mb-6">
+                A jeni të sigurt që doni të fshini stafin "{staffToDelete.member.name || 'Stafi pa emër'}"? Ky veprim nuk mund të anulohet.
+              </p>
+              <div className="flex space-x-3 justify-center">
+                <Button
+                  onClick={() => {
+                    setShowStaffDeleteDialog(false)
+                    setStaffToDelete(null)
+                  }}
+                  className="px-4 py-2 bg-gradient-to-r from-gray-600 to-gray-700 hover:from-gray-500 hover:to-gray-600 text-white"
+                >
+                  Anulo
+                </Button>
+                <Button
+                  onClick={() => {
+                    const newStaff = (editData.staff || []).filter((_: any, i: number) => i !== staffToDelete.index)
+                    setEditData({...editData, staff: newStaff})
+                    
+                    setShowStaffDeleteDialog(false)
+                    setStaffToDelete(null)
+                  }}
+                  className="px-4 py-2 bg-gradient-to-r from-red-600 to-red-700 hover:from-red-500 hover:to-red-600 text-white"
+                >
+                  Fshi
+                </Button>
+              </div>
             </div>
           </div>
         </div>

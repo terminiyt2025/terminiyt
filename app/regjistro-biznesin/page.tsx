@@ -35,7 +35,6 @@ const businessSchema = z.object({
 
 const serviceSchema = z.object({
   name: z.string().min(2, "Emri i shërbimit duhet të ketë të paktën 2 karaktere"),
-  cost: z.string().min(1, "Kostoja është e detyrueshme"),
   duration: z.string().min(1, "Kohëzgjatja është e detyrueshme"),
 })
 
@@ -346,7 +345,9 @@ export default function RegisterBusinessPage() {
       // Only validate step 2 fields
       const step2Schema = z.object({
   ownerName: z.string().min(1, "Emri i pronarit duhet të plotësohet"),
-  phone: z.string().min(1, "Numri i telefonit duhet të jetë i vlefshëm"),
+  phone: z.string()
+    .min(1, "Numri i telefonit duhet të jetë i vlefshëm")
+    .regex(/^\+?[0-9]+$/, "Numri i telefonit duhet të përmbajë vetëm numra dhe mund të fillojë me +"),
   address: z.string().min(5, "Adresa duhet të ketë të paktën 5 karaktere"),
   city: z.string().min(2, "Qyteti duhet të ketë të paktën 2 karaktere"),
   state: z.string().min(2, "Rajoni duhet të ketë të paktën 2 karaktere"),
@@ -354,8 +355,8 @@ export default function RegisterBusinessPage() {
   accountPassword: z.string()
     .min(8, "Fjalëkalimi duhet të përmbajë të paktën 1 shkronjë të madhe dhe 1 numër dhe 8 karaktere minimum në total")
     .regex(/^(?=.*[A-Z])(?=.*\d).+$/, "Fjalëkalimi duhet të përmbajë të paktën 1 shkronjë të madhe dhe 1 numër dhe 8 karaktere minimum në total"),
-        latitude: z.number().min(-90).max(90, "Latitude duhet të jetë midis -90 dhe 90"),
-        longitude: z.number().min(-180).max(180, "Longitude duhet të jetë midis -180 dhe 180"),
+        latitude: z.number().min(-90).max(90, "Latitude duhet të jetë midis -90 dhe 90").optional(),
+        longitude: z.number().min(-180).max(180, "Longitude duhet të jetë midis -180 dhe 180").optional(),
       })
       
       const result = step2Schema.safeParse({
@@ -366,14 +367,20 @@ export default function RegisterBusinessPage() {
         state: formData.state,
         accountEmail: formData.accountEmail,
         accountPassword: formData.accountPassword,
-        latitude: formData.latitude,
-        longitude: formData.longitude,
+        latitude: formData.latitude !== undefined ? formData.latitude : undefined,
+        longitude: formData.longitude !== undefined ? formData.longitude : undefined,
       })
       
       if (!result.success) {
         result.error.errors.forEach((error) => {
           errors[error.path[0] as string] = error.message
         })
+      }
+      
+      // Additional validation: Check if location is properly set
+      if (formData.latitude === undefined || formData.longitude === undefined || 
+          (formData.latitude === 42.062091 && formData.longitude === 20.652714)) {
+        errors.location = "Ju lutemi vendosni vendndodhjen e saktë të biznesit në hartë"
       }
     }
     
@@ -407,7 +414,7 @@ export default function RegisterBusinessPage() {
     if (step === 4) {
       // Validate services - at least one service is required
       const validServices = formData.services.filter(service => 
-        service.name && service.cost && service.duration
+        service.name && service.duration
       )
       
       if (validServices.length === 0) {
@@ -416,7 +423,7 @@ export default function RegisterBusinessPage() {
       
       // Validate each service
       formData.services.forEach((service, index) => {
-        if (service.name || service.cost || service.duration) {
+        if (service.name || service.duration) {
           const result = serviceSchema.safeParse(service)
           if (!result.success) {
             result.error.errors.forEach((error) => {
@@ -426,7 +433,16 @@ export default function RegisterBusinessPage() {
         }
       })
       
-      // Validate team members (optional - only validate if they have data)
+      // Validate team members - at least one team member is required
+      const validTeamMembers = formData.teamMembers.filter(member => 
+        member.name && member.email && member.phone
+      )
+      
+      if (validTeamMembers.length === 0) {
+        errors.teamMembers = "Ju duhet të shtoni të paktën një anëtar të ekipit"
+      }
+      
+      // Validate each team member
       formData.teamMembers.forEach((member, index) => {
         if (member.name || member.email || member.phone) {
           const result = teamMemberSchema.safeParse(member)
@@ -437,6 +453,26 @@ export default function RegisterBusinessPage() {
           }
         }
       })
+      
+      // Validate that team members have at least one service assigned
+      validTeamMembers.forEach((member, memberIndex) => {
+        if (!member.services || member.services.length === 0) {
+          errors[`member_${memberIndex}_services`] = `Anëtari i ekipit "${member.name}" duhet të ketë të paktën një shërbim të caktuar`
+        }
+      })
+
+      // Validate that each service has at least one team member assigned
+      if (validServices.length > 0 && validTeamMembers.length > 0) {
+        validServices.forEach((service, serviceIndex) => {
+          const hasAssignedMember = validTeamMembers.some(member => 
+            member.services && member.services.includes(service.name)
+          )
+          
+          if (!hasAssignedMember) {
+            errors[`service_${serviceIndex}_assignment`] = `Shërbimi "${service.name}" duhet të ketë të paktën një anëtar të ekipit të caktuar`
+          }
+        })
+      }
       
       // Images are optional - no validation needed
     }
@@ -465,8 +501,8 @@ export default function RegisterBusinessPage() {
     address: "",
     city: "",
     state: "Kosovë", // Always selected
-    latitude: 0,
-    longitude: 0,
+    latitude: undefined,
+    longitude: undefined,
 
     // Operating Hours
     operatingHours: {
@@ -1079,6 +1115,13 @@ export default function RegisterBusinessPage() {
                         // Only update coordinates, not the address field
                         updateFormData("latitude", location.latitude)
                         updateFormData("longitude", location.longitude)
+                        
+                        // Clear location validation error when user selects a location
+                        if (validationErrors.location) {
+                          const newErrors = {...validationErrors}
+                          delete newErrors.location
+                          setValidationErrors(newErrors)
+                        }
                       }}
                       initialAddress={formData.address}
                       initialLatitude={mapCenter?.lat}
@@ -1089,6 +1132,9 @@ export default function RegisterBusinessPage() {
                     )}
                     {validationErrors.longitude && (
                       <p className="text-red-500 text-sm">{validationErrors.longitude}</p>
+                    )}
+                    {validationErrors.location && (
+                      <p className="text-red-500 text-sm">{validationErrors.location}</p>
                     )}
                   </div>
                 </div>
@@ -1204,32 +1250,41 @@ export default function RegisterBusinessPage() {
                                 </Button>
                               )}
                             </div>
-                            <div className="grid md:grid-cols-3 gap-4">
-                              <div className="space-y-2">
-                                <Label className="text-xs md:text-sm font-medium text-gray-700">Emri i Shërbimit *</Label>
-                                <Input
-                                  placeholder="Shkruani emrin e shërbimit"
-                                  value={service.name}
-                                  onChange={(e) => updateService(index, "name", e.target.value)}
-                                  className={`text-lg py-3 md:py-5 bg-white border-gray-300 focus:border-gray-400 focus:ring-gray-400/30 placeholder:text-gray-500 placeholder:text-base placeholder:font-normal ${validationErrors[`service_${index}_name`] ? 'border-red-500' : ''}`}
-                                />
-                                {validationErrors[`service_${index}_name`] && (
-                                  <p className="text-red-500 text-sm">{validationErrors[`service_${index}_name`]}</p>
-                                )}
+                            <div className="space-y-4">
+                              <div className="grid md:grid-cols-2 gap-4">
+                                <div className="space-y-2">
+                                  <Label className="text-xs md:text-sm font-medium text-gray-700">Emri i Shërbimit *</Label>
+                                  <Input
+                                    placeholder="Shkruani emrin e shërbimit"
+                                    value={service.name}
+                                    onChange={(e) => updateService(index, "name", e.target.value)}
+                                    className={`text-lg py-3 md:py-5 bg-white border-gray-300 focus:border-gray-400 focus:ring-gray-400/30 placeholder:text-gray-500 placeholder:text-base placeholder:font-normal ${validationErrors[`service_${index}_name`] ? 'border-red-500' : ''}`}
+                                  />
+                                  {validationErrors[`service_${index}_name`] && (
+                                    <p className="text-red-500 text-sm">{validationErrors[`service_${index}_name`]}</p>
+                                  )}
+                                </div>
+                                 <div className="space-y-2">
+                                   <Label className="text-xs md:text-sm font-medium text-gray-700">Çmimi (€)</Label>
+                                   <Input
+                                     type="number"
+                                     placeholder="0.00 (opsional)"
+                                     value={service.cost || ''}
+                                     onChange={(e) => updateService(index, "cost", e.target.value)}
+                                     className="text-lg py-3 md:py-5 bg-white border-gray-300 focus:border-gray-400 focus:ring-gray-400/30 placeholder:text-gray-500 placeholder:text-base placeholder:font-normal"
+                                   />
+                                 </div>
                               </div>
-                              <div className="space-y-2">
-                                <Label className="text-xs md:text-sm font-medium text-gray-700">Çmimi (€) *</Label>
-                                <Input
-                                  type="number"
-                                  placeholder="0.00"
-                                  value={service.cost}
-                                  onChange={(e) => updateService(index, "cost", e.target.value)}
-                                  className={`text-lg py-3 md:py-5 bg-white border-gray-300 focus:border-gray-400 focus:ring-gray-400/30 placeholder:text-gray-500 placeholder:text-base placeholder:font-normal ${validationErrors[`service_${index}_cost`] ? 'border-red-500' : ''}`}
-                                />
-                                {validationErrors[`service_${index}_cost`] && (
-                                  <p className="text-red-500 text-sm">{validationErrors[`service_${index}_cost`]}</p>
-                                )}
-                              </div>
+                               <div className="space-y-2">
+                                 <Label className="text-xs md:text-sm font-medium text-gray-700">Përshkrimi i Shërbimit</Label>
+                                 <Textarea
+                                   placeholder="Shkruani përshkrimin e shërbimit (opsional)"
+                                   value={service.description || ''}
+                                   onChange={(e) => updateService(index, "description", e.target.value)}
+                                   className="text-lg py-3 md:py-5 bg-white border-gray-300 focus:border-gray-400 focus:ring-gray-400/30 placeholder:text-gray-500 placeholder:text-base placeholder:font-normal"
+                                   rows={3}
+                                 />
+                               </div>
                               <div className="space-y-2">
                                 <Label className="text-xs md:text-sm font-medium text-gray-700">Kohëzgjatja *</Label>
                                 <Select
