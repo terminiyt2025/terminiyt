@@ -1,5 +1,8 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { prisma } from '@/lib/database-prisma'
+import { sendEmail, emailTemplates } from '@/lib/email'
+import { format } from 'date-fns'
+import { sq } from 'date-fns/locale'
 
 export async function GET(request: NextRequest) {
   try {
@@ -81,6 +84,83 @@ export async function POST(request: NextRequest) {
         status: 'CONFIRMED'
       }
     })
+
+    // Get business and staff information for emails
+    const business = await prisma.business.findUnique({
+      where: { id: parseInt(body.businessId) },
+      select: { 
+        name: true, 
+        accountEmail: true,
+        staff: true 
+      }
+    })
+
+    // Send emails if business exists
+    if (business) {
+      try {
+        const emailData = {
+          businessName: business.name,
+          customerName: body.customerName,
+          customerEmail: body.customerEmail,
+          customerPhone: body.customerPhone,
+          serviceName: body.serviceName,
+          date: format(new Date(body.appointmentDate), "EEEE, d MMMM", { locale: sq }),
+          time: body.appointmentTime,
+          price: body.totalPrice || 0,
+          staffName: body.staffName || 'Nuk është caktuar',
+          duration: body.serviceDuration || 30,
+          notes: body.notes
+        }
+
+        // 1. Send confirmation email to customer
+        const customerEmail = emailTemplates.customerConfirmation(emailData)
+        await sendEmail({
+          to: body.customerEmail,
+          subject: customerEmail.subject,
+          html: customerEmail.html,
+          text: customerEmail.text
+        })
+
+        // 2. Send notification email to staff member (if staff is selected)
+        if (body.staffName && business.staff && Array.isArray(business.staff)) {
+          const selectedStaff = business.staff.find((staff: any) => 
+            staff.name === body.staffName && staff.isActive !== false
+          ) as any
+          if (selectedStaff && selectedStaff.email) {
+            const staffEmail = emailTemplates.staffNotification(emailData)
+            await sendEmail({
+              to: selectedStaff.email,
+              subject: staffEmail.subject,
+              html: staffEmail.html,
+              text: staffEmail.text
+            })
+            console.log(`Email sent to staff member: ${selectedStaff.email}`)
+          } else {
+            console.log(`Staff member ${body.staffName} not found or has no email`)
+          }
+        }
+
+        // 3. Send notification email to business owner
+        if (business.accountEmail) {
+          const adminEmail = emailTemplates.staffNotification({
+            ...emailData,
+            staffName: 'Pronari i Biznesit'
+          })
+          
+          await sendEmail({
+            to: business.accountEmail,
+            subject: `Rezervim i Ri - ${business.name}`,
+            html: adminEmail.html,
+            text: adminEmail.text
+          })
+        }
+
+        console.log('All emails sent successfully')
+      } catch (emailError) {
+        console.error('Email sending failed:', emailError)
+        // Don't fail the booking if email fails
+      }
+    }
 
     return NextResponse.json(booking)
 
