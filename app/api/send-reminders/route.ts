@@ -11,16 +11,19 @@ export async function POST(request: NextRequest) {
     // Get current time
     const now = new Date()
     
-    // Calculate 30 minutes from now
-    const reminderTime = new Date(now.getTime() + 30 * 60 * 1000)
-    
     // Find bookings that start in 30 minutes (today only)
     // Compare dates in local timezone to match how bookings are stored
     const today = new Date()
     const localToday = new Date(today.getFullYear(), today.getMonth(), today.getDate())
     const localTomorrow = new Date(today.getFullYear(), today.getMonth(), today.getDate() + 1)
     
+    // Calculate the time window for reminders (25-35 minutes from now)
+    const reminderWindowStart = new Date(now.getTime() + 25 * 60 * 1000) // 25 minutes from now
+    const reminderWindowEnd = new Date(now.getTime() + 35 * 60 * 1000)   // 35 minutes from now
+    
     console.log('Current time:', now.toISOString())
+    console.log('Reminder window start (25 min):', reminderWindowStart.toISOString())
+    console.log('Reminder window end (35 min):', reminderWindowEnd.toISOString())
     console.log('Local today:', localToday.toISOString())
     console.log('Local tomorrow:', localTomorrow.toISOString())
     
@@ -31,8 +34,8 @@ export async function POST(request: NextRequest) {
           lt: localTomorrow
         },
         appointmentTime: {
-          gte: format(reminderTime, 'HH:mm'),
-          lt: format(new Date(reminderTime.getTime() + 5 * 60 * 1000), 'HH:mm') // 5 minute window
+          gte: format(reminderWindowStart, 'HH:mm'),
+          lt: format(reminderWindowEnd, 'HH:mm') // 10 minute window
         },
         status: 'CONFIRMED' // Only send to confirmed bookings
       },
@@ -129,11 +132,14 @@ export async function POST(request: NextRequest) {
 export async function GET() {
   try {
     const now = new Date()
-    const reminderTime = new Date(now.getTime() + 30 * 60 * 1000)
     
     const today = new Date()
     const localToday = new Date(today.getFullYear(), today.getMonth(), today.getDate())
     const localTomorrow = new Date(today.getFullYear(), today.getMonth(), today.getDate() + 1)
+    
+    // Calculate the time window for reminders (25-35 minutes from now)
+    const reminderWindowStart = new Date(now.getTime() + 25 * 60 * 1000) // 25 minutes from now
+    const reminderWindowEnd = new Date(now.getTime() + 35 * 60 * 1000)   // 35 minutes from now
     
     const bookingsToRemind = await prisma.booking.findMany({
       where: {
@@ -142,8 +148,8 @@ export async function GET() {
           lt: localTomorrow
         },
         appointmentTime: {
-          gte: format(reminderTime, 'HH:mm'),
-          lt: format(new Date(reminderTime.getTime() + 5 * 60 * 1000), 'HH:mm')
+          gte: format(reminderWindowStart, 'HH:mm'),
+          lt: format(reminderWindowEnd, 'HH:mm')
         },
         status: 'CONFIRMED'
       },
@@ -164,7 +170,8 @@ export async function GET() {
     return NextResponse.json({
       success: true,
       currentTime: now.toISOString(),
-      reminderTime: reminderTime.toISOString(),
+      reminderWindowStart: reminderWindowStart.toISOString(),
+      reminderWindowEnd: reminderWindowEnd.toISOString(),
       bookingsFound: bookingsToRemind.length,
       bookings: bookingsToRemind
     })
