@@ -1,7 +1,6 @@
 import type React from "react"
 import type { Metadata } from "next"
 import { Outfit } from "next/font/google"
-import { Analytics } from "@vercel/analytics/next"
 import { Suspense } from "react"
 import { Toaster } from "@/components/ui/toaster"
 import "./globals.css"
@@ -44,7 +43,6 @@ export default function RootLayout({
       <body className={`font-sans ${outfit.variable}`} suppressHydrationWarning={true}>
           <Suspense fallback={null}>{children}</Suspense>
           <Toaster />
-          <Analytics />
       </body>
     </html>
   )

@@ -8,12 +8,6 @@ const prisma = new PrismaClient()
 
 export async function POST(request: NextRequest) {
   try {
-    // Verify this is a Vercel Cron request
-    const authHeader = request.headers.get('authorization')
-    if (authHeader !== `Bearer ${process.env.CRON_SECRET}`) {
-      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
-    }
-
     // Get current time
     const now = new Date()
     
@@ -127,17 +121,8 @@ export async function POST(request: NextRequest) {
 }
 
 // GET endpoint to check for reminders (for testing)
-export async function GET(request: NextRequest) {
+export async function GET() {
   try {
-    // Verify this is a Vercel Cron request or allow manual testing
-    const authHeader = request.headers.get('authorization')
-    const isCronRequest = authHeader === `Bearer ${process.env.CRON_SECRET}`
-    const isManualTest = !authHeader // Allow manual testing without auth
-    
-    if (!isCronRequest && !isManualTest) {
-      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
-    }
-
     const now = new Date()
     const reminderTime = new Date(now.getTime() + 30 * 60 * 1000)
     
