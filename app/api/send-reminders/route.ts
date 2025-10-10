@@ -185,6 +185,7 @@ export async function GET() {
         customerEmail: true,
         appointmentDate: true,
         appointmentTime: true,
+        status: true,
         business: {
           select: {
             name: true
