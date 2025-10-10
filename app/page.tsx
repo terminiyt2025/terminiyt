@@ -454,7 +454,7 @@ export default function HomePage() {
                           </div>
                           <div className="flex items-center gap-3">
                             <Phone className="w-4 h-4 text-gray-600 flex-shrink-0" />
-                            <span className="text-slate-600 text-xs">
+                            <span className="text-slate-600 text-xs no-underline">
                               {provider.phone || "Phone not provided"}
                             </span>
                           </div>
