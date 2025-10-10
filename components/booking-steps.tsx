@@ -592,22 +592,6 @@ export function BookingSteps({ business }: BookingStepsProps) {
               </div>
               
               {/* Choose Another Service Button - Show when service is selected */}
-              {selectedService && (
-                <div className="text-center mt-4">
-                  <Button
-                    onClick={() => {
-                      setSelectedService(null)
-                      setSelectedStaff(null)
-                    }}
-                    variant="outline"
-                    size="sm"
-                    className="text-sm text-gray-600 hover:text-gray-800 hover:bg-gray-50"
-                  >
-                    <ArrowLeft className="w-4 h-4 mr-2" />
-                    Zgjidh shërbim tjetër
-                  </Button>
-                </div>
-              )}
             </div>
 
             {/* Service Selection */}
@@ -1014,14 +998,39 @@ export function BookingSteps({ business }: BookingStepsProps) {
 
       {/* Navigation Buttons */}
       <div className="flex justify-between pt-6 border-t">
-        <Button
-          onClick={handlePrevious}
-          disabled={currentStep === 1 && !selectedService || (currentStep === 1 && selectedService)}
-          className="bg-gradient-to-r from-gray-600 to-gray-700 hover:from-gray-500 hover:to-gray-600 text-white"
-        >
-          <ArrowLeft className="w-4 h-4 mr-2" />
-          Prapa
-        </Button>
+        {/* Show appropriate back button based on current step */}
+        {currentStep === 1 && selectedService ? (
+          <Button
+            onClick={() => {
+              setSelectedService(null)
+              setSelectedStaff(null)
+            }}
+            className="bg-gradient-to-r from-gray-600 to-gray-700 hover:from-gray-500 hover:to-gray-600 text-white"
+          >
+            <ArrowLeft className="w-4 h-4 mr-2" />
+            Zgjidh shërbim tjetër
+          </Button>
+        ) : currentStep === 2 ? (
+          <Button
+            onClick={() => {
+              setSelectedDate(null)
+              setSelectedTime(null)
+            }}
+            className="bg-gradient-to-r from-gray-600 to-gray-700 hover:from-gray-500 hover:to-gray-600 text-white"
+          >
+            <ArrowLeft className="w-4 h-4 mr-2" />
+            Zgjidh datë tjetër
+          </Button>
+        ) : (
+          <Button
+            onClick={handlePrevious}
+            disabled={currentStep === 1 && !selectedService}
+            className="bg-gradient-to-r from-gray-600 to-gray-700 hover:from-gray-500 hover:to-gray-600 text-white"
+          >
+            <ArrowLeft className="w-4 h-4 mr-2" />
+            Prapa
+          </Button>
+        )}
 
         {currentStep < 3 && (
           <Button
