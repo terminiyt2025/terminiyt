@@ -7,7 +7,7 @@
  * Usage: node scripts/send-reminders.js
  * 
  * Cron job example (every 5 minutes):
- * */5 * * * * /usr/bin/node /path/to/your/project/scripts/send-reminders.js
+ * 0,5,10,15,20,25,30,35,40,45,50,55 * * * * /usr/bin/node /path/to/your/project/scripts/send-reminders.js
  */
 
 const https = require('https');

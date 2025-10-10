@@ -15,15 +15,20 @@ export async function POST(request: NextRequest) {
     const reminderTime = new Date(now.getTime() + 30 * 60 * 1000)
     
     // Find bookings that start in 30 minutes (today only)
+    // Compare dates in local timezone to match how bookings are stored
     const today = new Date()
-    const todayStart = new Date(today.getFullYear(), today.getMonth(), today.getDate())
-    const todayEnd = new Date(today.getFullYear(), today.getMonth(), today.getDate() + 1)
+    const localToday = new Date(today.getFullYear(), today.getMonth(), today.getDate())
+    const localTomorrow = new Date(today.getFullYear(), today.getMonth(), today.getDate() + 1)
+    
+    console.log('Current time:', now.toISOString())
+    console.log('Local today:', localToday.toISOString())
+    console.log('Local tomorrow:', localTomorrow.toISOString())
     
     const bookingsToRemind = await prisma.booking.findMany({
       where: {
         appointmentDate: {
-          gte: todayStart,
-          lt: todayEnd
+          gte: localToday,
+          lt: localTomorrow
         },
         appointmentTime: {
           gte: format(reminderTime, 'HH:mm'),
@@ -127,14 +132,14 @@ export async function GET() {
     const reminderTime = new Date(now.getTime() + 30 * 60 * 1000)
     
     const today = new Date()
-    const todayStart = new Date(today.getFullYear(), today.getMonth(), today.getDate())
-    const todayEnd = new Date(today.getFullYear(), today.getMonth(), today.getDate() + 1)
+    const localToday = new Date(today.getFullYear(), today.getMonth(), today.getDate())
+    const localTomorrow = new Date(today.getFullYear(), today.getMonth(), today.getDate() + 1)
     
     const bookingsToRemind = await prisma.booking.findMany({
       where: {
         appointmentDate: {
-          gte: todayStart,
-          lt: todayEnd
+          gte: localToday,
+          lt: localTomorrow
         },
         appointmentTime: {
           gte: format(reminderTime, 'HH:mm'),
