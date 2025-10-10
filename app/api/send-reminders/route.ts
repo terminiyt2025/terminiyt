@@ -21,11 +21,13 @@ export async function POST(request: NextRequest) {
     const reminderWindowStart = new Date(now.getTime() + 25 * 60 * 1000) // 25 minutes from now
     const reminderWindowEnd = new Date(now.getTime() + 35 * 60 * 1000)   // 35 minutes from now
     
+    console.log('=== REMINDER API DEBUG ===')
     console.log('Current time:', now.toISOString())
     console.log('Reminder window start (25 min):', reminderWindowStart.toISOString())
     console.log('Reminder window end (35 min):', reminderWindowEnd.toISOString())
     console.log('Local today:', localToday.toISOString())
     console.log('Local tomorrow:', localTomorrow.toISOString())
+    console.log('Time window (HH:mm):', format(reminderWindowStart, 'HH:mm'), 'to', format(reminderWindowEnd, 'HH:mm'))
     
     const bookingsToRemind = await prisma.booking.findMany({
       where: {
@@ -45,6 +47,9 @@ export async function POST(request: NextRequest) {
     })
 
     console.log(`Found ${bookingsToRemind.length} bookings to send reminders for`)
+    bookingsToRemind.forEach(booking => {
+      console.log(`- Booking ID: ${booking.id}, Time: ${booking.appointmentTime}, Customer: ${booking.customerName}`)
+    })
 
     const results = []
 
