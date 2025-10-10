@@ -222,28 +222,8 @@ export async function GET() {
       reminderWindowEnd: reminderWindowEnd.toISOString(),
       localWindowStart: localWindowStart,
       localWindowEnd: localWindowEnd,
-      allBookingsCount: allBookings.length,
-      todayBookingsCount: todayBookings.length,
       bookingsFound: bookingsToRemind.length,
-      bookings: bookingsToRemind,
-      debug: {
-        todayString,
-        tomorrowString,
-        allBookings: allBookings.map(b => ({
-          id: b.id,
-          date: b.appointmentDate,
-          time: b.appointmentTime,
-          status: b.status,
-          customer: b.customerName
-        })),
-        todayBookings: todayBookings.map(b => ({
-          id: b.id,
-          date: b.appointmentDate,
-          time: b.appointmentTime,
-          status: b.status,
-          customer: b.customerName
-        }))
-      }
+      bookings: bookingsToRemind
     })
 
   } catch (error) {
