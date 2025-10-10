@@ -1,0 +1,11 @@
+{
+  "crons": [
+    {
+      "path": "/api/send-reminders",
+      "schedule": "*/5 * * * *"
+    }
+  ],
+  "env": {
+    "CRON_SECRET": "@cron-secret"
+  }
+}
