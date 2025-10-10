@@ -61,8 +61,13 @@ export async function POST(request: NextRequest) {
     const bookingsToRemind = todayBookings.filter(booking => {
       const bookingTime = booking.appointmentTime
       
-      const inWindow = bookingTime >= localWindowStart && bookingTime < localWindowEnd
-      console.log(`- Booking ID: ${booking.id}, Time: ${bookingTime}, Local Window: ${localWindowStart}-${localWindowEnd}, In window: ${inWindow}`)
+      // Normalize time format (ensure HH:MM format)
+      const normalizedBookingTime = bookingTime.length === 4 ? `0${bookingTime}` : bookingTime
+      const normalizedWindowStart = localWindowStart.length === 4 ? `0${localWindowStart}` : localWindowStart
+      const normalizedWindowEnd = localWindowEnd.length === 4 ? `0${localWindowEnd}` : localWindowEnd
+      
+      const inWindow = normalizedBookingTime >= normalizedWindowStart && normalizedBookingTime < normalizedWindowEnd
+      console.log(`- Booking ID: ${booking.id}, Time: ${bookingTime} (normalized: ${normalizedBookingTime}), Window: ${normalizedWindowStart}-${normalizedWindowEnd}, In window: ${inWindow}`)
       
       return inWindow
     })
@@ -200,7 +205,12 @@ export async function GET() {
     const bookingsToRemind = todayBookings.filter(booking => {
       const bookingTime = booking.appointmentTime
       
-      return bookingTime >= localWindowStart && bookingTime < localWindowEnd
+      // Normalize time format (ensure HH:MM format)
+      const normalizedBookingTime = bookingTime.length === 4 ? `0${bookingTime}` : bookingTime
+      const normalizedWindowStart = localWindowStart.length === 4 ? `0${localWindowStart}` : localWindowStart
+      const normalizedWindowEnd = localWindowEnd.length === 4 ? `0${localWindowEnd}` : localWindowEnd
+      
+      return normalizedBookingTime >= normalizedWindowStart && normalizedBookingTime < normalizedWindowEnd
     })
 
     return NextResponse.json({

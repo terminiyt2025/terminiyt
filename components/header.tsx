@@ -264,19 +264,19 @@ export function Header({ transparent = false, className = "" }: HeaderProps) {
                     </div>
                     <DropdownMenuSeparator />
                     <DropdownMenuItem asChild>
-                      <Link href="/rezervimet" className="flex items-center">
+                      <Link href="/rezervimet" className="flex items-center hover:!bg-gray-50 hover:!text-black focus:!bg-gray-50 focus:!text-black">
                         <Calendar className="mr-2 h-4 w-4" />
                         Rezervimet
                       </Link>
                     </DropdownMenuItem>
                     <DropdownMenuItem asChild>
-                      <Link href="/menaxho-biznesin" className="flex items-center">
+                      <Link href="/menaxho-biznesin" className="flex items-center hover:!bg-gray-50 hover:!text-black focus:!bg-gray-50 focus:!text-black">
                         <Settings className="mr-2 h-4 w-4" />
                         Menaxho Biznesin
                       </Link>
                     </DropdownMenuItem>
                     <DropdownMenuItem asChild>
-                      <Link href="/" className="flex items-center">
+                      <Link href="/" className="flex items-center hover:!bg-gray-50 hover:!text-black focus:!bg-gray-50 focus:!text-black">
                         <Home className="mr-2 h-4 w-4" />
                         Faqja Kryesore
                       </Link>
@@ -284,7 +284,7 @@ export function Header({ transparent = false, className = "" }: HeaderProps) {
                     <DropdownMenuSeparator />
                     <DropdownMenuItem 
                       onClick={handleBusinessLogout}
-                      className="text-red-600 focus:text-red-600"
+                      className="text-red-600 focus:text-red-600 hover:!bg-gray-50 focus:!bg-gray-50"
                     >
                       <LogOut className="mr-2 h-4 w-4" />
                       Dil nga Llogaria
