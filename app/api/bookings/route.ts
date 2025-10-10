@@ -85,7 +85,13 @@ export async function POST(request: NextRequest) {
         businessId: parseInt(body.businessId),
         serviceName: body.serviceName,
         staffName: body.staffName || null,
-        appointmentDate: new Date(body.appointmentDate + 'T' + body.appointmentTime + ':00'),
+        appointmentDate: (() => {
+          // Create a date that represents the local time correctly in UTC
+          const [year, month, day] = body.appointmentDate.split('-')
+          const [hours, minutes] = body.appointmentTime.split(':')
+          // Create UTC date that represents the local time
+          return new Date(Date.UTC(year, month - 1, day, hours, minutes, 0))
+        })(),
         appointmentTime: body.appointmentTime,
         customerName: body.customerName,
         customerEmail: body.customerEmail,

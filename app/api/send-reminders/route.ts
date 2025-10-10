@@ -16,16 +16,23 @@ export async function POST(request: NextRequest) {
     const today = new Date()
     const todayString = today.toISOString().split('T')[0] // "2025-10-10"
     
-    // Calculate the time window for reminders (25-35 minutes from now)
-    const reminderWindowStart = new Date(now.getTime() + 25 * 60 * 1000) // 25 minutes from now
-    const reminderWindowEnd = new Date(now.getTime() + 35 * 60 * 1000)   // 35 minutes from now
+    // Calculate the time window for reminders (25-35 minutes from now) in LOCAL time
+    // Convert current UTC time to local time (UTC+2)
+    const localNow = new Date(now.getTime() + 2 * 60 * 60 * 1000) // Add 2 hours for UTC+2
+    const reminderWindowStart = new Date(localNow.getTime() + 25 * 60 * 1000) // 25 minutes from local now
+    const reminderWindowEnd = new Date(localNow.getTime() + 35 * 60 * 1000)   // 35 minutes from local now
+    
+    // Convert to local time for comparison with appointment_time
+    const localWindowStart = format(reminderWindowStart, 'HH:mm')
+    const localWindowEnd = format(reminderWindowEnd, 'HH:mm')
     
     console.log('=== REMINDER API DEBUG ===')
-    console.log('Current time:', now.toISOString())
+    console.log('Current UTC time:', now.toISOString())
+    console.log('Current local time:', format(localNow, 'HH:mm'))
     console.log('Reminder window start (25 min):', reminderWindowStart.toISOString())
     console.log('Reminder window end (35 min):', reminderWindowEnd.toISOString())
     console.log('Today string:', todayString)
-    console.log('Time window (HH:mm):', format(reminderWindowStart, 'HH:mm'), 'to', format(reminderWindowEnd, 'HH:mm'))
+    console.log('Local time window (HH:mm):', localWindowStart, 'to', localWindowEnd)
     
     // Get all confirmed bookings and filter by date in memory
     const allBookings = await prisma.booking.findMany({
@@ -37,25 +44,25 @@ export async function POST(request: NextRequest) {
       }
     })
     
-    // Filter by today's date
+    // Filter by today's date (check both today and tomorrow since bookings might be stored for next UTC day)
+    const tomorrowString = new Date(now.getTime() + 24 * 60 * 60 * 1000).toISOString().split('T')[0]
     const todayBookings = allBookings.filter(booking => {
       const bookingDate = new Date(booking.appointmentDate)
       const bookingDateString = bookingDate.toISOString().split('T')[0]
-      return bookingDateString === todayString
+      return bookingDateString === todayString || bookingDateString === tomorrowString
     })
     
     console.log(`All confirmed bookings: ${allBookings.length}`)
     console.log(`Today's confirmed bookings: ${todayBookings.length}`)
+    console.log(`Checking dates: ${todayString} and ${tomorrowString}`)
     todayBookings.forEach(b => console.log(`- ID: ${b.id}, Date: ${b.appointmentDate}, Time: ${b.appointmentTime}, Customer: ${b.customerName}`))
     
-    // Filter by time window
+    // Filter by time window using LOCAL time comparison
     const bookingsToRemind = todayBookings.filter(booking => {
       const bookingTime = booking.appointmentTime
-      const windowStart = format(reminderWindowStart, 'HH:mm')
-      const windowEnd = format(reminderWindowEnd, 'HH:mm')
       
-      const inWindow = bookingTime >= windowStart && bookingTime < windowEnd
-      console.log(`- Booking ID: ${booking.id}, Time: ${bookingTime}, Window: ${windowStart}-${windowEnd}, In window: ${inWindow}`)
+      const inWindow = bookingTime >= localWindowStart && bookingTime < localWindowEnd
+      console.log(`- Booking ID: ${booking.id}, Time: ${bookingTime}, Local Window: ${localWindowStart}-${localWindowEnd}, In window: ${inWindow}`)
       
       return inWindow
     })
@@ -152,9 +159,15 @@ export async function GET() {
     const today = new Date()
     const todayString = today.toISOString().split('T')[0] // "2025-10-10"
     
-    // Calculate the time window for reminders (25-35 minutes from now)
-    const reminderWindowStart = new Date(now.getTime() + 25 * 60 * 1000) // 25 minutes from now
-    const reminderWindowEnd = new Date(now.getTime() + 35 * 60 * 1000)   // 35 minutes from now
+    // Calculate the time window for reminders (25-35 minutes from now) in LOCAL time
+    // Convert current UTC time to local time (UTC+2)
+    const localNow = new Date(now.getTime() + 2 * 60 * 60 * 1000) // Add 2 hours for UTC+2
+    const reminderWindowStart = new Date(localNow.getTime() + 25 * 60 * 1000) // 25 minutes from local now
+    const reminderWindowEnd = new Date(localNow.getTime() + 35 * 60 * 1000)   // 35 minutes from local now
+    
+    // Convert to local time for comparison with appointment_time
+    const localWindowStart = format(reminderWindowStart, 'HH:mm')
+    const localWindowEnd = format(reminderWindowEnd, 'HH:mm')
     
     // Get all confirmed bookings and filter by date in memory
     const allBookings = await prisma.booking.findMany({
@@ -175,27 +188,29 @@ export async function GET() {
       }
     })
     
-    // Filter by today's date
+    // Filter by today's date (check both today and tomorrow since bookings might be stored for next UTC day)
+    const tomorrowString = new Date(now.getTime() + 24 * 60 * 60 * 1000).toISOString().split('T')[0]
     const todayBookings = allBookings.filter(booking => {
       const bookingDate = new Date(booking.appointmentDate)
       const bookingDateString = bookingDate.toISOString().split('T')[0]
-      return bookingDateString === todayString
+      return bookingDateString === todayString || bookingDateString === tomorrowString
     })
     
-    // Filter by time window
+    // Filter by time window using LOCAL time comparison
     const bookingsToRemind = todayBookings.filter(booking => {
       const bookingTime = booking.appointmentTime
-      const windowStart = format(reminderWindowStart, 'HH:mm')
-      const windowEnd = format(reminderWindowEnd, 'HH:mm')
       
-      return bookingTime >= windowStart && bookingTime < windowEnd
+      return bookingTime >= localWindowStart && bookingTime < localWindowEnd
     })
 
     return NextResponse.json({
       success: true,
       currentTime: now.toISOString(),
+      currentLocalTime: localNow.toISOString(),
       reminderWindowStart: reminderWindowStart.toISOString(),
       reminderWindowEnd: reminderWindowEnd.toISOString(),
+      localWindowStart: localWindowStart,
+      localWindowEnd: localWindowEnd,
       bookingsFound: bookingsToRemind.length,
       bookings: bookingsToRemind
     })

@@ -79,8 +79,68 @@ export default function BusinessPanel() {
   const [serviceToDelete, setServiceToDelete] = useState<any>(null)
   const [showStaffDeleteDialog, setShowStaffDeleteDialog] = useState(false)
   const [staffToDelete, setStaffToDelete] = useState<any>(null)
+  const [showStaffHoursSection, setShowStaffHoursSection] = useState(false)
+  const [expandedStaffHours, setExpandedStaffHours] = useState<number | null>(null)
+  const [showImageSection, setShowImageSection] = useState(false)
   const { toast } = useToast()
   const router = useRouter()
+
+  // Helper function to copy business hours to staff
+  const copyBusinessHoursToStaff = (businessHours: any) => {
+    if (!businessHours) return null
+    return JSON.parse(JSON.stringify(businessHours))
+  }
+
+  // Helper function to check if staff hours are unchanged from business hours
+  const isStaffHoursUnchanged = (staffHours: any, businessHours: any) => {
+    if (!staffHours || !businessHours) return false
+    return JSON.stringify(staffHours) === JSON.stringify(businessHours)
+  }
+
+  // Helper function to sync business hours changes to staff hours
+  const syncBusinessHoursToStaff = (newBusinessHours: any) => {
+    const updatedStaff = (editData.staff || []).map((member: any) => {
+      const currentStaffHours = member.operatingHours || {}
+      const updatedStaffHours = { ...currentStaffHours }
+      
+      // Add new days from business hours to staff hours
+      Object.keys(newBusinessHours).forEach(day => {
+        const businessDayHours = newBusinessHours[day]
+        const staffDayHours = currentStaffHours[day]
+        
+        // If business day is now open and staff doesn't have this day, add it
+        if (!businessDayHours.closed && !staffDayHours) {
+          updatedStaffHours[day] = {
+            open: businessDayHours.open,
+            close: businessDayHours.close,
+            closed: false
+          }
+        }
+        // If business day is now closed, remove it from staff hours
+        else if (businessDayHours.closed && staffDayHours) {
+          updatedStaffHours[day] = {
+            open: '',
+            close: '',
+            closed: true
+          }
+        }
+        // If staff hours haven't been customized, sync the entire day
+        else if (isStaffHoursUnchanged(member.operatingHours, editData.operating_hours)) {
+          updatedStaffHours[day] = {
+            open: businessDayHours.open,
+            close: businessDayHours.close,
+            closed: businessDayHours.closed
+          }
+        }
+      })
+      
+      return {
+        ...member,
+        operatingHours: updatedStaffHours
+      }
+    })
+    return updatedStaff
+  }
 
   // Check authentication
   useEffect(() => {
@@ -205,7 +265,11 @@ export default function BusinessPanel() {
           return defaultHours
         })(),
         services: business.services || [],
-        staff: business.staff || []
+        staff: (business.staff || []).map((staff: any) => ({
+          ...staff,
+          breakTimes: staff.breakTimes && staff.breakTimes.length > 0 ? staff.breakTimes : [{ startTime: '', endTime: '' }], // Ensure breakTimes is initialized
+          operatingHours: staff.operatingHours || copyBusinessHoursToStaff(business.operating_hours)
+        }))
       })
       setIsEditing(true)
     }
@@ -764,7 +828,8 @@ export default function BusinessPanel() {
                                       const newHours = { ...editData.operating_hours }
                                       if (!newHours[day]) newHours[day] = { open: '', close: '', closed: true }
                                       newHours[day] = { ...newHours[day], closed: !e.target.checked }
-                                      handleEditDataChange({ operating_hours: newHours })
+                                      const updatedStaff = syncBusinessHoursToStaff(newHours)
+                                      handleEditDataChange({ operating_hours: newHours, staff: updatedStaff })
                                 }
                               }}
                               disabled={!isEditing}
@@ -781,7 +846,8 @@ export default function BusinessPanel() {
                                         const newHours = { ...editData.operating_hours }
                                         if (!newHours[day]) newHours[day] = { open: '', close: '', closed: false }
                                         newHours[day] = { ...newHours[day], open: e.target.value }
-                                        handleEditDataChange({ operating_hours: newHours })
+                                        const updatedStaff = syncBusinessHoursToStaff(newHours)
+                                        handleEditDataChange({ operating_hours: newHours, staff: updatedStaff })
                                       }
                                     }}
                                     disabled={!isEditing}
@@ -800,7 +866,8 @@ export default function BusinessPanel() {
                                         const newHours = { ...editData.operating_hours }
                                         if (!newHours[day]) newHours[day] = { open: '', close: '', closed: false }
                                         newHours[day] = { ...newHours[day], close: e.target.value }
-                                        handleEditDataChange({ operating_hours: newHours })
+                                        const updatedStaff = syncBusinessHoursToStaff(newHours)
+                                        handleEditDataChange({ operating_hours: newHours, staff: updatedStaff })
                                       }
                                     }}
                                     disabled={!isEditing}
@@ -821,8 +888,22 @@ export default function BusinessPanel() {
                             </div>
                         </div>
                       </div>
+{/* Image Section */}
                       <div>
-                <h4 className="font-semibold bg-gradient-to-r from-gray-800 to-teal-800 bg-clip-text text-transparent mb-3">Imazhi i Biznesit & Logo</h4>
+                <div 
+                  className="flex items-center justify-between cursor-pointer p-3 bg-gray-50 rounded-lg hover:bg-gray-100 transition-colors"
+                  onClick={() => setShowImageSection(!showImageSection)}
+                >
+                  <h4 className="font-semibold bg-gradient-to-r from-gray-800 to-teal-800 bg-clip-text text-transparent">Imazhi i Biznesit & Logo</h4>
+                  <div className={`transform transition-transform duration-200 ${showImageSection ? 'rotate-180' : ''}`}>
+                    <svg className="w-5 h-5 text-gray-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
+                    </svg>
+                  </div>
+                </div>
+                
+                {showImageSection && (
+                  <div className="mt-3 p-4 bg-white border border-gray-200 rounded-lg">
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                   {/* Business Images - 50% */}
                   <div className="border border-gray-200 rounded-lg p-3 bg-gray-50/20">
@@ -900,7 +981,7 @@ export default function BusinessPanel() {
                             htmlFor="business-image-upload"
                             className="w-full py-2 rounded bg-gradient-to-r from-gray-800 to-teal-800 text-white hover:from-gray-700 hover:to-teal-700 text-xs cursor-pointer flex items-center justify-center transition-all duration-300"
                           >
-                            + Ngarko Imazh
+                                {uploadingBusinessImage ? 'Duke ngarkuar...' : '+ Ngarko Imazh'}
                           </label>
                             </div>
                           )}
@@ -947,8 +1028,27 @@ export default function BusinessPanel() {
                                     onChange={(e) => {
                               const file = e.target.files?.[0]
                               if (file) {
-                                // Handle file upload here
-                                console.log('Upload logo:', file)
+                                    setUploadingLogo(true)
+                                    const formData = new FormData()
+                                    formData.append('file', file)
+                                    fetch('/api/upload-image', {
+                                      method: 'POST',
+                                      body: formData
+                                    })
+                                    .then(res => res.json())
+                                    .then(data => {
+                                      if (data.success) {
+                                        setEditData({...editData, logo: data.url})
+                                      } else {
+                                        alert('Gabim gjatë ngarkimit të logos');
+                                      }
+                                    })
+                                    .catch(() => {
+                                      alert('Gabim gjatë ngarkimit të logos');
+                                    })
+                                    .finally(() => {
+                                      setUploadingLogo(false)
+                                    })
                               }
                             }}
                             className="hidden"
@@ -958,7 +1058,7 @@ export default function BusinessPanel() {
                             htmlFor="logo-upload"
                             className="w-full py-2 rounded bg-gradient-to-r from-gray-800 to-teal-800 text-white hover:from-gray-700 hover:to-teal-700 text-xs cursor-pointer flex items-center justify-center transition-all duration-300"
                           >
-                            + Ngarko Logo
+                                {uploadingLogo ? 'Duke ngarkuar...' : '+ Ngarko Logo'}
                           </label>
                             </div>
                       )}
@@ -975,7 +1075,8 @@ export default function BusinessPanel() {
                   </div>
                       </div>
                     </div>
-                  </div>
+                )}
+              </div>            </div>
 
             {/* Right Column - Images, Services, Staff */}
                         <div className="space-y-4">
@@ -986,8 +1087,12 @@ export default function BusinessPanel() {
                 <div className="bg-white rounded ">
                   <div className="space-y-3">
                     {(isEditing ? (editData.services || []) : (business?.services || [])).map((service: any, index: number) => (
-                      <div key={service.id || index} className="border border-gray-200 rounded p-2 bg-white">
-                        <div className="grid grid-cols-2 gap-2 mb-2">
+                      <div key={service.id || index} className="border border-gray-200 rounded-lg p-3 bg-gray-50/50">
+                        {isEditing ? (
+                          <>
+                            {/* Name, Price, and Duration in one line */}
+                            <div className="grid grid-cols-1 md:grid-cols-3 gap-2 mb-2">
+                          <div>
                           <input
                             type="text"
                                 value={service.name || ''}
@@ -1019,22 +1124,23 @@ export default function BusinessPanel() {
                                       services: newServices,
                                       staff: newStaff
                                     })
-                                    
-                                    // Clear validation error when user starts typing
-                                    if (validationErrors[`service_${index}_name`]) {
-                                      const newErrors = {...validationErrors}
-                                      delete newErrors[`service_${index}_name`]
-                                      setValidationErrors(newErrors)
-                                    }
+                                  
+                                  // Clear validation error when user starts typing
+                                  if (validationErrors[`service_${index}_name`]) {
+                                    const newErrors = {...validationErrors}
+                                    delete newErrors[`service_${index}_name`]
+                                    setValidationErrors(newErrors)
+                                  }
                                   }
                                 }}
                                 disabled={!isEditing}
                             placeholder="Emri i shërbimit"
-                            className={`px-2 py-1 border rounded text-xs ${validationErrors[`service_${index}_name`] ? 'border-red-500' : 'border-gray-300'}`}
+                              className={`px-2 py-1 border rounded text-xs w-full ${validationErrors[`service_${index}_name`] ? 'border-red-500' : 'border-gray-300'}`}
                           />
-                          {validationErrors[`service_${index}_name`] && (
-                            <p className="text-red-500 text-xs mt-1">{validationErrors[`service_${index}_name`]}</p>
-                          )}
+                            {validationErrors[`service_${index}_name`] && (
+                              <p className="text-red-500 text-xs mt-1">{validationErrors[`service_${index}_name`]}</p>
+                            )}
+                          </div>
                           <div className="relative">
                             <input
                               type="text"
@@ -1053,22 +1159,7 @@ export default function BusinessPanel() {
                             />
                             <span className="absolute right-2 top-1/2 transform -translate-y-1/2 text-xs text-gray-500 pointer-events-none">€</span>
                           </div>
-                            </div>
-                        <textarea
-                          value={service.description || ''}
-                          onChange={(e) => {
-                            if (isEditing) {
-                              const newServices = (editData.services || []).map((s: any) => 
-                                s.id === service.id ? { ...s, description: e.target.value } : s
-                              )
-                              setEditData({...editData, services: newServices})
-                            }
-                          }}
-                          disabled={!isEditing}
-                          placeholder="Përshkrimi i shërbimit"
-                          className="w-full px-2 py-1 border border-gray-300 rounded text-xs h-12 resize-none mb-2"
-                        />
-                        <div className="flex justify-between items-center">
+                          <div>
                           <select
                                 value={service.duration || '30 min'}
                             onChange={(e) => {
@@ -1077,17 +1168,17 @@ export default function BusinessPanel() {
                                   s.id === service.id ? { ...s, duration: e.target.value } : s
                                 )
                                 setEditData({...editData, services: newServices})
-                                
-                                // Clear validation error when user selects duration
-                                if (validationErrors[`service_${index}_duration`]) {
-                                  const newErrors = {...validationErrors}
-                                  delete newErrors[`service_${index}_duration`]
-                                  setValidationErrors(newErrors)
-                                }
+                                  
+                                  // Clear validation error when user selects duration
+                                  if (validationErrors[`service_${index}_duration`]) {
+                                    const newErrors = {...validationErrors}
+                                    delete newErrors[`service_${index}_duration`]
+                                    setValidationErrors(newErrors)
+                                  }
                                   }
                                 }}
                                 disabled={!isEditing}
-                            className={`px-2 py-1 border rounded text-xs ${validationErrors[`service_${index}_duration`] ? 'border-red-500' : 'border-gray-300'}`}
+                              className={`px-2 py-1 border rounded text-xs w-full ${validationErrors[`service_${index}_duration`] ? 'border-red-500' : 'border-gray-300'}`}
                           >
                             <option value="15 min">15 min</option>
                             <option value="30 min">30 min</option>
@@ -1110,10 +1201,28 @@ export default function BusinessPanel() {
                             <option value="8 orë">8 orë</option>
                             <option value="1 ditë">1 ditë</option>
                           </select>
-                          {validationErrors[`service_${index}_duration`] && (
-                            <p className="text-red-500 text-xs mt-1">{validationErrors[`service_${index}_duration`]}</p>
-                          )}
+                            {validationErrors[`service_${index}_duration`] && (
+                              <p className="text-red-500 text-xs mt-1">{validationErrors[`service_${index}_duration`]}</p>
+                            )}
+                          </div>
+                            </div>
+                        <textarea
+                          value={service.description || ''}
+                          onChange={(e) => {
+                            if (isEditing) {
+                              const newServices = (editData.services || []).map((s: any) => 
+                                s.id === service.id ? { ...s, description: e.target.value } : s
+                              )
+                              setEditData({...editData, services: newServices})
+                            }
+                          }}
+                          disabled={!isEditing}
+                          placeholder="Përshkrimi i shërbimit"
+                          className="w-full px-2 py-1 border border-gray-300 rounded text-xs h-12 resize-none mb-2"
+                        />
+                        {/* Delete button */}
                           {isEditing && (
+                          <div className="flex justify-end mt-2">
                             <button
                                 onClick={() => {
                                 setServiceToDelete({ service, index })
@@ -1123,10 +1232,22 @@ export default function BusinessPanel() {
                               >
                               <Trash2 className="w-4 h-4" />
                             </button>
+                          </div>
                           )}
-                        </div>
-                        </div>
-                      ))}
+                          </>
+                        ) : (
+                          /* View mode - Admin panel style */
+                          <div>
+                            <div className="font-medium text-gray-900 text-sm mb-1">{service.name}</div>
+                            <div className="text-gray-600 text-xs mb-1">{service.description || 'Nuk keni përshkrim për këtë shërbim'}</div>
+                            <div className="flex justify-between text-xs text-gray-500">
+                              <span>Kohëzgjatja: {service.duration || 'N/A'}</span>
+                              {service.price && service.price > 0 && <span>Çmimi: {service.price}</span>}
+                            </div>
+                          </div>
+                        )}
+                      </div>
+                    ))}
                       {isEditing && (
                       <button
                             onClick={() => {
@@ -1154,8 +1275,12 @@ export default function BusinessPanel() {
                 <div className="bg-white rounded ">
                   <div className="space-y-3">
                     {(isEditing ? (editData.staff || []) : (business?.staff || [])).map((member: any, index: number) => (
-                      <div key={index} className="border border-gray-200 rounded p-2 bg-white">
-                        <div className="grid grid-cols-1 gap-4 mb-2">
+                      <div key={index} className="border border-gray-200 rounded-lg p-3 bg-gray-50/50">
+                        {isEditing ? (
+                          <>
+                            {/* Name and Phone in one line */}
+                            <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-2">
+                          <div>
                           <input
                             type="text"
                             value={member.name || ''}
@@ -1164,72 +1289,79 @@ export default function BusinessPanel() {
                                     const newStaff = [...(editData.staff || [])]
                                 newStaff[index] = { ...member, name: e.target.value }
                                 setEditData({...editData, staff: newStaff})
-                                
-                                // Clear validation error when user starts typing
-                                if (validationErrors[`staff_${index}_name`]) {
-                                  const newErrors = {...validationErrors}
-                                  delete newErrors[`staff_${index}_name`]
-                                  setValidationErrors(newErrors)
-                                }
+                                  
+                                  // Clear validation error when user starts typing
+                                  if (validationErrors[`staff_${index}_name`]) {
+                                    const newErrors = {...validationErrors}
+                                    delete newErrors[`staff_${index}_name`]
+                                    setValidationErrors(newErrors)
+                                  }
                                   }
                                 }}
                                 disabled={!isEditing}
                             placeholder="Emri i stafit"
-                            className={`px-2 py-1 border rounded text-xs ${validationErrors[`staff_${index}_name`] ? 'border-red-500' : 'border-gray-300'}`}
+                              className={`px-2 py-1 border rounded text-xs w-full ${validationErrors[`staff_${index}_name`] ? 'border-red-500' : 'border-gray-300'}`}
                           />
-                          {validationErrors[`staff_${index}_name`] && (
-                            <p className="text-red-500 text-xs mt-1">{validationErrors[`staff_${index}_name`]}</p>
-                          )}
+                            {validationErrors[`staff_${index}_name`] && (
+                              <p className="text-red-500 text-xs mt-1">{validationErrors[`staff_${index}_name`]}</p>
+                            )}
+                          </div>
+                          <div>
                           <input
-                            type="email"
-                            value={member.email || ''}
+                              type="text"
+                              value={member.phone || ''}
                             onChange={(e) => {
                               if (isEditing) {
                                 const newStaff = [...(editData.staff || [])]
-                                newStaff[index] = { ...member, email: e.target.value }
+                                  newStaff[index] = { ...member, phone: e.target.value }
                                 setEditData({...editData, staff: newStaff})
-                                
-                                // Clear validation error when user starts typing
-                                if (validationErrors[`staff_${index}_email`]) {
-                                  const newErrors = {...validationErrors}
-                                  delete newErrors[`staff_${index}_email`]
-                                  setValidationErrors(newErrors)
-                                }
+                                  
+                                  // Clear validation error when user starts typing
+                                  if (validationErrors[`staff_${index}_phone`]) {
+                                    const newErrors = {...validationErrors}
+                                    delete newErrors[`staff_${index}_phone`]
+                                    setValidationErrors(newErrors)
+                                  }
                               }
                             }}
                             disabled={!isEditing}
-                            placeholder="Email"
-                            className={`px-2 py-1 border rounded text-xs ${validationErrors[`staff_${index}_email`] ? 'border-red-500' : 'border-gray-300'}`}
+                              placeholder="Telefoni"
+                              className={`px-2 py-1 border rounded text-xs w-full ${validationErrors[`staff_${index}_phone`] ? 'border-red-500' : 'border-gray-300'}`}
                               />
-                          {validationErrors[`staff_${index}_email`] && (
-                            <p className="text-red-500 text-xs mt-1">{validationErrors[`staff_${index}_email`]}</p>
-                          )}
+                            {validationErrors[`staff_${index}_phone`] && (
+                              <p className="text-red-500 text-xs mt-1">{validationErrors[`staff_${index}_phone`]}</p>
+                            )}
                             </div>
-                        <div className="grid grid-cols-1 gap-4 mb-2">
+                        </div>
+                        
+                        {/* Email and Active Status in one line */}
+                        <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-2">
+                          <div>
                           <input
-                            type="text"
-                            value={member.phone || ''}
+                              type="email"
+                              value={member.email || ''}
                                 onChange={(e) => {
                                   if (isEditing) {
                                     const newStaff = [...(editData.staff || [])]
-                                newStaff[index] = { ...member, phone: e.target.value }
+                                  newStaff[index] = { ...member, email: e.target.value }
                                 setEditData({...editData, staff: newStaff})
-                                
-                                // Clear validation error when user starts typing
-                                if (validationErrors[`staff_${index}_phone`]) {
-                                  const newErrors = {...validationErrors}
-                                  delete newErrors[`staff_${index}_phone`]
-                                  setValidationErrors(newErrors)
-                                }
+                                  
+                                  // Clear validation error when user starts typing
+                                  if (validationErrors[`staff_${index}_email`]) {
+                                    const newErrors = {...validationErrors}
+                                    delete newErrors[`staff_${index}_email`]
+                                    setValidationErrors(newErrors)
+                                  }
                                   }
                                 }}
                                 disabled={!isEditing}
-                            placeholder="Telefoni"
-                            className={`px-2 py-1 border rounded text-xs ${validationErrors[`staff_${index}_phone`] ? 'border-red-500' : 'border-gray-300'}`}
+                              placeholder="Email"
+                              className={`px-2 py-1 border rounded text-xs w-full ${validationErrors[`staff_${index}_email`] ? 'border-red-500' : 'border-gray-300'}`}
                           />
-                          {validationErrors[`staff_${index}_phone`] && (
-                            <p className="text-red-500 text-xs mt-1">{validationErrors[`staff_${index}_phone`]}</p>
-                          )}
+                            {validationErrors[`staff_${index}_email`] && (
+                              <p className="text-red-500 text-xs mt-1">{validationErrors[`staff_${index}_email`]}</p>
+                            )}
+                          </div>
                           <div className="flex items-center">
                             <label className="flex items-center text-xs">
                               <input
@@ -1249,150 +1381,36 @@ export default function BusinessPanel() {
                             </label>
                             </div>
                           </div>
-                        {/* Break Times Section */}
-                        <div className="space-y-2">
-                          <div className="text-xs font-medium text-gray-600">Ora e Pauzës:</div>
-                          <div className="space-y-2">
-                            {(member.breakTimes || []).map((breakTime: any, breakIndex: number) => {
-                              // Generate time options from 00:00 to 23:45 (every 15 minutes)
-                              const timeOptions: string[] = []
-                              for (let hour = 0; hour < 24; hour++) {
-                                for (let minute = 0; minute < 60; minute += 15) {
-                                  const timeString = `${hour.toString().padStart(2, '0')}:${minute.toString().padStart(2, '0')}`
-                                  timeOptions.push(timeString)
-                                }
-                              }
-                              
-                              return (
-                                <div key={breakIndex} className="flex items-center space-x-2">
-                                  <div className="flex items-center space-x-1">
-                                    <label className="text-xs text-gray-500">Nga:</label>
-                                    <select
-                                      value={breakTime.startTime || ''}
-                                      onChange={(e) => {
-                                        if (isEditing) {
-                                          const newStaff = [...(editData.staff || [])]
-                                          if (!newStaff[index].breakTimes) newStaff[index].breakTimes = []
-                                          newStaff[index].breakTimes[breakIndex] = { 
-                                            ...breakTime, 
-                                            startTime: e.target.value 
-                                          }
-                                          setEditData({...editData, staff: newStaff})
-                                        }
-                                      }}
-                                      disabled={!isEditing}
-                                      className="px-2 py-1 border border-gray-300 rounded text-xs w-20"
-                                    >
-                                      <option value="">Hapja</option>
-                                      {timeOptions.map(time => (
-                                        <option key={time} value={time}>{time}</option>
-                                      ))}
-                                    </select>
-                                  </div>
-                                  <div className="flex items-center space-x-1">
-                                    <label className="text-xs text-gray-500">Deri:</label>
-                                    <select
-                                      value={breakTime.endTime || ''}
-                                      onChange={(e) => {
-                                        if (isEditing) {
-                                          const newStaff = [...(editData.staff || [])]
-                                          if (!newStaff[index].breakTimes) newStaff[index].breakTimes = []
-                                          newStaff[index].breakTimes[breakIndex] = { 
-                                            ...breakTime, 
-                                            endTime: e.target.value 
-                                          }
-                                          setEditData({...editData, staff: newStaff})
-                                        }
-                                      }}
-                                      disabled={!isEditing}
-                                      className="px-2 py-1 border border-gray-300 rounded text-xs w-20"
-                                    >
-                                      <option value="">Mbyllja</option>
-                                      {timeOptions.map(time => (
-                                        <option key={time} value={time}>{time}</option>
-                                      ))}
-                                    </select>
-                                  </div>
-                                  {isEditing && (
-                                    <div className="flex space-x-1">
-                                      <button
-                                        onClick={() => {
-                                          const newStaff = [...(editData.staff || [])]
-                                          if (!newStaff[index].breakTimes) newStaff[index].breakTimes = []
-                                          newStaff[index].breakTimes.push({ startTime: '', endTime: '' })
-                                          setEditData({...editData, staff: newStaff})
-                                        }}
-                                        className="bg-gradient-to-r from-gray-800 to-teal-800 hover:from-gray-700 hover:to-teal-700 text-white p-1 rounded text-xs transition-all duration-300"
-                                        title="Shto Pushim"
-                                      >
-                                        <svg className="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 6v6m0 0v6m0-6h6m-6 0H6" />
-                                        </svg>
-                                      </button>
-                                      <button
-                                        onClick={() => {
-                                          const newStaff = [...(editData.staff || [])]
-                                          newStaff[index].breakTimes = newStaff[index].breakTimes.filter((_: any, i: number) => i !== breakIndex)
-                                          setEditData({...editData, staff: newStaff})
-                                        }}
-                                        className="bg-gradient-to-r from-red-500 to-red-700 hover:from-red-600 hover:to-red-800 text-white p-1 rounded text-xs transition-all duration-300"
-                                        title="Fshi pushimin"
-                                      >
-                                        <Trash2 className="w-3 h-3" />
-                                      </button>
-                                    </div>
-                                  )}
-                                </div>
-                              )
-                            })}
-                            {isEditing && (member.breakTimes || []).length === 0 && (
-                              <button
-                                onClick={() => {
-                                  const newStaff = [...(editData.staff || [])]
-                                  if (!newStaff[index].breakTimes) newStaff[index].breakTimes = []
-                                  newStaff[index].breakTimes.push({ startTime: '', endTime: '' })
-                                  setEditData({...editData, staff: newStaff})
-                                }}
-                                className="bg-gradient-to-r from-gray-800 to-teal-800 hover:from-gray-700 hover:to-teal-700 text-white p-1 rounded transition-all duration-300"
-                                title="Shto Pushim"
-                              >
-                                <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 6v6m0 0v6m0-6h6m-6 0H6" />
-                                </svg>
-                              </button>
-                            )}
-                          </div>
-                        </div>
 
                         <div className="space-y-2">
-                          <div className="text-xs font-medium text-gray-600">Shërbimet e Caktuar:</div>
-                          <div className="grid grid-cols-1 gap-2">
+                          <div className="text-xs font-medium text-gray-600">Shërbimet që kryen nga ky staf:</div>
+                          <div className="flex flex-wrap gap-2">
                             {(isEditing ? (editData.services || []) : (business?.services || [])).map((service: any, serviceIndex: number) => (
                               <label key={serviceIndex} className="flex items-center text-xs">
-                                  <input
-                                    type="checkbox"
+                                <input
+                                  type="checkbox"
                                   checked={member.services?.includes(service.name) || false}
-                                    onChange={(e) => {
-                                      if (isEditing) {
-                                        const newStaff = [...(editData.staff || [])]
+                                  onChange={(e) => {
+                                    if (isEditing) {
+                                      const newStaff = [...(editData.staff || [])]
                                       if (!newStaff[index].services) newStaff[index].services = []
-                                        
-                                        if (e.target.checked) {
+                                      
+                                      if (e.target.checked) {
                                         if (!newStaff[index].services.includes(service.name)) {
                                           newStaff[index].services.push(service.name)
                                         }
-                                        } else {
+                                      } else {
                                         newStaff[index].services = newStaff[index].services.filter((s: string) => s !== service.name)
-                                        }
-                                        
-                                      setEditData({...editData, staff: newStaff})
                                       }
-                                    }}
-                                    disabled={!isEditing}
+                                      
+                                      setEditData({...editData, staff: newStaff})
+                                    }
+                                  }}
+                                  disabled={!isEditing}
                                   className="mr-1 w-4 h-4 text-teal-800 bg-white rounded focus:ring-teal-800 focus:ring-2 accent-teal-800 border-0"
                                 />
                                 <span className="text-gray-600">{service.name}</span>
-                                  </label>
+                              </label>
                             ))}
                           </div>
                           {(!isEditing ? (business?.services || []) : (editData.services || [])).length === 0 && (
@@ -1420,12 +1438,58 @@ export default function BusinessPanel() {
                             </button>
                           )}
                         </div>
+                        </>
+                      ) : (
+                        /* View mode - Admin panel style */
+                        <div>
+                          <div className="font-medium text-gray-900 text-sm mb-1">{member.name}</div>
+                          <div className="text-gray-600 text-xs mb-1">{member.email}</div>
+                          <div className="text-gray-500 text-xs mb-1">Telefon: {member.phone}</div>
+                          <div className="text-gray-500 text-xs mb-1">
+                            Status: <span className={member.isActive ? 'text-green-600' : 'text-red-600'}>
+                              {member.isActive ? 'Aktiv' : 'Jo Aktiv'}
+                            </span>
+                          </div>
+                          {member.services && member.services.length > 0 && (
+                            <div className="text-gray-500 text-xs">
+                              Shërbimet: {member.services.map((service: any) => typeof service === 'string' ? service : service.name).filter((name: any) => name && name.trim() !== '').join(', ')}
+                            </div>
+                          )}
+                          
+                          {/* Break Times Section */}
+                          {member.breakTimes && member.breakTimes.length > 0 && (
+                            <div className="mt-2">
+                              <div className="text-gray-500 text-xs mb-1">Ora e Pauzës:</div>
+                              <div className="space-y-1">
+                                {member.breakTimes.map((breakTime: any, breakIndex: number) => (
+                                  <div key={breakIndex} className="text-gray-600 text-xs">
+                                    {breakTime.startTime && breakTime.endTime ? (
+                                      `${breakTime.startTime} - ${breakTime.endTime}`
+                                    ) : (
+                                      'E papërcaktuar'
+                                    )}
+                                  </div>
+                                ))}
+                              </div>
+                            </div>
+                          )}
                         </div>
-                      ))}
+                      )}
+                      </div>
+                    ))}
                       {isEditing && (
                       <button
                             onClick={() => {
-                          const newStaff = [...(editData.staff || []), { name: '', email: '', phone: '', isActive: true, services: [], breakTimes: [] }]
+                          const newStaffMember = { 
+                            name: '', 
+                            email: '', 
+                            phone: '', 
+                            isActive: true, 
+                            services: [],
+                            breakTimes: [{ startTime: '', endTime: '' }], // Initialized for new staff
+                            operatingHours: copyBusinessHoursToStaff(editData.operating_hours)
+                          }
+                          const newStaff = [...(editData.staff || []), newStaffMember]
                           setEditData({...editData, staff: newStaff})
                             }}
                         className="w-full py-2 rounded bg-gradient-to-r from-gray-800 to-teal-800 text-white hover:from-gray-700 hover:to-teal-700 text-xs transition-all duration-300"
@@ -1437,29 +1501,282 @@ export default function BusinessPanel() {
                       </div>
                     </div>
 
+                      {/* Staff Operating Hours Section */}
+                      {isEditing && (
+                        <div className="mb-4">
+                          <div 
+                            className="flex items-center justify-between cursor-pointer p-3 bg-gray-50 rounded-lg hover:bg-gray-100 transition-colors"
+                            onClick={() => setShowStaffHoursSection(!showStaffHoursSection)}
+                          >
+                            <h4 className="font-semibold bg-gradient-to-r from-gray-800 to-teal-800 bg-clip-text text-transparent">Orari i Punës së Stafit</h4>
+                            <div className={`transform transition-transform duration-200 ${showStaffHoursSection ? 'rotate-180' : ''}`}>
+                              <svg className="w-5 h-5 text-gray-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
+                              </svg>
+                            </div>
+                          </div>
+                          
+                          {showStaffHoursSection && (
+                            <div className="mt-4 space-y-3">
+                              {(editData.staff || []).map((member: any, index: number) => {
+                                // Get working days for this staff member
+                                const workingDays = ['monday', 'tuesday', 'wednesday', 'thursday', 'friday', 'saturday', 'sunday'].filter(day => {
+                                  const staffHours = member.operatingHours?.[day] || { open: '', close: '', closed: true }
+                                  const businessHours = editData.operating_hours?.[day] || { open: '', close: '', closed: true }
+                                  return !staffHours.closed && !businessHours.closed
+                                })
+                                
+                                return (
+                                  <div key={index} className="border border-gray-200 rounded-lg p-3 bg-gray-50">
+                                    <div 
+                                      className="flex items-center justify-between mb-2 cursor-pointer"
+                                      onClick={() => setExpandedStaffHours(expandedStaffHours === index ? null : index)}
+                                    >
+                                      <h5 className="font-medium text-sm text-gray-700">
+                                        {member.name || `Stafi ${index + 1}`}
+                                      </h5>
+                                      <div className="flex items-center gap-2">
+                                        <span className="text-xs text-gray-500">
+                                          {workingDays.length} ditë pune
+                                        </span>
+                                        <div className={`transform transition-transform duration-200 ${expandedStaffHours === index ? 'rotate-180' : ''}`}>
+                                          <svg className="w-4 h-4 text-gray-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
+                                          </svg>
+                                        </div>
+                                      </div>
+                                    </div>
+                                    
+                                    {expandedStaffHours === index && (
+                                      <div className="space-y-2">
+                                        {(() => {
+                                          // Generate time options from 00:00 to 23:45 (every 15 minutes)
+                                          const timeOptions: string[] = []
+                                          for (let hour = 0; hour < 24; hour++) {
+                                            for (let minute = 0; minute < 60; minute += 15) {
+                                              const timeString = `${hour.toString().padStart(2, '0')}:${minute.toString().padStart(2, '0')}`
+                                              timeOptions.push(timeString)
+                                            }
+                                          }
+                                          
+                                          const dayOrder = ['monday', 'tuesday', 'wednesday', 'thursday', 'friday', 'saturday', 'sunday']
+                                          const dayNames: { [key: string]: string } = {
+                                            monday: 'E Hënë',
+                                            tuesday: 'E Martë', 
+                                            wednesday: 'E Mërkurë',
+                                            thursday: 'E Enjte',
+                                            friday: 'E Premte',
+                                            saturday: 'E Shtunë',
+                                            sunday: 'E Diel'
+                                          }
+                                          
+                                          return dayOrder.filter(day => {
+                                            const businessHours = editData.operating_hours?.[day] || { open: '', close: '', closed: true }
+                                            return !businessHours.closed // Only show days when business is open
+                                          }).map(day => {
+                                            const staffHours = member.operatingHours?.[day] || { open: '', close: '', closed: true }
+                                            const businessHours = editData.operating_hours?.[day] || { open: '', close: '', closed: true }
+                                            
+                                            // Filter time options based on business hours
+                                            const filteredTimeOptions = timeOptions.filter(time => {
+                                              return time >= businessHours.open && time <= businessHours.close
+                                            })
+                                            
+                                            return (
+                                              <div key={day} className="flex items-center justify-between text-sm">
+                                                <span className="font-medium w-20">{dayNames[day]}:</span>
+                                                <div className="flex items-center space-x-2">
+                                                  <label className="flex items-center">
+                                                    <input
+                                                      type="checkbox"
+                                                      checked={!staffHours.closed}
+                                                      onChange={(e) => {
+                                                        const newStaff = [...(editData.staff || [])]
+                                                        if (!newStaff[index].operatingHours) {
+                                                          newStaff[index].operatingHours = {}
+                                                        }
+                                                        newStaff[index].operatingHours[day] = {
+                                                          ...staffHours,
+                                                          closed: !e.target.checked,
+                                                          open: !e.target.checked ? '' : staffHours.open || businessHours.open,
+                                                          close: !e.target.checked ? '' : staffHours.close || businessHours.close
+                                                        }
+                                                        setEditData({...editData, staff: newStaff})
+                                                      }}
+                                                      className="mr-1 w-4 h-4 text-teal-800 bg-white rounded focus:ring-teal-800 focus:ring-2 accent-teal-800 border-0"
+                                                    />
+                                                    <span className="text-xs">Dite pune</span>
+                                                  </label>
+                                                  {!staffHours.closed && (
+                                                    <>
+                                                      <select
+                                                        value={staffHours.open || ''}
+                                                        onChange={(e) => {
+                                                          const newStaff = [...(editData.staff || [])]
+                                                          if (!newStaff[index].operatingHours) {
+                                                            newStaff[index].operatingHours = {}
+                                                          }
+                                                          newStaff[index].operatingHours[day] = {
+                                                            ...staffHours,
+                                                            open: e.target.value
+                                                          }
+                                                          setEditData({...editData, staff: newStaff})
+                                                        }}
+                                                        className="px-2 py-1 border border-gray-300 rounded text-xs w-19 md:w-20"
+                                                      >
+                                                        <option value="">Fillimi</option>
+                                                        {filteredTimeOptions.map(time => (
+                                                          <option key={time} value={time}>{time}</option>
+                                                        ))}
+                                                      </select>
+                                                      <span className="text-xs">-</span>
+                                                      <select
+                                                        value={staffHours.close || ''}
+                                                        onChange={(e) => {
+                                                          const newStaff = [...(editData.staff || [])]
+                                                          if (!newStaff[index].operatingHours) {
+                                                            newStaff[index].operatingHours = {}
+                                                          }
+                                                          newStaff[index].operatingHours[day] = {
+                                                            ...staffHours,
+                                                            close: e.target.value
+                                                          }
+                                                          setEditData({...editData, staff: newStaff})
+                                                        }}
+                                                        className="px-2 py-1 border border-gray-300 rounded text-xs w-19 md:w-20"
+                                                      >
+                                                        <option value="">Mbarimi</option>
+                                                        {filteredTimeOptions.map(time => (
+                                                          <option key={time} value={time}>{time}</option>
+                                                        ))}
+                                                      </select>
+                                                    </>
+                                                  )}
+                                                </div>
+                                              </div>
+                                            )
+                                          })
+                                        })()}
+                                      </div>
+                                    )}
+                                  
+                                    {/* Break Times Section */}
+                                    {expandedStaffHours === index && (
+                                      <div className="mt-4 pt-4 border-t border-gray-200">
+                                        <div className="text-xs font-medium text-gray-600 mb-2">Ora e Pauzës:</div>
+                          <div className="space-y-2">
+                            {(member.breakTimes || []).map((breakTime: any, breakIndex: number) => {
+                              // Generate time options from 00:00 to 23:45 (every 15 minutes)
+                              const timeOptions: string[] = []
+                              for (let hour = 0; hour < 24; hour++) {
+                                for (let minute = 0; minute < 60; minute += 15) {
+                                  const timeString = `${hour.toString().padStart(2, '0')}:${minute.toString().padStart(2, '0')}`
+                                  timeOptions.push(timeString)
+                                }
+                              }
+                              
+                              return (
+                                <div key={breakIndex} className="flex items-center space-x-2">
+                                  <div className="flex items-center space-x-1">
+                                    <label className="text-xs text-gray-500">Nga:</label>
+                                    <select
+                                      value={breakTime.startTime || ''}
+                                      onChange={(e) => {
+                                          const newStaff = [...(editData.staff || [])]
+                                          if (!newStaff[index].breakTimes) newStaff[index].breakTimes = []
+                                          newStaff[index].breakTimes[breakIndex] = { 
+                                            ...breakTime, 
+                                            startTime: e.target.value 
+                                          }
+                                          setEditData({...editData, staff: newStaff})
+                                      }}
+                                      className="px-2 py-1 border border-gray-300 rounded text-xs w-20"
+                                    >
+                                                    <option value="">Fillimi</option>
+                                      {timeOptions.map(time => (
+                                        <option key={time} value={time}>{time}</option>
+                                      ))}
+                                    </select>
+                                  </div>
+                                  <div className="flex items-center space-x-1">
+                                    <label className="text-xs text-gray-500">Deri:</label>
+                                    <select
+                                      value={breakTime.endTime || ''}
+                                      onChange={(e) => {
+                                          const newStaff = [...(editData.staff || [])]
+                                          if (!newStaff[index].breakTimes) newStaff[index].breakTimes = []
+                                          newStaff[index].breakTimes[breakIndex] = { 
+                                            ...breakTime, 
+                                            endTime: e.target.value 
+                                          }
+                                          setEditData({...editData, staff: newStaff})
+                                      }}
+                                      className="px-2 py-1 border border-gray-300 rounded text-xs w-20"
+                                    >
+                                                    <option value="">Mbarimi</option>
+                                      {timeOptions.map(time => (
+                                        <option key={time} value={time}>{time}</option>
+                                      ))}
+                                    </select>
+                                  </div>
+                                                <div className="flex space-x-1">
+                                    <button
+                                      onClick={() => {
+                                        const newStaff = [...(editData.staff || [])]
+                                                      newStaff[index].breakTimes.splice(breakIndex, 1)
+                                        setEditData({...editData, staff: newStaff})
+                                      }}
+                                                    className="bg-gradient-to-r from-red-600 to-red-700 hover:from-red-500 hover:to-red-600 text-white p-1 rounded text-xs"
+                                      title="Fshi pushimin"
+                                    >
+                                      <Trash2 className="w-3 h-3" />
+                                    </button>
+                              <button
+                                onClick={() => {
+                                  const newStaff = [...(editData.staff || [])]
+                                  if (!newStaff[index].breakTimes) newStaff[index].breakTimes = []
+                                  newStaff[index].breakTimes.push({ startTime: '', endTime: '' })
+                                  setEditData({...editData, staff: newStaff})
+                                }}
+                                                    className="bg-gradient-to-r from-gray-800 to-teal-800 hover:from-gray-700 hover:to-teal-700 text-white p-1 rounded text-xs"
+                                title="Shto Pushim"
+                              >
+                                                    <svg className="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 6v6m0 0v6m0-6h6m-6 0H6" />
+                                </svg>
+                              </button>
+                          </div>
+                        </div>
+                                            )
+                                          })}
+                          </div>
+                            </div>
+                          )}
+                        </div>
+                                )
+                              })}
+                        </div>
+                      )}
+                    </div>
+                      )}
+
                       {/* Password Section - Only show in edit mode with toggle */}
                       {isEditing && (
                         <div>
-                          <div className="flex items-center justify-between mb-2">
-                            <h4 className="font-semibold bg-gradient-to-r from-gray-800 to-teal-800 bg-clip-text text-transparent">Fjalëkalimi</h4>
-                            <button
+                          <div 
+                            className="flex items-center justify-between cursor-pointer p-3 bg-gray-50 rounded-lg hover:bg-gray-100 transition-colors"
                               onClick={() => setShowPasswordFields(!showPasswordFields)}
-                              className="flex items-center text-sm text-gray-600 hover:text-gray-800 transition-colors"
-                            >
-                              <span className="mr-1">Ndrysho Fjalëkalimin</span>
-                              <svg 
-                                className={`w-4 h-4 transition-transform duration-200 ${showPasswordFields ? 'rotate-180' : ''}`}
-                                fill="none" 
-                                stroke="currentColor" 
-                                viewBox="0 0 24 24"
-                              >
+                          >
+                            <h4 className="font-semibold bg-gradient-to-r from-gray-800 to-teal-800 bg-clip-text text-transparent">Menaxhimi i Fjalëkalimit</h4>
+                            <div className={`transform transition-transform duration-200 ${showPasswordFields ? 'rotate-180' : ''}`}>
+                              <svg className="w-5 h-5 text-gray-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
                               </svg>
-                            </button>
+                            </div>
                           </div>
                           
                           {showPasswordFields && (
-                            <div className="bg-white rounded">
+                            <div className="mt-3 p-4 bg-white border border-gray-200 rounded-lg">
                               <div className="space-y-3">
                                 <div>
                                   <label className="block text-xs font-medium text-gray-600 mb-1">Fjalëkalimi Aktual</label>

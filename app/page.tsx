@@ -422,10 +422,10 @@ export default function HomePage() {
                       <div className="absolute top-4 right-4">
                         <Badge className="bg-teal-800/40 backdrop-blur-sm rounded-full border-0 shadow-sm">
                           <Star className="w-3 h-3 fill-transparent text-white-400 mr-1" />
-                          <span className="text-white text-xs">
+                          <span className="text-white text-sm md:text-xs">
                             {provider.rating.toFixed(1)}
                           </span>
-                          <span className="text-slate-300 text-xs ml-1">
+                          <span className="text-slate-300 text-sm md:text-xs ml-1">
                             ({provider.total_reviews || 0})
                           </span>
                         </Badge>
@@ -438,7 +438,7 @@ export default function HomePage() {
                     <div className="flex flex-col h-full">
                       {/* Header */}
                       <div>
-                        <h3 className="text-2xl font-heading font-bold text-slate-800 mb-1 group-hover:bg-gradient-to-r group-hover:from-gray-800 group-hover:to-teal-800 group-hover:bg-clip-text group-hover:text-transparent transition-all duration-300">
+                        <h3 className="text-2xl md:text-2xl font-heading font-bold text-slate-800 mb-1 group-hover:bg-gradient-to-r group-hover:from-gray-800 group-hover:to-teal-800 group-hover:bg-clip-text group-hover:text-transparent transition-all duration-300">
                           {provider.name}
                         </h3>
                       </div>
@@ -448,22 +448,22 @@ export default function HomePage() {
                         <div className="space-y-3">
                           <div className="flex items-center gap-3">
                             <MapPin className="w-4 h-4 text-gray-600 flex-shrink-0" />
-                            <span className="text-slate-600 text-xs truncate">
+                            <span className="text-slate-600 text-sm md:text-xs truncate">
                               {provider.address || "Address not provided"} - {provider.city}
                             </span>
                           </div>
                           <div className="flex items-center gap-3">
                             <Phone className="w-4 h-4 text-gray-600 flex-shrink-0" />
-                            <span className="text-slate-600 text-xs no-underline">
+                            <span className="text-slate-600 text-sm md:text-xs no-underline" style={{ textDecoration: 'none' }}>
                               {provider.phone || "Phone not provided"}
                             </span>
                           </div>
                           {provider.displayDistance && (
                             <div className="flex items-center gap-3">
                               <Navigation className="w-4 h-4 text-gray-600 flex-shrink-0" />
-                              <span className="text-slate-600 text-xs">{provider.displayDistance}</span>
+                              <span className="text-slate-600 text-sm md:text-xs">{provider.displayDistance}</span>
                               {provider.calculatedDistance && (
-                                <Badge variant="outline" className="text-xs bg-teal-800/40 backdrop-blur-sm text-transparent bg-clip-text bg-gradient-to-br from-gray-800 to-teal-800 border-gradient-to-br border-from-gray-800 border-to-teal-800">
+                                <Badge variant="outline" className="text-sm md:text-xs bg-teal-800/40 backdrop-blur-sm text-transparent bg-clip-text bg-gradient-to-br from-gray-800 to-teal-800 border-gradient-to-br border-from-gray-800 border-to-teal-800">
                                   GPS
                                 </Badge>
                               )}
@@ -489,7 +489,7 @@ export default function HomePage() {
                           <Button 
                             size="sm" 
                             variant="outline" 
-                            className="text-xs py-2 border-slate-300 hover:bg-white focus:bg-white hover:text-slate-700 focus:text-slate-700 text-slate-700 hover:border-teal-800 focus:border-teal-800 transition-all duration-300"
+                            className="text-sm md:text-xs py-2 border-slate-300 hover:bg-white focus:bg-white hover:text-slate-700 focus:text-slate-700 text-slate-700 hover:border-teal-800 focus:border-teal-800 transition-all duration-300"
                             onClick={() => {
                               setSelectedBusiness(provider)
                               setModalType('staff-sherbimet')
@@ -500,7 +500,7 @@ export default function HomePage() {
                           <Button 
                             size="sm" 
                             variant="outline" 
-                            className="text-xs py-2 border-slate-300 hover:bg-white focus:bg-white hover:text-slate-700 focus:text-slate-700 text-slate-700 hover:border-teal-800 focus:border-teal-800 transition-all duration-300"
+                            className="text-sm md:text-xs py-2 border-slate-300 hover:bg-white focus:bg-white hover:text-slate-700 focus:text-slate-700 text-slate-700 hover:border-teal-800 focus:border-teal-800 transition-all duration-300"
                             onClick={() => {
                               setSelectedBusiness(provider)
                               setModalType('orari')

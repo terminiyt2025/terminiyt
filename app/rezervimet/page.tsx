@@ -267,12 +267,26 @@ export default function ReservationsPage() {
   }
 
   // Generate time slots for a specific date (same logic as booking flow)
-  const generateTimeSlots = (date: Date) => {
+  const generateTimeSlots = (date: Date, serviceDuration: number = 30) => {
     if (!business?.operating_hours) return []
 
     const dayNames = ['sunday', 'monday', 'tuesday', 'wednesday', 'thursday', 'friday', 'saturday']
     const dayName = dayNames[date.getDay()]
-    const dayHours = business.operating_hours[dayName]
+    
+    // Use staff operating hours if a specific staff is selected, otherwise use business hours
+    let dayHours
+    if (selectedStaff && selectedStaff !== 'all' && business?.staff) {
+      const staffMember = business.staff.find((s: any) => s.name === selectedStaff)
+      if (staffMember?.operatingHours?.[dayName]) {
+        dayHours = staffMember.operatingHours[dayName]
+      } else {
+        // Fallback to business hours if staff doesn't have specific hours for this day
+        dayHours = business.operating_hours[dayName]
+      }
+    } else {
+      // Use business hours for 'all' staff or when no staff is selected
+      dayHours = business.operating_hours[dayName]
+    }
 
     if (!dayHours || dayHours.closed) return []
 
@@ -287,15 +301,34 @@ export default function ReservationsPage() {
     const startMinutes = startHour * 60 + startMinute
     const endMinutes = endHour * 60 + endMinute
 
+    const now = new Date()
+    const isToday = date.toDateString() === now.toDateString()
+    const currentTime = now.getHours() * 60 + now.getMinutes()
+    
+    // Calculate the latest time slot that allows for service completion before closing
+    const latestSlotTime = endMinutes - serviceDuration
+    
     for (let minutes = startMinutes; minutes < endMinutes; minutes += interval) {
       const hour = Math.floor(minutes / 60)
       const minute = minutes % 60
       const timeString = `${hour.toString().padStart(2, '0')}:${minute.toString().padStart(2, '0')}`
+      
+      // If it's today, only show future time slots
+      if (isToday && minutes <= currentTime) {
+        continue
+      }
+      
+      // Only show slots that allow service completion before closing time
+      if (minutes > latestSlotTime) {
+        continue
+      }
+      
       timeSlots.push(timeString)
     }
 
     // Filter out blocked time slots
-    return timeSlots.filter(timeSlot => !isTimeSlotBlocked(date, timeSlot))
+    const staffNameForFilter = selectedStaff && selectedStaff !== 'all' ? selectedStaff : undefined
+    return timeSlots.filter(timeSlot => !isTimeSlotBlocked(date, timeSlot, staffNameForFilter))
   }
 
   // Helper function to get service duration in minutes
@@ -427,12 +460,21 @@ export default function ReservationsPage() {
   const isTimeSlotInBreakTime = (timeSlot: string, staffName?: string) => {
     if (!business?.staff) return false
     
-    return business.staff.some((staff: any) => {
-      // If staffName is specified, only check that specific staff member
-      if (staffName && staffName !== 'all' && staff.name !== staffName) {
+    // If a specific staff is selected, only check that staff member's break times
+    if (staffName && staffName !== 'all') {
+      const staffMember = business.staff.find((s: any) => s.name === staffName)
+      if (!staffMember?.isActive || !staffMember.breakTimes || !Array.isArray(staffMember.breakTimes)) {
         return false
       }
       
+      return staffMember.breakTimes.some((breakTime: any) => {
+        if (!breakTime.startTime || !breakTime.endTime) return false
+        return timeSlot >= breakTime.startTime && timeSlot < breakTime.endTime
+      })
+    }
+    
+    // For 'all' staff, check if any staff member has a break at this time
+    return business.staff.some((staff: any) => {
       // Check if staff is active and has break times
       if (!staff.isActive || !staff.breakTimes || !Array.isArray(staff.breakTimes)) {
         return false
@@ -598,7 +640,7 @@ export default function ReservationsPage() {
 
   // Helper function to get time slots in a range
   const getTimeSlotsInRange = (startTime: string, endTime: string) => {
-    const allTimeSlots = generateTimeSlots(selectedDate)
+    const allTimeSlots = generateTimeSlots(selectedDate, 30)
     const startIndex = allTimeSlots.indexOf(startTime)
     const endIndex = allTimeSlots.indexOf(endTime)
     
@@ -613,8 +655,9 @@ export default function ReservationsPage() {
   // Handle single click for individual selection
   const handleTimeSlotClick = (timeSlot: string) => {
     const hasBooking = hasBookingAtTime(selectedDate, timeSlot)
-    const isBlocked = isTimeSlotBlocked(selectedDate, timeSlot)
-    const isInBreakTime = isTimeSlotInBreakTime(timeSlot)
+    const staffNameForCheck = selectedStaff && selectedStaff !== 'all' ? selectedStaff : undefined
+    const isBlocked = isTimeSlotBlocked(selectedDate, timeSlot, staffNameForCheck)
+    const isInBreakTime = isTimeSlotInBreakTime(timeSlot, staffNameForCheck)
     
     if (hasBooking || isBlocked || isInBreakTime) return
 
@@ -629,8 +672,9 @@ export default function ReservationsPage() {
   // Handle double click for range selection
   const handleTimeSlotDoubleClick = (timeSlot: string) => {
     const hasBooking = hasBookingAtTime(selectedDate, timeSlot)
-    const isBlocked = isTimeSlotBlocked(selectedDate, timeSlot)
-    const isInBreakTime = isTimeSlotInBreakTime(timeSlot)
+    const staffNameForCheck = selectedStaff && selectedStaff !== 'all' ? selectedStaff : undefined
+    const isBlocked = isTimeSlotBlocked(selectedDate, timeSlot, staffNameForCheck)
+    const isInBreakTime = isTimeSlotInBreakTime(timeSlot, staffNameForCheck)
     
     if (hasBooking || isBlocked || isInBreakTime) return
 
@@ -648,7 +692,7 @@ export default function ReservationsPage() {
     
     // Filter out already booked, blocked, or break time slots
     const validSlots = rangeSlots.filter(slot => 
-      !hasBookingAtTime(selectedDate, slot) && !isTimeSlotBlocked(selectedDate, slot) && !isTimeSlotInBreakTime(slot)
+      !hasBookingAtTime(selectedDate, slot) && !isTimeSlotBlocked(selectedDate, slot, staffNameForCheck) && !isTimeSlotInBreakTime(slot, staffNameForCheck)
     )
     
     setSelectedTimeSlots(prev => {
@@ -822,54 +866,96 @@ export default function ReservationsPage() {
 
                  {/* Simple Calendar Grid */}
                  <div className="grid grid-cols-7 gap-1 text-center">
-                   {['D', 'H', 'M', 'M', 'E', 'P', 'S'].map((day, index) => (
+                   {['H', 'M', 'M', 'E', 'P', 'S', 'D'].map((day, index) => (
                      <div key={`day-header-${index}`} className="p-2 text-sm font-medium text-gray-500">
                        {day}
                      </div>
                    ))}
                    
-                   {Array.from({ length: new Date(selectedDate.getFullYear(), selectedDate.getMonth() + 1, 0).getDate() }, (_, i) => {
-                     const date = new Date(selectedDate.getFullYear(), selectedDate.getMonth(), i + 1)
-                     const dayBookings = getBookingsForDate(date, selectedStaff === 'all' ? undefined : selectedStaff)
-                     const isToday = date.toDateString() === new Date().toDateString()
-                     const isSelected = date.toDateString() === selectedDate.toDateString()
-                     const isPastDate = date < new Date(new Date().setHours(0, 0, 0, 0))
+                   {(() => {
+                     const year = selectedDate.getFullYear()
+                     const month = selectedDate.getMonth()
+                     const daysInMonth = new Date(year, month + 1, 0).getDate()
+                     const firstDayOfMonth = new Date(year, month, 1).getDay() // 0 = Sunday, 1 = Monday, etc.
                      
-                     // Check if business is closed on this day
-                     const isBusinessClosed = (() => {
-                       if (!business?.operating_hours) return false
-                       const dayNames = ['sunday', 'monday', 'tuesday', 'wednesday', 'thursday', 'friday', 'saturday']
-                       const dayOfWeek = dayNames[date.getDay()]
-                       const dayHours = business.operating_hours[dayOfWeek]
-                       return !dayHours || dayHours.closed
-                     })()
+                     const calendarDays = []
                      
-                     const isDisabled = isPastDate || isBusinessClosed
+                     // Convert Sunday (0) to 6, Monday (1) to 0, etc. for Monday-first week
+                     const mondayFirstDay = firstDayOfMonth === 0 ? 6 : firstDayOfMonth - 1
                      
-                     return (
-                       <button
-                         key={`day-${i}`}
-                         onClick={() => !isDisabled && setSelectedDate(date)}
-                         disabled={isDisabled}
-                         className={`p-2 text-sm rounded-md transition-colors ${
-                           isDisabled
-                             ? 'text-gray-300 cursor-not-allowed'
-                             : isSelected
-                             ? 'bg-gradient-to-r from-gray-800 to-teal-800 text-white'
-                             : isToday
-                             ? 'bg-teal-100 text-teal-800'
-                             : 'hover:bg-gray-100'
-                         }`}
-                       >
-                         <div>{i + 1}</div>
-                         {dayBookings.length > 0 && !isDisabled && (
-                           <div className="text-xs mt-1">
-                             <span className="inline-block w-2 h-2 bg-teal-500 rounded-full"></span>
-                           </div>
-                         )}
-                       </button>
-                     )
-                   })}
+                     // Add empty cells for days before the first day of the month
+                     for (let i = 0; i < mondayFirstDay; i++) {
+                       calendarDays.push(
+                         <div key={`empty-${i}`} className="p-2 text-sm"></div>
+                       )
+                     }
+                     
+                     // Add days of the month
+                     for (let day = 1; day <= daysInMonth; day++) {
+                       const date = new Date(year, month, day)
+                       const dayBookings = getBookingsForDate(date, selectedStaff === 'all' ? undefined : selectedStaff)
+                       const isToday = date.toDateString() === new Date().toDateString()
+                       const isSelected = date.toDateString() === selectedDate.toDateString()
+                       const isPastDate = date < new Date(new Date().setHours(0, 0, 0, 0))
+                       
+                       // Check if business is closed on this day
+                       const isBusinessClosed = (() => {
+                         if (!business?.operating_hours) return false
+                         const dayNames = ['sunday', 'monday', 'tuesday', 'wednesday', 'thursday', 'friday', 'saturday']
+                         const dayOfWeek = dayNames[date.getDay()]
+                         const dayHours = business.operating_hours[dayOfWeek]
+                         return !dayHours || dayHours.closed
+                       })()
+                       
+                       // Check if selected staff doesn't work on this day
+                       const isStaffUnavailable = (() => {
+                         if (!selectedStaff || selectedStaff === 'all' || !business?.staff) return false
+                         const dayNames = ['sunday', 'monday', 'tuesday', 'wednesday', 'thursday', 'friday', 'saturday']
+                         const dayOfWeek = dayNames[date.getDay()]
+                         const staffMember = business.staff.find((s: any) => s.name === selectedStaff)
+                         
+                         if (staffMember?.operatingHours?.[dayOfWeek]) {
+                           const staffDayHours = staffMember.operatingHours[dayOfWeek]
+                           
+                           // If staff has empty hours (no open/close times), they're unavailable
+                           if (!staffDayHours.open || !staffDayHours.close || 
+                               staffDayHours.open === '' || staffDayHours.close === '' ||
+                               staffDayHours.closed) {
+                             return true
+                           }
+                         }
+                         return false
+                       })()
+                       
+                       const isDisabled = isPastDate || isBusinessClosed || isStaffUnavailable
+                       
+                       calendarDays.push(
+                         <button
+                           key={`day-${day}`}
+                           onClick={() => !isDisabled && setSelectedDate(date)}
+                           disabled={isDisabled}
+                           className={`p-2 text-sm rounded-md transition-colors ${
+                             isDisabled
+                               ? 'text-gray-300 cursor-not-allowed'
+                               : isSelected
+                               ? 'bg-gradient-to-r from-gray-800 to-teal-800 text-white'
+                               : isToday
+                               ? 'bg-teal-100 text-teal-800'
+                               : 'hover:bg-gray-100'
+                           }`}
+                         >
+                           <div>{day}</div>
+                           {dayBookings.length > 0 && !isDisabled && (
+                             <div className="text-xs mt-1">
+                               <span className="inline-block w-2 h-2 bg-teal-500 rounded-full"></span>
+                             </div>
+                           )}
+                         </button>
+                       )
+                     }
+                     
+                     return calendarDays
+                   })()}
                  </div>
                  
                  {/* Summary */}
@@ -909,7 +995,7 @@ export default function ReservationsPage() {
 
                 {/* Time Slots Grid */}
                 <div className="grid grid-cols-3 gap-2 max-h-64 overflow-y-auto">
-                  {generateTimeSlots(selectedDate).map((timeSlot) => {
+                  {generateTimeSlots(selectedDate, 30).map((timeSlot) => {
                     const hasBooking = hasBookingAtTime(selectedDate, timeSlot, selectedStaff === 'all' ? undefined : selectedStaff)
                     const isBlocked = isTimeSlotBlocked(selectedDate, timeSlot, selectedStaff === 'all' ? undefined : selectedStaff)
                     const isInBreakTime = isTimeSlotInBreakTime(timeSlot, selectedStaff === 'all' ? undefined : selectedStaff)
@@ -1060,7 +1146,7 @@ export default function ReservationsPage() {
                   </div>
                 )}
                 
-                {generateTimeSlots(selectedDate).length === 0 && (
+                {generateTimeSlots(selectedDate, 30).length === 0 && (
                   <div className="text-center py-8 text-gray-500">
                     <Clock className="w-12 h-12 mx-auto mb-4 text-gray-300" />
                     <p>Nuk ka orë të disponueshme për këtë datë</p>

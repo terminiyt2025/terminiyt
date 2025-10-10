@@ -44,13 +44,27 @@ interface BookingStepsProps {
   business: any
 }
 
-// Generate time slots based on business operating hours
-const generateTimeSlots = (operatingHours: any, selectedDate: Date, business: any, selectedStaff: any) => {
+// Generate time slots based on business or staff operating hours
+const generateTimeSlots = (operatingHours: any, selectedDate: Date, business: any, selectedStaff: any, serviceDuration: number = 30) => {
   if (!operatingHours || !selectedDate) return []
   
   const dayNames = ['sunday', 'monday', 'tuesday', 'wednesday', 'thursday', 'friday', 'saturday']
   const dayOfWeek = dayNames[selectedDate.getDay()]
-  const dayHours = operatingHours[dayOfWeek]
+  
+  // Use staff operating hours if a specific staff is selected, otherwise use business hours
+  let dayHours
+  if (selectedStaff && business?.staff) {
+    const staffMember = business.staff.find((s: any) => s.name === selectedStaff.name)
+    if (staffMember?.operatingHours?.[dayOfWeek]) {
+      dayHours = staffMember.operatingHours[dayOfWeek]
+    } else {
+      // Fallback to business hours if staff doesn't have specific hours for this day
+      dayHours = operatingHours[dayOfWeek]
+    }
+  } else {
+    // Use business hours when no staff is selected
+    dayHours = operatingHours[dayOfWeek]
+  }
   
   if (!dayHours || dayHours.closed) return []
   
@@ -69,10 +83,28 @@ const generateTimeSlots = (operatingHours: any, selectedDate: Date, business: an
   
   // Generate 15-minute slots when all slots are free
   const interval = 15 // 15-minute intervals
+  const now = new Date()
+  const isToday = selectedDate.toDateString() === now.toDateString()
+  const currentTime = now.getHours() * 60 + now.getMinutes()
+  
+  // Calculate the latest time slot that allows for service completion before closing
+  const latestSlotTime = endMinutes - serviceDuration
+  
   for (let minutes = startMinutes; minutes < endMinutes; minutes += interval) {
     const hour = Math.floor(minutes / 60)
     const min = minutes % 60
     const timeString = `${hour.toString().padStart(2, '0')}:${min.toString().padStart(2, '0')}`
+    
+    // If it's today, only show future time slots
+    if (isToday && minutes <= currentTime) {
+      continue
+    }
+    
+    // Only show slots that allow service completion before closing time
+    if (minutes > latestSlotTime) {
+      continue
+    }
+    
     slots.push(timeString)
   }
   
@@ -83,12 +115,21 @@ const generateTimeSlots = (operatingHours: any, selectedDate: Date, business: an
 const isTimeSlotInBreakTime = (timeSlot: string, business: any, selectedStaff: any) => {
   if (!business?.staff) return false
   
-  return business.staff.some((staff: any) => {
-    // If selectedStaff is specified, only check that specific staff member
-    if (selectedStaff && staff.name !== selectedStaff.name) {
+  // If a specific staff is selected, only check that staff member's break times
+  if (selectedStaff) {
+    const staffMember = business.staff.find((s: any) => s.name === selectedStaff.name)
+    if (!staffMember?.isActive || !staffMember.breakTimes || !Array.isArray(staffMember.breakTimes)) {
       return false
     }
     
+    return staffMember.breakTimes.some((breakTime: any) => {
+      if (!breakTime.startTime || !breakTime.endTime) return false
+      return timeSlot >= breakTime.startTime && timeSlot < breakTime.endTime
+    })
+  }
+  
+  // For no staff selected, check if any staff member has a break at this time
+  return business.staff.some((staff: any) => {
     // Check if staff is active and has break times
     if (!staff.isActive || !staff.breakTimes || !Array.isArray(staff.breakTimes)) {
       return false
@@ -107,12 +148,37 @@ const isTimeSlotInBreakTime = (timeSlot: string, business: any, selectedStaff: a
 const wouldServiceOverlapWithBreakTime = (startTime: string, serviceDuration: number, business: any, selectedStaff: any) => {
   if (!business?.staff || !serviceDuration) return false
   
-  return business.staff.some((staff: any) => {
-    // If selectedStaff is specified, only check that specific staff member
-    if (selectedStaff && staff.name !== selectedStaff.name) {
+  // If a specific staff is selected, only check that staff member's break times
+  if (selectedStaff) {
+    const staffMember = business.staff.find((s: any) => s.name === selectedStaff.name)
+    if (!staffMember?.isActive || !staffMember.breakTimes || !Array.isArray(staffMember.breakTimes)) {
       return false
     }
     
+    // Parse start time
+    const [startHour, startMin] = startTime.split(':').map(Number)
+    const startTotalMinutes = startHour * 60 + startMin
+    
+    // Calculate end time
+    const endTotalMinutes = startTotalMinutes + serviceDuration
+    
+    // Check if service would overlap with any break time
+    return staffMember.breakTimes.some((breakTime: any) => {
+      if (!breakTime.startTime || !breakTime.endTime) return false
+      
+      // Parse break time
+      const [breakStartHour, breakStartMin] = breakTime.startTime.split(':').map(Number)
+      const [breakEndHour, breakEndMin] = breakTime.endTime.split(':').map(Number)
+      const breakStartTotalMinutes = breakStartHour * 60 + breakStartMin
+      const breakEndTotalMinutes = breakEndHour * 60 + breakEndMin
+      
+      // Check for overlap: service starts before break ends AND service ends after break starts
+      return startTotalMinutes < breakEndTotalMinutes && endTotalMinutes > breakStartTotalMinutes
+    })
+  }
+  
+  // For no staff selected, check if any staff member has a break that would overlap
+  return business.staff.some((staff: any) => {
     // Check if staff is active and has break times
     if (!staff.isActive || !staff.breakTimes || !Array.isArray(staff.breakTimes)) {
       return false
@@ -307,8 +373,20 @@ export function BookingSteps({ business }: BookingStepsProps) {
     })
   }
 
+  // Parse service duration - handle both string and number formats
+  const parseServiceDuration = (duration: any): number => {
+    if (typeof duration === 'number') return duration
+    if (typeof duration === 'string') {
+      const match = duration.match(/\d+/)
+      return match ? parseInt(match[0]) : 30
+    }
+    return 30
+  }
+  
+  const serviceDuration = parseServiceDuration(selectedService?.duration)
+  
   const availableTimeSlots = selectedDate ? 
-    generateTimeSlots(business.operating_hours, selectedDate, business, selectedStaff).filter(time => {
+    generateTimeSlots(business.operating_hours, selectedDate, business, selectedStaff, serviceDuration).filter(time => {
       // Check basic availability
       if (isTimeSlotBlocked(selectedDate, time) || hasBookingAtTime(selectedDate, time) || isTimeSlotInBreakTime(time, business, selectedStaff)) {
         return false
@@ -339,14 +417,30 @@ export function BookingSteps({ business }: BookingStepsProps) {
     const today = startOfDay(new Date())
     const isPastDate = !isAfter(date, today) && !isSameDay(date, today)
     
-    // Also check if business is closed on this day
+    const dayNames = ['sunday', 'monday', 'tuesday', 'wednesday', 'thursday', 'friday', 'saturday']
+    const dayOfWeek = dayNames[date.getDay()]
+    
+    // Check if business is closed on this day
     if (business.operating_hours) {
-      const dayNames = ['sunday', 'monday', 'tuesday', 'wednesday', 'thursday', 'friday', 'saturday']
-      const dayOfWeek = dayNames[date.getDay()]
       const dayHours = business.operating_hours[dayOfWeek]
       
       if (dayHours && dayHours.closed) {
         return true
+      }
+    }
+    
+    // Check if selected staff doesn't work on this day
+    if (selectedStaff && business?.staff) {
+      const staffMember = business.staff.find((s: any) => s.name === selectedStaff.name)
+      if (staffMember?.operatingHours?.[dayOfWeek]) {
+        const staffDayHours = staffMember.operatingHours[dayOfWeek]
+        
+        // If staff has empty hours (no open/close times), disable this day
+        if (!staffDayHours.open || !staffDayHours.close || 
+            staffDayHours.open === '' || staffDayHours.close === '' ||
+            staffDayHours.closed) {
+          return true
+        }
       }
     }
     
@@ -737,16 +831,9 @@ export function BookingSteps({ business }: BookingStepsProps) {
                       </Button>
                     ))
                   ) : (
-                    <div className="col-span-3 text-center py-8">
-                      <p className="text-gray-500">Nuk ka orë të disponueshme për këtë ditë.</p>
-                      <Button 
-                        onClick={() => setSelectedDate(undefined)}
-                        variant="outline"
-                        className="mt-4"
-                      >
-                        Zgjidh Datë Tjetër
-                      </Button>
-                    </div>
+                      <div className="col-span-3 flex items-center justify-center py-8">
+                        <p className="text-gray-500">Nuk ka orë të disponueshme për këtë ditë.</p>
+                      </div>
                   )}
                 </div>
               </div>

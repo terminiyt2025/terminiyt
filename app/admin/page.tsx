@@ -115,6 +115,9 @@ export default function AdminDashboard() {
   const [serviceToDelete, setServiceToDelete] = useState<any>(null)
   const [showStaffDeleteDialog, setShowStaffDeleteDialog] = useState(false)
   const [staffToDelete, setStaffToDelete] = useState<any>(null)
+  const [expandedStaffHours, setExpandedStaffHours] = useState<number | null>(null)
+  const [showStaffHoursSection, setShowStaffHoursSection] = useState(false)
+  const [showAdditionalInfoSection, setShowAdditionalInfoSection] = useState(false)
   const [stats, setStats] = useState<AdminStats>({
     totalBusinesses: 0,
     totalBookings: 0,
@@ -161,6 +164,8 @@ export default function AdminDashboard() {
     icon: ''
   })
   const [showPasswordSection, setShowPasswordSection] = useState(false)
+  const [showImageSection, setShowImageSection] = useState(false)
+  const [showViewImageSection, setShowViewImageSection] = useState(false)
   
   const { toast } = useToast()
   const router = useRouter()
@@ -547,7 +552,11 @@ export default function AdminDashboard() {
             id: serviceId
           }
         }),
-        staff: business.staff || [],
+        staff: (business.staff || []).map((staff: any) => ({
+          ...staff,
+          breakTimes: staff.breakTimes && staff.breakTimes.length > 0 ? staff.breakTimes : [{ startTime: '', endTime: '' }],
+          operatingHours: staff.operatingHours || copyBusinessHoursToStaff(business.operating_hours)
+        })),
         rating: business.rating,
         total_reviews: business.total_reviews,
         is_active: business.is_active,
@@ -591,6 +600,65 @@ export default function AdminDashboard() {
       const newLink = generateGoogleMapsLink(newLat, newLng)
       setEditFormData((prev: any) => ({ ...prev, google_maps_link: newLink }))
     }
+  }
+
+  // Helper function to copy business operating hours to staff
+  const copyBusinessHoursToStaff = (businessHours: any) => {
+    if (!businessHours) return null
+    
+    // Deep copy the business hours object
+    return JSON.parse(JSON.stringify(businessHours))
+  }
+
+  // Helper function to check if staff hours match business hours (unchanged)
+  const isStaffHoursUnchanged = (staffHours: any, businessHours: any) => {
+    if (!staffHours || !businessHours) return false
+    return JSON.stringify(staffHours) === JSON.stringify(businessHours)
+  }
+
+  // Helper function to sync business hours changes to staff hours
+  const syncBusinessHoursToStaff = (newBusinessHours: any) => {
+    const updatedStaff = (editFormData.staff || []).map((member: any) => {
+      const currentStaffHours = member.operatingHours || {}
+      const updatedStaffHours = { ...currentStaffHours }
+      
+      // Add new days from business hours to staff hours
+      Object.keys(newBusinessHours).forEach(day => {
+        const businessDayHours = newBusinessHours[day]
+        const staffDayHours = currentStaffHours[day]
+        
+        // If business day is now open and staff doesn't have this day, add it
+        if (!businessDayHours.closed && !staffDayHours) {
+          updatedStaffHours[day] = {
+            open: businessDayHours.open,
+            close: businessDayHours.close,
+            closed: false
+          }
+        }
+        // If business day is now closed, remove it from staff hours
+        else if (businessDayHours.closed && staffDayHours) {
+          updatedStaffHours[day] = {
+            open: '',
+            close: '',
+            closed: true
+          }
+        }
+        // If staff hours haven't been customized, sync the entire day
+        else if (isStaffHoursUnchanged(member.operatingHours, editFormData.operating_hours)) {
+          updatedStaffHours[day] = {
+            open: businessDayHours.open,
+            close: businessDayHours.close,
+            closed: businessDayHours.closed
+          }
+        }
+      })
+      
+      return {
+        ...member,
+        operatingHours: updatedStaffHours
+      }
+    })
+    return updatedStaff
   }
 
   const handleSaveBusiness = async (businessId: number) => {
@@ -1842,9 +1910,9 @@ export default function AdminDashboard() {
                                 
                                 {editingBusiness === business.id ? (
                                   // When editing, show cancel button
-                                  <Button 
-                                    size="sm" 
-                                    variant="ghost" 
+                                <Button 
+                                  size="sm" 
+                                  variant="ghost" 
                                     className="bg-gradient-to-r from-gray-600 to-gray-700 hover:from-gray-500 hover:to-gray-600 text-white h-8 w-8 p-0 font-medium shadow-md transition-all duration-300"
                                     onClick={() => {
                                       setEditingBusiness(null)
@@ -1861,21 +1929,21 @@ export default function AdminDashboard() {
                                       size="sm" 
                                       variant="ghost" 
                                       className="bg-gradient-to-r from-gray-800 to-teal-800 hover:from-gray-700 hover:to-teal-700 text-white h-8 w-8 p-0 font-medium shadow-md transition-all duration-300"
-                                      onClick={() => handleEditBusiness(business)}
-                                      title="Modifiko"
-                                    >
-                                      <Edit className="w-4 h-4" />
-                                    </Button>
+                                  onClick={() => handleEditBusiness(business)}
+                                  title="Modifiko"
+                                >
+                                  <Edit className="w-4 h-4" />
+                                </Button>
                                     
-                                    <Button 
-                                      size="sm" 
-                                      variant="ghost" 
+                                <Button 
+                                  size="sm" 
+                                  variant="ghost" 
                                       className="bg-gradient-to-r from-gray-600 to-gray-700 hover:from-gray-500 hover:to-gray-600 text-white h-8 w-8 p-0 font-medium shadow-md transition-all duration-300"
                                       onClick={() => setExpandedCard(null)}
-                                      title="Mbyll"
-                                    >
-                                      <X className="w-4 h-4" />
-                                    </Button>
+                                  title="Mbyll"
+                                >
+                                  <X className="w-4 h-4" />
+                                </Button>
                                   </>
                                 )}
                               </>
@@ -1932,7 +2000,7 @@ export default function AdminDashboard() {
                                               const businessName = editFormData.name || ''
                                               if (businessName.trim()) {
                                                 const generatedSlug = generateSlug(businessName)
-                                                setEditFormData({...editFormData, slug: generatedSlug})
+                                            setEditFormData({...editFormData, slug: generatedSlug})
                                               }
                                             } catch (error) {
                                               console.error('Error generating slug:', error)
@@ -2169,7 +2237,15 @@ export default function AdminDashboard() {
                                                       const newHours = { ...editFormData.operating_hours }
                                                       if (!newHours[day]) newHours[day] = { open: '', close: '', closed: true }
                                                       newHours[day] = { ...newHours[day], closed: !e.target.checked }
-                                                      setEditFormData({...editFormData, operating_hours: newHours})
+                                                      
+                                                      // Sync to staff hours if unchanged
+                                                      const updatedStaff = syncBusinessHoursToStaff(newHours)
+                                                      
+                                                      setEditFormData({
+                                                        ...editFormData, 
+                                                        operating_hours: newHours,
+                                                        staff: updatedStaff
+                                                      })
                                                     }}
                                                     className="mr-1 w-4 h-4 text-teal-800 bg-white rounded focus:ring-teal-800 focus:ring-2 accent-teal-800 border-0"
                                                   />
@@ -2183,7 +2259,15 @@ export default function AdminDashboard() {
                                                         const newHours = { ...editFormData.operating_hours }
                                                         if (!newHours[day]) newHours[day] = { open: '', close: '', closed: false }
                                                         newHours[day] = { ...newHours[day], open: e.target.value }
-                                                        setEditFormData({...editFormData, operating_hours: newHours})
+                                                        
+                                                        // Sync to staff hours if unchanged
+                                                        const updatedStaff = syncBusinessHoursToStaff(newHours)
+                                                        
+                                                        setEditFormData({
+                                                          ...editFormData, 
+                                                          operating_hours: newHours,
+                                                          staff: updatedStaff
+                                                        })
                                                       }}
                                                       className="px-2 py-1 border border-gray-300 rounded text-xs  w-19 md:w-20"
                                                     >
@@ -2199,7 +2283,15 @@ export default function AdminDashboard() {
                                                         const newHours = { ...editFormData.operating_hours }
                                                         if (!newHours[day]) newHours[day] = { open: '', close: '', closed: false }
                                                         newHours[day] = { ...newHours[day], close: e.target.value }
-                                                        setEditFormData({...editFormData, operating_hours: newHours})
+                                                        
+                                                        // Sync to staff hours if unchanged
+                                                        const updatedStaff = syncBusinessHoursToStaff(newHours)
+                                                        
+                                                        setEditFormData({
+                                                          ...editFormData, 
+                                                          operating_hours: newHours,
+                                                          staff: updatedStaff
+                                                        })
                                                       }}
                                                       className="px-2 py-1 border border-gray-300 rounded text-xs w-19 md:w-20"
                                                     >
@@ -2260,8 +2352,21 @@ export default function AdminDashboard() {
                                 </div>
                               </div>
 
-                                <div>
-                                  <h4 className="font-semibold bg-gradient-to-r from-gray-800 to-teal-800 bg-clip-text text-transparent mb-3">Imazhi i Biznesit & Logo</h4>
+                              <div>
+                                  <div 
+                                    className="flex items-center justify-between cursor-pointer p-3 bg-gray-50 rounded-lg hover:bg-gray-100 transition-colors"
+                                    onClick={() => setShowImageSection(!showImageSection)}
+                                  >
+                                    <h4 className="font-semibold bg-gradient-to-r from-gray-800 to-teal-800 bg-clip-text text-transparent">Imazhi i Biznesit & Logo</h4>
+                                    <div className={`transform transition-transform duration-200 ${showImageSection ? 'rotate-180' : ''}`}>
+                                      <svg className="w-5 h-5 text-gray-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
+                                      </svg>
+                                    </div>
+                                  </div>
+                                  
+                                  {showImageSection && (
+                                    <div className="mt-3 p-4 bg-white border border-gray-200 rounded-lg">
                                   <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                                     {/* Business Images - 50% */}
                                     <div className="border border-gray-200 rounded-lg p-3 bg-gray-50/20">
@@ -2398,6 +2503,9 @@ export default function AdminDashboard() {
                                       </div>
                                       </div>
                                     </div>
+                                      </div>
+                                )}
+
                                   </div>
                                 </div>
 
@@ -2680,9 +2788,207 @@ export default function AdminDashboard() {
                                             )}
                                           </div>
                                           
+                                        
+                                          <div className="flex justify-between items-center">
+                                            <div className="text-xs text-gray-500">
+                                              Shërbimet: {member.services?.map((service: any) => typeof service === 'string' ? service : service.name).filter((name: any) => name && name.trim() !== '').join(', ') || 'Asnjë'}
+                                            </div>
+                                            <button
+                                              onClick={() => {
+                                                setStaffToDelete({ member, index })
+                                                setShowStaffDeleteDialog(true)
+                                              }}
+                                              className="bg-gradient-to-r from-red-600 to-red-700 hover:from-red-500 hover:to-red-600 text-white p-1 rounded transition-all duration-300"
+                                            >
+                                              <Trash2 className="w-4 h-4" />
+                                            </button>
+                                          </div>
+                                        </div>
+                                      ))}
+                                      <button
+                                        onClick={() => {
+                                          const newStaffMember = { 
+                                            name: '', 
+                                            email: '', 
+                                            phone: '', 
+                                            isActive: true, 
+                                            services: [],
+                                            breakTimes: [{ startTime: '', endTime: '' }],
+                                            operatingHours: copyBusinessHoursToStaff(editFormData.operating_hours)
+                                          }
+                                          const newStaff = [...(editFormData.staff || []), newStaffMember]
+                                          setEditFormData({...editFormData, staff: newStaff})
+                                        }}
+                                        className="w-full py-2 bg-gradient-to-r from-gray-800 to-teal-800 hover:from-gray-700 hover:to-teal-700 text-white text-xs rounded font-medium shadow-md transition-all duration-300"
+                                      >
+                                        + Shto Staf
+                                      </button>
+                                    </div>
+                                  </div>
+                                </div>
+
+                                {/* Staff Operating Hours */}
+                      <div>
+                                  <div 
+                                    className="flex items-center justify-between cursor-pointer p-3 bg-gray-50 rounded-lg hover:bg-gray-100 transition-colors"
+                                    onClick={() => setShowStaffHoursSection(!showStaffHoursSection)}
+                                  >
+                                    <h4 className="font-semibold bg-gradient-to-r from-gray-800 to-teal-800 bg-clip-text text-transparent">Orari i Punës së Stafit</h4>
+                                    <div className={`transform transition-transform duration-200 ${showStaffHoursSection ? 'rotate-180' : ''}`}>
+                                      <svg className="w-5 h-5 text-gray-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
+                                      </svg>
+                                    </div>
+                                  </div>
+                                  
+                                  {showStaffHoursSection && (
+                                    <div className="mt-4 space-y-3">
+                                      {(editFormData.staff || []).map((member: any, index: number) => {
+                                        // Get working days for this staff member
+                                        const workingDays = ['monday', 'tuesday', 'wednesday', 'thursday', 'friday', 'saturday', 'sunday'].filter(day => {
+                                          const staffHours = member.operatingHours?.[day] || { open: '', close: '', closed: true }
+                                          const businessHours = editFormData.operating_hours?.[day] || { open: '', close: '', closed: true }
+                                          return !staffHours.closed && !businessHours.closed
+                                        })
+                                        
+                                        return (
+                                          <div key={index} className="border border-gray-200 rounded-lg p-3 bg-gray-50">
+                                            <div 
+                                              className="flex items-center justify-between mb-2 cursor-pointer"
+                                              onClick={() => setExpandedStaffHours(expandedStaffHours === index ? null : index)}
+                                            >
+                                              <h5 className="font-medium text-sm text-gray-700">
+                                                {member.name || `Stafi ${index + 1}`}
+                                              </h5>
+                                              <div className="flex items-center gap-2">
+                                                <span className="text-xs text-gray-500">
+                                                  {workingDays.length} ditë pune
+                                                </span>
+                                                <div className={`transform transition-transform duration-200 ${expandedStaffHours === index ? 'rotate-180' : ''}`}>
+                                                  <svg className="w-4 h-4 text-gray-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
+                                                  </svg>
+                                                </div>
+                                              </div>
+                                            </div>
+                                            
+                                            {expandedStaffHours === index && (
+                                              <div className="space-y-2">
+                                                {(() => {
+                                                  // Generate time options from 00:00 to 23:45 (every 15 minutes)
+                                                  const timeOptions: string[] = []
+                                                  for (let hour = 0; hour < 24; hour++) {
+                                                    for (let minute = 0; minute < 60; minute += 15) {
+                                                      const timeString = `${hour.toString().padStart(2, '0')}:${minute.toString().padStart(2, '0')}`
+                                                      timeOptions.push(timeString)
+                                                    }
+                                                  }
+                                                  
+                                                  const dayOrder = ['monday', 'tuesday', 'wednesday', 'thursday', 'friday', 'saturday', 'sunday']
+                                                  const dayNames: { [key: string]: string } = {
+                                                    monday: 'E Hënë',
+                                                    tuesday: 'E Martë', 
+                                                    wednesday: 'E Mërkurë',
+                                                    thursday: 'E Enjte',
+                                                    friday: 'E Premte',
+                                                    saturday: 'E Shtunë',
+                                                    sunday: 'E Diel'
+                                                  }
+                                                  
+                                                  return dayOrder.filter(day => {
+                                                    const businessHours = editFormData.operating_hours?.[day] || { open: '', close: '', closed: true }
+                                                    return !businessHours.closed // Only show days when business is open
+                                                  }).map(day => {
+                                                    const staffHours = member.operatingHours?.[day] || { open: '', close: '', closed: true }
+                                                    const businessHours = editFormData.operating_hours?.[day] || { open: '', close: '', closed: true }
+                                                    
+                                                    // Filter time options based on business hours
+                                                    const filteredTimeOptions = timeOptions.filter(time => {
+                                                      return time >= businessHours.open && time <= businessHours.close
+                                                    })
+                                                    
+                                                    return (
+                                                      <div key={day} className="flex items-center justify-between text-sm">
+                                                        <span className="font-medium w-20">{dayNames[day]}:</span>
+                                                        <div className="flex items-center space-x-2">
+                                                          <label className="flex items-center">
+                                                            <input
+                                                              type="checkbox"
+                                                              checked={!staffHours.closed}
+                                                              onChange={(e) => {
+                                                                const newStaff = [...(editFormData.staff || [])]
+                                                                if (!newStaff[index].operatingHours) {
+                                                                  newStaff[index].operatingHours = {}
+                                                                }
+                                                                newStaff[index].operatingHours[day] = {
+                                                                  ...staffHours,
+                                                                  closed: !e.target.checked,
+                                                                  open: !e.target.checked ? '' : staffHours.open || businessHours.open,
+                                                                  close: !e.target.checked ? '' : staffHours.close || businessHours.close
+                                                                }
+                                                                setEditFormData({...editFormData, staff: newStaff})
+                                                              }}
+                                                              className="mr-1 w-4 h-4 text-teal-800 bg-white rounded focus:ring-teal-800 focus:ring-2 accent-teal-800 border-0"
+                                                            />
+                                                            <span className="text-xs">Dite pune</span>
+                                                          </label>
+                                                          {!staffHours.closed && (
+                                                            <>
+                                                              <select
+                                                                value={staffHours.open || ''}
+                                                                onChange={(e) => {
+                                                                  const newStaff = [...(editFormData.staff || [])]
+                                                                  if (!newStaff[index].operatingHours) {
+                                                                    newStaff[index].operatingHours = {}
+                                                                  }
+                                                                  newStaff[index].operatingHours[day] = {
+                                                                    ...staffHours,
+                                                                    open: e.target.value
+                                                                  }
+                                                                  setEditFormData({...editFormData, staff: newStaff})
+                                                                }}
+                                                                className="px-2 py-1 border border-gray-300 rounded text-xs w-19 md:w-20"
+                                                              >
+                                                                <option value="">Fillimi</option>
+                                                                {filteredTimeOptions.map(time => (
+                                                                  <option key={time} value={time}>{time}</option>
+                                                                ))}
+                                                              </select>
+                                                              <span className="text-xs">-</span>
+                                                              <select
+                                                                value={staffHours.close || ''}
+                                                                onChange={(e) => {
+                                                                  const newStaff = [...(editFormData.staff || [])]
+                                                                  if (!newStaff[index].operatingHours) {
+                                                                    newStaff[index].operatingHours = {}
+                                                                  }
+                                                                  newStaff[index].operatingHours[day] = {
+                                                                    ...staffHours,
+                                                                    close: e.target.value
+                                                                  }
+                                                                  setEditFormData({...editFormData, staff: newStaff})
+                                                                }}
+                                                                className="px-2 py-1 border border-gray-300 rounded text-xs w-19 md:w-20"
+                                                              >
+                                                                <option value="">Mbarimi</option>
+                                                                {filteredTimeOptions.map(time => (
+                                                                  <option key={time} value={time}>{time}</option>
+                                                                ))}
+                                                              </select>
+                                                            </>
+                                                          )}
+                                                        </div>
+                                                      </div>
+                                                    )
+                                                  })
+                                                })()}
+                                              </div>
+                                            )}
+                                          
                                           {/* Break Times Section */}
-                                          <div className="space-y-2">
-                                            <div className="text-xs font-medium text-gray-600 pt-2">Ora e Pauzës:</div>
+                                            {expandedStaffHours === index && (
+                                              <div className="mt-4 pt-4 border-t border-gray-200">
+                                                <div className="text-xs font-medium text-gray-600 mb-2">Ora e Pauzës:</div>
                                             <div className="space-y-2">
                                               {(member.breakTimes || []).map((breakTime: any, breakIndex: number) => {
                                                 // Generate time options from 00:00 to 23:45 (every 15 minutes)
@@ -2711,7 +3017,7 @@ export default function AdminDashboard() {
                                                         }}
                                                         className="px-2 py-1 border border-gray-300 rounded text-xs w-20"
                                                       >
-                                                        <option value="">Hapja</option>
+                                                            <option value="">Fillimi</option>
                                                         {timeOptions.map(time => (
                                                           <option key={time} value={time}>{time}</option>
                                                         ))}
@@ -2732,12 +3038,13 @@ export default function AdminDashboard() {
                                                         }}
                                                         className="px-2 py-1 border border-gray-300 rounded text-xs w-20"
                                                       >
-                                                        <option value="">Mbyllja</option>
+                                                            <option value="">Mbarimi</option>
                                                         {timeOptions.map(time => (
                                                           <option key={time} value={time}>{time}</option>
                                                         ))}
                                                       </select>
                                                     </div>
+                                                        <div className="flex space-x-1">
                                                     <button
                                                       onClick={() => {
                                                         const newStaff = [...(editFormData.staff || [])]
@@ -2749,9 +3056,6 @@ export default function AdminDashboard() {
                                                     >
                                                       <Trash2 className="w-3 h-3" />
                                                     </button>
-                                                  </div>
-                                                )
-                                              })}
                                               <button
                                                 onClick={() => {
                                                   const newStaff = [...(editFormData.staff || [])]
@@ -2759,48 +3063,43 @@ export default function AdminDashboard() {
                                                   newStaff[index].breakTimes.push({ startTime: '', endTime: '' })
                                                   setEditFormData({...editFormData, staff: newStaff})
                                                 }}
-                                                className="bg-gradient-to-r from-gray-800 to-teal-800 hover:from-gray-700 hover:to-teal-700 text-white p-1 rounded transition-all duration-300"
+                                                            className="bg-gradient-to-r from-gray-800 to-teal-800 hover:from-gray-700 hover:to-teal-700 text-white p-1 rounded text-xs"
                                                 title="Shto Pushim"
                                               >
-                                                <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                            <svg className="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 6v6m0 0v6m0-6h6m-6 0H6" />
                                                 </svg>
                                               </button>
                                             </div>
                                           </div>
-                                          
-                                          <div className="flex justify-between items-center">
-                                            <div className="text-xs text-gray-500">
-                                              Shërbimet: {member.services?.map((service: any) => typeof service === 'string' ? service : service.name).filter((name: any) => name && name.trim() !== '').join(', ') || 'Asnjë'}
+                                                    )
+                                                  })}
                                             </div>
-                                            <button
-                                              onClick={() => {
-                                                setStaffToDelete({ member, index })
-                                                setShowStaffDeleteDialog(true)
-                                              }}
-                                              className="bg-gradient-to-r from-red-600 to-red-700 hover:from-red-500 hover:to-red-600 text-white p-1 rounded transition-all duration-300"
-                                            >
-                                              <Trash2 className="w-4 h-4" />
-                                            </button>
                                           </div>
+                                            )}
                                         </div>
-                                      ))}
-                                      <button
-                                        onClick={() => {
-                                          const newStaff = [...(editFormData.staff || []), { name: '', email: '', phone: '', isActive: true, services: [] }]
-                                          setEditFormData({...editFormData, staff: newStaff})
-                                        }}
-                                        className="w-full py-2 bg-gradient-to-r from-gray-800 to-teal-800 hover:from-gray-700 hover:to-teal-700 text-white text-xs rounded font-medium shadow-md transition-all duration-300"
-                                      >
-                                        + Shto Staf
-                                      </button>
+                                        )
+                                      })}
                                     </div>
-                                  </div>
+                                  )}
                                 </div>
 
+                                
                       <div>
-                                  <h4 className="font-semibold bg-gradient-to-r from-gray-800 to-teal-800 bg-clip-text text-transparent mb-2">Informacione Shtesë</h4>
-                                  <div className="space-y-2 text-sm bg-white rounded">
+                                  <div 
+                                    className="flex items-center justify-between cursor-pointer p-3 bg-gray-50 rounded-lg hover:bg-gray-100 transition-colors"
+                                    onClick={() => setShowAdditionalInfoSection(!showAdditionalInfoSection)}
+                                  >
+                                    <h4 className="font-semibold bg-gradient-to-r from-gray-800 to-teal-800 bg-clip-text text-transparent">Informacione Shtesë</h4>
+                                    <div className={`transform transition-transform duration-200 ${showAdditionalInfoSection ? 'rotate-180' : ''}`}>
+                                      <svg className="w-5 h-5 text-gray-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
+                                      </svg>
+                                    </div>
+                                  </div>
+                                  
+                                  {showAdditionalInfoSection && (
+                                    <div className="mt-4 space-y-2 text-sm bg-white rounded p-4">
                                     <div className="flex justify-between">
                                       <span className="text-gray-600">ID e Biznesit:</span>
                                       <span className="font-medium">{business.id}</span>
@@ -2848,6 +3147,7 @@ export default function AdminDashboard() {
                                       </label>
                                     </div>
                                   </div>
+                                  )}
                                 </div>
 
                                 {/* Password Section */}
@@ -3066,46 +3366,6 @@ export default function AdminDashboard() {
                       </div>
                     </div>
 
-                      <div>
-                              <h4 className="font-semibold bg-gradient-to-r from-gray-800 to-teal-800 bg-clip-text text-transparent mb-3">Imazhi i Biznesit | Logo</h4>
-                              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                                {/* Business Images Box */}
-                                <div className="border border-gray-200 rounded-lg p-3 bg-gray-50">
-                               
-                                  {business.business_images ? (
-                                    <div className="flex justify-center">
-                                      <img 
-                                        src={business.business_images} 
-                                        alt="Business image"
-                                        className="w-36 h-36 object-contain cursor-pointer hover:opacity-80"
-                                        onClick={() => setSelectedImage(business.business_images || null)}
-                                      />
-                                    </div>
-                                  ) : (
-                                    <p className="text-gray-500 text-xs">Nuk ka imazh</p>
-                                  )}
-              </div>
-                                
-                                {/* Logo Box */}
-                                <div className="border border-gray-200 rounded-lg p-3 bg-gray-50">
-                                  
-                                  <div className="flex justify-center">
-                                    {business.logo ? (
-                                      <img 
-                                        src={business.logo} 
-                                        alt={business.name}
-                                        className="w-36 h-36 object-contain rounded-lg cursor-pointer hover:opacity-80"
-                                        onClick={() => setSelectedImage(business.logo || null)}
-                                      />
-                                    ) : (
-                                      <div className="w-24 h-24 bg-gradient-to-br from-blue-500 to-purple-600 rounded flex items-center justify-center border border-gray-200">
-                                        <Building2 className="w-8 h-8 text-white" />
-                                      </div>
-                                    )}
-                                  </div>
-                                  </div>
-                                </div>
-                      </div>
                     </div>
 
                           {/* Right Column */}
@@ -3176,8 +3436,74 @@ export default function AdminDashboard() {
                     </div>
 
                       <div>
-                              <h4 className="font-semibold bg-gradient-to-r from-gray-800 to-teal-800 bg-clip-text text-transparent mb-2">Informacione Shtesë</h4>
-                              <div className="space-y-2 text-sm">
+                              <div 
+                                className="flex items-center justify-between cursor-pointer p-3 bg-gray-50 rounded-lg hover:bg-gray-100 transition-colors mb-3"
+                                onClick={() => setShowViewImageSection(!showViewImageSection)}
+                              >
+                                <h4 className="font-semibold bg-gradient-to-r from-gray-800 to-teal-800 bg-clip-text text-transparent">Imazhi i Biznesit | Logo</h4>
+                                <div className={`transform transition-transform duration-200 ${showViewImageSection ? 'rotate-180' : ''}`}>
+                                  <svg className="w-5 h-5 text-gray-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
+                                  </svg>
+                                </div>
+                              </div>
+                              
+                              {showViewImageSection && (
+                                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                                {/* Business Images Box */}
+                                <div className="border border-gray-200 rounded-lg p-3 bg-gray-50">
+                               
+                                  {business.business_images ? (
+                                    <div className="flex justify-center">
+                                      <img 
+                                        src={business.business_images} 
+                                        alt="Business image"
+                                        className="w-36 h-36 object-contain cursor-pointer hover:opacity-80"
+                                        onClick={() => setSelectedImage(business.business_images || null)}
+                                      />
+                                    </div>
+                                  ) : (
+                                    <p className="text-gray-500 text-xs">Nuk ka imazh</p>
+                                  )}
+              </div>
+                                
+                                {/* Logo Box */}
+                                <div className="border border-gray-200 rounded-lg p-3 bg-gray-50">
+                                  
+                                  <div className="flex justify-center">
+                                    {business.logo ? (
+                                      <img 
+                                        src={business.logo} 
+                                        alt={business.name}
+                                        className="w-36 h-36 object-contain rounded-lg cursor-pointer hover:opacity-80"
+                                        onClick={() => setSelectedImage(business.logo || null)}
+                                      />
+                                    ) : (
+                                      <div className="w-24 h-24 bg-gradient-to-br from-blue-500 to-purple-600 rounded flex items-center justify-center border border-gray-200">
+                                        <Building2 className="w-8 h-8 text-white" />
+                                      </div>
+                                    )}
+                                  </div>
+                                  </div>
+                                </div>
+                                )}
+                      </div>
+
+                      <div>
+                              <div 
+                                className="flex items-center justify-between cursor-pointer p-3 bg-gray-50 rounded-lg hover:bg-gray-100 transition-colors"
+                                onClick={() => setShowAdditionalInfoSection(!showAdditionalInfoSection)}
+                              >
+                                <h4 className="font-semibold bg-gradient-to-r from-gray-800 to-teal-800 bg-clip-text text-transparent">Informacione Shtesë</h4>
+                                <div className={`transform transition-transform duration-200 ${showAdditionalInfoSection ? 'rotate-180' : ''}`}>
+                                  <svg className="w-5 h-5 text-gray-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
+                                  </svg>
+                                </div>
+                              </div>
+                              
+                              {showAdditionalInfoSection && (
+                                <div className="mt-4 space-y-2 text-sm">
                                 <div className="flex justify-between">
                                   <span className="text-gray-600">ID e Biznesit:</span>
                                   <span className="font-medium">{business.id}</span>
@@ -3201,6 +3527,7 @@ export default function AdminDashboard() {
                                   </span>
                                 </div>
                               </div>
+                              )}
                             </div>
                           </div>
                         </div>
@@ -3580,7 +3907,7 @@ export default function AdminDashboard() {
           </div>
         </div>
       )}
-        </div>
+      </div>
 
       {/* Service Delete Confirmation Dialog */}
       {showServiceDeleteDialog && serviceToDelete && (
@@ -3692,6 +4019,6 @@ export default function AdminDashboard() {
           </div>
         </div>
       )}
-    </div>
+      </div>
   )
 }
