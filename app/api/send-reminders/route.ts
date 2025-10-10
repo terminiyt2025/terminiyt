@@ -12,10 +12,9 @@ export async function POST(request: NextRequest) {
     const now = new Date()
     
     // Find bookings that start in 30 minutes (today only)
-    // Use UTC dates since that's how they're stored in the database
+    // Query by date string to match database format
     const today = new Date()
-    const utcToday = new Date(Date.UTC(today.getUTCFullYear(), today.getUTCMonth(), today.getUTCDate()))
-    const utcTomorrow = new Date(Date.UTC(today.getUTCFullYear(), today.getUTCMonth(), today.getUTCDate() + 1))
+    const todayString = today.toISOString().split('T')[0] // "2025-10-10"
     
     // Calculate the time window for reminders (25-35 minutes from now)
     const reminderWindowStart = new Date(now.getTime() + 25 * 60 * 1000) // 25 minutes from now
@@ -25,46 +24,32 @@ export async function POST(request: NextRequest) {
     console.log('Current time:', now.toISOString())
     console.log('Reminder window start (25 min):', reminderWindowStart.toISOString())
     console.log('Reminder window end (35 min):', reminderWindowEnd.toISOString())
-    console.log('UTC today:', utcToday.toISOString())
-    console.log('UTC tomorrow:', utcTomorrow.toISOString())
+    console.log('Today string:', todayString)
     console.log('Time window (HH:mm):', format(reminderWindowStart, 'HH:mm'), 'to', format(reminderWindowEnd, 'HH:mm'))
     
-    // Debug: Check all bookings first
+    // Get all confirmed bookings and filter by date in memory
     const allBookings = await prisma.booking.findMany({
       where: {
-        appointmentDate: {
-          gte: utcToday,
-          lt: utcTomorrow
-        },
         status: 'CONFIRMED'
-      },
-      select: {
-        id: true,
-        appointmentTime: true,
-        customerName: true
-      }
-    })
-    console.log(`All confirmed bookings today: ${allBookings.length}`)
-    allBookings.forEach(b => console.log(`- ID: ${b.id}, Time: ${b.appointmentTime}, Customer: ${b.customerName}`))
-    
-    // Simplified query - just get all confirmed bookings today
-    const bookingsToRemind = await prisma.booking.findMany({
-      where: {
-        appointmentDate: {
-          gte: utcToday,
-          lt: utcTomorrow
-        },
-        status: 'CONFIRMED' // Only send to confirmed bookings
       },
       include: {
         business: true
       }
     })
-
-    console.log(`Found ${bookingsToRemind.length} bookings to send reminders for`)
     
-    // Filter by time window on the client side to debug timezone issues
-    const filteredBookings = bookingsToRemind.filter(booking => {
+    // Filter by today's date
+    const todayBookings = allBookings.filter(booking => {
+      const bookingDate = new Date(booking.appointmentDate)
+      const bookingDateString = bookingDate.toISOString().split('T')[0]
+      return bookingDateString === todayString
+    })
+    
+    console.log(`All confirmed bookings: ${allBookings.length}`)
+    console.log(`Today's confirmed bookings: ${todayBookings.length}`)
+    todayBookings.forEach(b => console.log(`- ID: ${b.id}, Date: ${b.appointmentDate}, Time: ${b.appointmentTime}, Customer: ${b.customerName}`))
+    
+    // Filter by time window
+    const bookingsToRemind = todayBookings.filter(booking => {
       const bookingTime = booking.appointmentTime
       const windowStart = format(reminderWindowStart, 'HH:mm')
       const windowEnd = format(reminderWindowEnd, 'HH:mm')
@@ -74,12 +59,12 @@ export async function POST(request: NextRequest) {
       
       return inWindow
     })
-    
-    console.log(`After time filtering: ${filteredBookings.length} bookings`)
+
+    console.log(`After time filtering: ${bookingsToRemind.length} bookings`)
 
     const results = []
 
-    for (const booking of filteredBookings) {
+    for (const booking of bookingsToRemind) {
       try {
         // Find the staff member for this booking
         const staffArray = booking.business.staff as any[] || []
@@ -141,7 +126,7 @@ export async function POST(request: NextRequest) {
 
     return NextResponse.json({
       success: true,
-      message: `Processed ${filteredBookings.length} bookings`,
+      message: `Processed ${bookingsToRemind.length} bookings`,
       results
     })
 
@@ -165,23 +150,15 @@ export async function GET() {
     const now = new Date()
     
     const today = new Date()
-    const utcToday = new Date(Date.UTC(today.getUTCFullYear(), today.getUTCMonth(), today.getUTCDate()))
-    const utcTomorrow = new Date(Date.UTC(today.getUTCFullYear(), today.getUTCMonth(), today.getUTCDate() + 1))
+    const todayString = today.toISOString().split('T')[0] // "2025-10-10"
     
     // Calculate the time window for reminders (25-35 minutes from now)
     const reminderWindowStart = new Date(now.getTime() + 25 * 60 * 1000) // 25 minutes from now
     const reminderWindowEnd = new Date(now.getTime() + 35 * 60 * 1000)   // 35 minutes from now
     
-    const bookingsToRemind = await prisma.booking.findMany({
+    // Get all confirmed bookings and filter by date in memory
+    const allBookings = await prisma.booking.findMany({
       where: {
-        appointmentDate: {
-          gte: utcToday,
-          lt: utcTomorrow
-        },
-        appointmentTime: {
-          gte: format(reminderWindowStart, 'HH:mm'),
-          lt: format(reminderWindowEnd, 'HH:mm')
-        },
         status: 'CONFIRMED'
       },
       select: {
@@ -196,6 +173,22 @@ export async function GET() {
           }
         }
       }
+    })
+    
+    // Filter by today's date
+    const todayBookings = allBookings.filter(booking => {
+      const bookingDate = new Date(booking.appointmentDate)
+      const bookingDateString = bookingDate.toISOString().split('T')[0]
+      return bookingDateString === todayString
+    })
+    
+    // Filter by time window
+    const bookingsToRemind = todayBookings.filter(booking => {
+      const bookingTime = booking.appointmentTime
+      const windowStart = format(reminderWindowStart, 'HH:mm')
+      const windowEnd = format(reminderWindowEnd, 'HH:mm')
+      
+      return bookingTime >= windowStart && bookingTime < windowEnd
     })
 
     return NextResponse.json({
