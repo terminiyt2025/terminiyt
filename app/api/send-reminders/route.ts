@@ -12,10 +12,10 @@ export async function POST(request: NextRequest) {
     const now = new Date()
     
     // Find bookings that start in 30 minutes (today only)
-    // Compare dates in local timezone to match how bookings are stored
+    // Use UTC dates since that's how they're stored in the database
     const today = new Date()
-    const localToday = new Date(today.getFullYear(), today.getMonth(), today.getDate())
-    const localTomorrow = new Date(today.getFullYear(), today.getMonth(), today.getDate() + 1)
+    const utcToday = new Date(Date.UTC(today.getUTCFullYear(), today.getUTCMonth(), today.getUTCDate()))
+    const utcTomorrow = new Date(Date.UTC(today.getUTCFullYear(), today.getUTCMonth(), today.getUTCDate() + 1))
     
     // Calculate the time window for reminders (25-35 minutes from now)
     const reminderWindowStart = new Date(now.getTime() + 25 * 60 * 1000) // 25 minutes from now
@@ -25,16 +25,16 @@ export async function POST(request: NextRequest) {
     console.log('Current time:', now.toISOString())
     console.log('Reminder window start (25 min):', reminderWindowStart.toISOString())
     console.log('Reminder window end (35 min):', reminderWindowEnd.toISOString())
-    console.log('Local today:', localToday.toISOString())
-    console.log('Local tomorrow:', localTomorrow.toISOString())
+    console.log('UTC today:', utcToday.toISOString())
+    console.log('UTC tomorrow:', utcTomorrow.toISOString())
     console.log('Time window (HH:mm):', format(reminderWindowStart, 'HH:mm'), 'to', format(reminderWindowEnd, 'HH:mm'))
     
     // Debug: Check all bookings first
     const allBookings = await prisma.booking.findMany({
       where: {
         appointmentDate: {
-          gte: localToday,
-          lt: localTomorrow
+          gte: utcToday,
+          lt: utcTomorrow
         },
         status: 'CONFIRMED'
       },
@@ -51,8 +51,8 @@ export async function POST(request: NextRequest) {
     const bookingsToRemind = await prisma.booking.findMany({
       where: {
         appointmentDate: {
-          gte: localToday,
-          lt: localTomorrow
+          gte: utcToday,
+          lt: utcTomorrow
         },
         status: 'CONFIRMED' // Only send to confirmed bookings
       },
@@ -165,8 +165,8 @@ export async function GET() {
     const now = new Date()
     
     const today = new Date()
-    const localToday = new Date(today.getFullYear(), today.getMonth(), today.getDate())
-    const localTomorrow = new Date(today.getFullYear(), today.getMonth(), today.getDate() + 1)
+    const utcToday = new Date(Date.UTC(today.getUTCFullYear(), today.getUTCMonth(), today.getUTCDate()))
+    const utcTomorrow = new Date(Date.UTC(today.getUTCFullYear(), today.getUTCMonth(), today.getUTCDate() + 1))
     
     // Calculate the time window for reminders (25-35 minutes from now)
     const reminderWindowStart = new Date(now.getTime() + 25 * 60 * 1000) // 25 minutes from now
@@ -175,8 +175,8 @@ export async function GET() {
     const bookingsToRemind = await prisma.booking.findMany({
       where: {
         appointmentDate: {
-          gte: localToday,
-          lt: localTomorrow
+          gte: utcToday,
+          lt: utcTomorrow
         },
         appointmentTime: {
           gte: format(reminderWindowStart, 'HH:mm'),
