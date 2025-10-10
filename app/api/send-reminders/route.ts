@@ -47,15 +47,12 @@ export async function POST(request: NextRequest) {
     console.log(`All confirmed bookings today: ${allBookings.length}`)
     allBookings.forEach(b => console.log(`- ID: ${b.id}, Time: ${b.appointmentTime}, Customer: ${b.customerName}`))
     
+    // Simplified query - just get all confirmed bookings today
     const bookingsToRemind = await prisma.booking.findMany({
       where: {
         appointmentDate: {
           gte: localToday,
           lt: localTomorrow
-        },
-        appointmentTime: {
-          gte: format(reminderWindowStart, 'HH:mm'),
-          lt: format(reminderWindowEnd, 'HH:mm') // 10 minute window
         },
         status: 'CONFIRMED' // Only send to confirmed bookings
       },
@@ -65,13 +62,24 @@ export async function POST(request: NextRequest) {
     })
 
     console.log(`Found ${bookingsToRemind.length} bookings to send reminders for`)
-    bookingsToRemind.forEach(booking => {
-      console.log(`- Booking ID: ${booking.id}, Time: ${booking.appointmentTime}, Customer: ${booking.customerName}`)
+    
+    // Filter by time window on the client side to debug timezone issues
+    const filteredBookings = bookingsToRemind.filter(booking => {
+      const bookingTime = booking.appointmentTime
+      const windowStart = format(reminderWindowStart, 'HH:mm')
+      const windowEnd = format(reminderWindowEnd, 'HH:mm')
+      
+      const inWindow = bookingTime >= windowStart && bookingTime < windowEnd
+      console.log(`- Booking ID: ${booking.id}, Time: ${bookingTime}, Window: ${windowStart}-${windowEnd}, In window: ${inWindow}`)
+      
+      return inWindow
     })
+    
+    console.log(`After time filtering: ${filteredBookings.length} bookings`)
 
     const results = []
 
-    for (const booking of bookingsToRemind) {
+    for (const booking of filteredBookings) {
       try {
         // Find the staff member for this booking
         const staffArray = booking.business.staff as any[] || []
@@ -133,7 +141,7 @@ export async function POST(request: NextRequest) {
 
     return NextResponse.json({
       success: true,
-      message: `Processed ${bookingsToRemind.length} bookings`,
+      message: `Processed ${filteredBookings.length} bookings`,
       results
     })
 
