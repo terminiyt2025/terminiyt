@@ -30,6 +30,13 @@ Use a free external service like:
    - **Method**: POST
    - **Schedule**: Every 5 minutes
    - **Title**: Booking Reminders
+   - **Timezone**: **IMPORTANT - Set to UTC+2 (Europe/Tirana)**
+
+**⚠️ CRITICAL TIMEZONE SETTING:**
+- Cron-job.org runs in UTC by default
+- Your application expects UTC+2 (Albania/Kosovo time)
+- Set the cron job timezone to **UTC+2** or **Europe/Tirana**
+- This ensures the cron runs at the correct local time
 
 ## Option 3: Manual Testing
 
