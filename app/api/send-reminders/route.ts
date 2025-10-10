@@ -29,6 +29,24 @@ export async function POST(request: NextRequest) {
     console.log('Local tomorrow:', localTomorrow.toISOString())
     console.log('Time window (HH:mm):', format(reminderWindowStart, 'HH:mm'), 'to', format(reminderWindowEnd, 'HH:mm'))
     
+    // Debug: Check all bookings first
+    const allBookings = await prisma.booking.findMany({
+      where: {
+        appointmentDate: {
+          gte: localToday,
+          lt: localTomorrow
+        },
+        status: 'CONFIRMED'
+      },
+      select: {
+        id: true,
+        appointmentTime: true,
+        customerName: true
+      }
+    })
+    console.log(`All confirmed bookings today: ${allBookings.length}`)
+    allBookings.forEach(b => console.log(`- ID: ${b.id}, Time: ${b.appointmentTime}, Customer: ${b.customerName}`))
+    
     const bookingsToRemind = await prisma.booking.findMany({
       where: {
         appointmentDate: {
