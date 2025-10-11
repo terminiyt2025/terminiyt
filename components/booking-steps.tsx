@@ -783,19 +783,6 @@ export function BookingSteps({ business }: BookingStepsProps) {
                   <h3 className="text-xl font-bold text-gray-900 mb-2">Zgjidhni Orën</h3>
                   <p className="text-gray-600 mb-4">Zgjidhni orën për ditën e {format(selectedDate, "EEEE, d MMMM", { locale: sq })}.</p>
                   
-                  {/* Reselect Date Button */}
-                  <Button 
-                    onClick={() => {
-                      setSelectedDate(undefined)
-                      setSelectedTime("")
-                    }}
-                    variant="outline"
-                    size="sm"
-                    className="text-sm text-gray-600 hover:text-gray-800 hover:bg-gray-50"
-                  >
-                    <ArrowLeft className="w-4 h-4 mr-2" />
-                    Zgjidh Datë Tjetër
-                  </Button>
                 </div>
                 
                 <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-2 sm:gap-3 max-h-80 overflow-y-auto">
@@ -1010,7 +997,7 @@ export function BookingSteps({ business }: BookingStepsProps) {
             <ArrowLeft className="w-4 h-4 mr-2" />
             Zgjidh shërbim tjetër
           </Button>
-        ) : currentStep === 2 ? (
+        ) : currentStep === 2 && selectedDate ? (
           <Button
             onClick={() => {
               setSelectedDate(null)

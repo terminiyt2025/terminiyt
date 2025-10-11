@@ -1383,7 +1383,7 @@ export default function BusinessPanel() {
                           </div>
 
                         <div className="space-y-2">
-                          <div className="text-xs font-medium text-gray-600">Shërbimet që kryen nga ky staf:</div>
+                          <div className="text-xs font-medium text-gray-600">Shërbimet që ofron ky anëtar i stafit:</div>
                           <div className="flex flex-wrap gap-2">
                             {(isEditing ? (editData.services || []) : (business?.services || [])).map((service: any, serviceIndex: number) => (
                               <label key={serviceIndex} className="flex items-center text-xs">
@@ -1423,8 +1423,9 @@ export default function BusinessPanel() {
                               </div>
                             )}
                         <div className="flex justify-between items-center">
-                          <div className="text-xs text-gray-500">
-                            Shërbimet: {member.services?.map((service: any) => typeof service === 'string' ? service : service.name).filter((name: any) => name && name.trim() !== '').join(', ') || 'Asnjë'}
+                          <div className="text-xs text-gray-500 pt-1">
+                          Lista e shërbimeve: {member.services?.map((service: any) => typeof service === 'string' ? service : service.name).filter((name: any) => name && name.trim() !== '').join(', ') || 'Asnjë'}
+                          : {member.services?.map((service: any) => typeof service === 'string' ? service : service.name).filter((name: any) => name && name.trim() !== '').join(', ') || 'Asnjë'}
                           </div>
                           {isEditing && (
                             <button
@@ -1584,7 +1585,7 @@ export default function BusinessPanel() {
                                             
                                             return (
                                               <div key={day} className="flex items-center justify-between text-sm">
-                                                <span className="font-medium w-20">{dayNames[day]}:</span>
+                                                <span className="font-medium w-20 text-sm md:text-base">{dayNames[day]}:</span>
                                                 <div className="flex items-center space-x-2">
                                                   <label className="flex items-center">
                                                     <input
@@ -1605,7 +1606,7 @@ export default function BusinessPanel() {
                                                       }}
                                                       className="mr-1 w-4 h-4 text-teal-800 bg-white rounded focus:ring-teal-800 focus:ring-2 accent-teal-800 border-0"
                                                     />
-                                                    <span className="text-xs">Dite pune</span>
+                                                    <span className="text-xs hidden md:inline">Dite pune</span>
                                                   </label>
                                                   {!staffHours.closed && (
                                                     <>
@@ -1622,7 +1623,7 @@ export default function BusinessPanel() {
                                                           }
                                                           setEditData({...editData, staff: newStaff})
                                                         }}
-                                                        className="px-2 py-1 border border-gray-300 rounded text-xs w-19 md:w-20"
+                                                        className="px-2 py-1 border border-gray-300 rounded text-xs w-16 md:w-20"
                                                       >
                                                         <option value="">Fillimi</option>
                                                         {filteredTimeOptions.map(time => (
@@ -1643,7 +1644,7 @@ export default function BusinessPanel() {
                                                           }
                                                           setEditData({...editData, staff: newStaff})
                                                         }}
-                                                        className="px-2 py-1 border border-gray-300 rounded text-xs w-19 md:w-20"
+                                                        className="px-2 py-1 border border-gray-300 rounded text-xs w-16 md:w-20"
                                                       >
                                                         <option value="">Mbarimi</option>
                                                         {filteredTimeOptions.map(time => (

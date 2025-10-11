@@ -1330,16 +1330,16 @@ export default function AdminDashboard() {
                 <>
                   {/* Filter Controls */}
                   <div className="mb-6 p-4 bg-gray-100 rounded-lg">
-                    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 mb-4">
+                    <div className="grid grid-cols-2 md:grid-cols-2 lg:grid-cols-4 gap-4 mb-4">
                       {/* Business Filter */}
               <div>
-                        <label className="block text-sm font-medium text-gray-700 mb-1">Biznesi</label>
+                        <label className="block text-sm font-medium text-gray-700 mb-1">Biznesi:</label>
                         <select
                           value={businessSummaryFilter}
                           onChange={(e) => setBusinessSummaryFilter(e.target.value)}
-                          className="w-full px-3 py-2 border border-gray-300 rounded-md bg-white text-gray-900 focus:outline-none focus:ring-2 focus:ring-teal-500"
+                          className="w-full px-3 py-2 border border-gray-300 rounded-md bg-white text-gray-900 focus:outline-none focus:ring-2 focus:ring-teal-500 text-sm md:text-base"
                         >
-                          <option value="all">Të gjitha bizneset</option>
+                          <option value="all">Të gjitha</option>
                           {businesses.map((business) => (
                             <option key={business.id} value={business.id.toString()}>
                               {business.name}
@@ -1350,13 +1350,13 @@ export default function AdminDashboard() {
 
                       {/* City Filter */}
                       <div>
-                        <label className="block text-sm font-medium text-gray-700 mb-1">Qyteti</label>
+                        <label className="block text-sm font-medium text-gray-700 mb-1">Qyteti:</label>
                         <select
                           value={cityFilter}
                           onChange={(e) => setCityFilter(e.target.value)}
-                          className="w-full px-3 py-2 border border-gray-300 rounded-md bg-white text-gray-900 focus:outline-none focus:ring-2 focus:ring-teal-500"
+                          className="w-full px-3 py-2 border border-gray-300 rounded-md bg-white text-gray-900 focus:outline-none focus:ring-2 focus:ring-teal-500 text-sm md:text-base"
                         >
-                          <option value="all">Të gjitha qytetet</option>
+                          <option value="all">Të gjitha</option>
                           {getUniqueCities().map((city) => (
                             <option key={city} value={city}>
                               {city}
@@ -1372,7 +1372,7 @@ export default function AdminDashboard() {
                           type="date"
                           value={startDateFilter}
                           onChange={(e) => setStartDateFilter(e.target.value)}
-                          className="w-full px-3 py-2 border border-gray-300 rounded-md bg-white text-gray-900 focus:outline-none focus:ring-2 focus:ring-teal-500"
+                          className="w-full px-3 py-2 border border-gray-300 rounded-md bg-white text-gray-900 focus:outline-none focus:ring-2 focus:ring-teal-500 text-sm md:text-base"
                         />
                       </div>
 
@@ -1383,7 +1383,7 @@ export default function AdminDashboard() {
                           type="date"
                           value={endDateFilter}
                           onChange={(e) => setEndDateFilter(e.target.value)}
-                          className="w-full px-3 py-2 border border-gray-300 rounded-md bg-white text-gray-900 focus:outline-none focus:ring-2 focus:ring-teal-500"
+                          className="w-full px-3 py-2 border border-gray-300 rounded-md bg-white text-gray-900 focus:outline-none focus:ring-2 focus:ring-teal-500 text-sm md:text-base"
                         />
                       </div>
                     </div>
@@ -1972,7 +1972,7 @@ export default function AdminDashboard() {
                               {/* Left Column - Editable Contact Info */}
                               <div className="space-y-4">
                                 <div>
-                                  <h4 className="font-semibold bg-gradient-to-r from-gray-800 to-teal-800 bg-clip-text text-transparent mb-2">Informacione Biznesi</h4>
+                                  <h4 className="font-semibold bg-gradient-to-r from-gray-800 to-teal-800 bg-clip-text text-transparent mb-2">Informacionet e Biznesit</h4>
                                   <div className="space-y-3 bg-white rounded">
                                     <div>
                                       <label className="block text-xs font-medium text-gray-600 mb-1">Emri i Biznesit</label>
@@ -2352,7 +2352,7 @@ export default function AdminDashboard() {
                                 </div>
                               </div>
 
-                              <div>
+                                <div>
                                   <div 
                                     className="flex items-center justify-between cursor-pointer p-3 bg-gray-50 rounded-lg hover:bg-gray-100 transition-colors"
                                     onClick={() => setShowImageSection(!showImageSection)}
@@ -2516,8 +2516,8 @@ export default function AdminDashboard() {
                                   <div className="bg-white rounded">
                                     <div className="space-y-3">
                                       {(editFormData.services || []).map((service: any, index: number) => (
-                                        <div key={service.id || index} className="border border-gray-200 rounded p-2 bg-white">
-                                          <div className="grid grid-cols-2 gap-2 mb-2">
+                                        <div key={service.id || index} className="border border-gray-200 rounded p-2 bg-gray-50/50">
+                                          <div className="grid grid-cols-1 md:grid-cols-3 gap-2 mb-2">
                                             <input
                                               type="text"
                                               value={service.name || ''}
@@ -2577,19 +2577,6 @@ export default function AdminDashboard() {
                                               />
                                               <span className="absolute right-2 top-1/2 transform -translate-y-1/2 text-xs text-gray-500 pointer-events-none">€</span>
                                             </div>
-                                          </div>
-                                          <textarea
-                                            value={service.description || ''}
-                                            onChange={(e) => {
-                                              const newServices = (editFormData.services || []).map((s: any) => 
-                                                s.id === service.id ? { ...s, description: e.target.value } : s
-                                              )
-                                              setEditFormData({...editFormData, services: newServices})
-                                            }}
-                                            placeholder="Përshkrimi i shërbimit"
-                                            className="w-full px-2 py-1 border border-gray-300 rounded text-xs h-12 resize-none mb-2"
-                                          />
-                                          <div className="flex justify-between items-center">
                                             <select
                                               value={service.duration || '30 min'}
                                                 onChange={(e) => {
@@ -2615,22 +2602,22 @@ export default function AdminDashboard() {
                                               <option value="1 orë 30 min">1 orë 30 min</option>
                                               <option value="1 orë 45 min">1 orë 45 min</option>
                                               <option value="2 orë">2 orë</option>
-                                              <option value="2 orë 15 min">2 orë 15 min</option>
                                               <option value="2 orë 30 min">2 orë 30 min</option>
-                                              <option value="2 orë 45 min">2 orë 45 min</option>
                                               <option value="3 orë">3 orë</option>
-                                              <option value="3 orë 15 min">3 orë 15 min</option>
-                                              <option value="3 orë 30 min">3 orë 30 min</option>
-                                              <option value="3 orë 45 min">3 orë 45 min</option>
-                                              <option value="4 orë">4 orë</option>
-                                              <option value="5 orë">5 orë</option>
-                                              <option value="6 orë">6 orë</option>
-                                              <option value="8 orë">8 orë</option>
-                                              <option value="1 ditë">1 ditë</option>
                                             </select>
-                                            {validationErrors[`service_${index}_duration`] && (
-                                              <p className="text-red-500 text-xs mt-1">{validationErrors[`service_${index}_duration`]}</p>
-                                            )}
+                                          </div>
+                                          <textarea
+                                            value={service.description || ''}
+                                            onChange={(e) => {
+                                              const newServices = (editFormData.services || []).map((s: any) => 
+                                                s.id === service.id ? { ...s, description: e.target.value } : s
+                                              )
+                                              setEditFormData({...editFormData, services: newServices})
+                                            }}
+                                            placeholder="Përshkrimi i shërbimit"
+                                            className="w-full px-2 py-1 border border-gray-300 rounded text-xs h-12 resize-none mb-2"
+                                          />
+                                          <div className="flex justify-end items-center">
                                             <button
                                               onClick={() => {
                                                 setServiceToDelete({ service, index })
@@ -2668,7 +2655,7 @@ export default function AdminDashboard() {
                                   <div className="bg-white rounded">
                                     <div className="space-y-3">
                                       {(editFormData.staff || []).map((member: any, index: number) => (
-                                        <div key={index} className="border border-gray-200 rounded p-2 bg-white">
+                                        <div key={index} className="border border-gray-200 rounded p-2 bg-gray-50/50">
                                           <div className="grid grid-cols-2 gap-2 mb-2">
                                             <input
                                               type="text"
@@ -2691,28 +2678,6 @@ export default function AdminDashboard() {
                                               <p className="text-red-500 text-xs mt-1">{validationErrors[`staff_${index}_name`]}</p>
                                             )}
                                             <input
-                                              type="email"
-                                              value={member.email || ''}
-                                              onChange={(e) => {
-                                                const newStaff = [...(editFormData.staff || [])]
-                                                newStaff[index] = { ...member, email: e.target.value }
-                                                setEditFormData({...editFormData, staff: newStaff})
-                                                // Clear validation error when user starts typing
-                                                if (validationErrors[`staff_${index}_email`]) {
-                                                  const newErrors = {...validationErrors}
-                                                  delete newErrors[`staff_${index}_email`]
-                                                  setValidationErrors(newErrors)
-                                                }
-                                              }}
-                                              placeholder="Email"
-                                              className={`px-2 py-1 border rounded text-xs ${validationErrors[`staff_${index}_email`] ? 'border-red-500' : 'border-gray-300'}`}
-                                            />
-                                            {validationErrors[`staff_${index}_email`] && (
-                                              <p className="text-red-500 text-xs mt-1">{validationErrors[`staff_${index}_email`]}</p>
-                                            )}
-                                          </div>
-                                          <div className="grid grid-cols-2 gap-2 mb-2">
-                                            <input
                                               type="text"
                                               value={member.phone || ''}
                                               onChange={(e) => {
@@ -2732,6 +2697,28 @@ export default function AdminDashboard() {
                                             {validationErrors[`staff_${index}_phone`] && (
                                               <p className="text-red-500 text-xs mt-1">{validationErrors[`staff_${index}_phone`]}</p>
                                             )}
+                                          </div>
+                                          <div className="grid grid-cols-2 gap-2 mb-2">
+                                            <input
+                                              type="email"
+                                              value={member.email || ''}
+                                              onChange={(e) => {
+                                                const newStaff = [...(editFormData.staff || [])]
+                                                newStaff[index] = { ...member, email: e.target.value }
+                                                setEditFormData({...editFormData, staff: newStaff})
+                                                // Clear validation error when user starts typing
+                                                if (validationErrors[`staff_${index}_email`]) {
+                                                  const newErrors = {...validationErrors}
+                                                  delete newErrors[`staff_${index}_email`]
+                                                  setValidationErrors(newErrors)
+                                                }
+                                              }}
+                                              placeholder="Email"
+                                              className={`px-2 py-1 border rounded text-xs ${validationErrors[`staff_${index}_email`] ? 'border-red-500' : 'border-gray-300'}`}
+                                            />
+                                            {validationErrors[`staff_${index}_email`] && (
+                                              <p className="text-red-500 text-xs mt-1">{validationErrors[`staff_${index}_email`]}</p>
+                                            )}
                                             <div className="flex items-center">
                                               <label className="flex items-center text-xs">
                                                 <input
@@ -2744,12 +2731,12 @@ export default function AdminDashboard() {
                                                   }}
                                                   className="mr-1 w-4 h-4 text-teal-800 bg-white rounded focus:ring-teal-800 focus:ring-2 accent-teal-800 border-0"
                                                 />
-                                                Aktiv
+                                                Është aktiv?
                                               </label>
                                             </div>
                                           </div>
                                           <div className="space-y-2">
-                                            <div className="text-xs font-medium text-gray-600">Shërbimet e Caktuara:</div>
+                                            <div className="text-xs font-medium text-gray-600">Shërbimet që ofron ky anëtar i stafit:</div>
                                             <div className="grid grid-cols-2 gap-1">
                                               {(editFormData.services || []).map((service: any, serviceIndex: number) => (
                                                 <label key={serviceIndex} className="flex items-center text-xs">
@@ -2790,8 +2777,8 @@ export default function AdminDashboard() {
                                           
                                         
                                           <div className="flex justify-between items-center">
-                                            <div className="text-xs text-gray-500">
-                                              Shërbimet: {member.services?.map((service: any) => typeof service === 'string' ? service : service.name).filter((name: any) => name && name.trim() !== '').join(', ') || 'Asnjë'}
+                                            <div className="text-xs text-gray-500 pt-1">
+                                              Lista e shërbimeve: {member.services?.map((service: any) => typeof service === 'string' ? service : service.name).filter((name: any) => name && name.trim() !== '').join(', ') || 'Asnjë'}
                                             </div>
                                             <button
                                               onClick={() => {
@@ -2909,7 +2896,7 @@ export default function AdminDashboard() {
                                                     
                                                     return (
                                                       <div key={day} className="flex items-center justify-between text-sm">
-                                                        <span className="font-medium w-20">{dayNames[day]}:</span>
+                                                        <span className="font-medium w-20 text-sm md:text-base">{dayNames[day]}:</span>
                                                         <div className="flex items-center space-x-2">
                                                           <label className="flex items-center">
                                                             <input
@@ -2930,7 +2917,7 @@ export default function AdminDashboard() {
                                                               }}
                                                               className="mr-1 w-4 h-4 text-teal-800 bg-white rounded focus:ring-teal-800 focus:ring-2 accent-teal-800 border-0"
                                                             />
-                                                            <span className="text-xs">Dite pune</span>
+                                                            <span className="text-xs hidden md:inline">Dite pune</span>
                                                           </label>
                                                           {!staffHours.closed && (
                                                             <>
@@ -2947,7 +2934,7 @@ export default function AdminDashboard() {
                                                                   }
                                                                   setEditFormData({...editFormData, staff: newStaff})
                                                                 }}
-                                                                className="px-2 py-1 border border-gray-300 rounded text-xs w-19 md:w-20"
+                                                                className="px-2 py-1 border border-gray-300 rounded text-xs w-16 md:w-20"
                                                               >
                                                                 <option value="">Fillimi</option>
                                                                 {filteredTimeOptions.map(time => (
@@ -2968,7 +2955,7 @@ export default function AdminDashboard() {
                                                                   }
                                                                   setEditFormData({...editFormData, staff: newStaff})
                                                                 }}
-                                                                className="px-2 py-1 border border-gray-300 rounded text-xs w-19 md:w-20"
+                                                                className="px-2 py-1 border border-gray-300 rounded text-xs w-16 md:w-20"
                                                               >
                                                                 <option value="">Mbarimi</option>
                                                                 {filteredTimeOptions.map(time => (
@@ -3084,7 +3071,7 @@ export default function AdminDashboard() {
                                   )}
                                 </div>
 
-                                
+
                       <div>
                                   <div 
                                     className="flex items-center justify-between cursor-pointer p-3 bg-gray-50 rounded-lg hover:bg-gray-100 transition-colors"
@@ -3227,7 +3214,7 @@ export default function AdminDashboard() {
                             {/* Left Column */}
                             <div className="space-y-4">
                             <div>
-                              <h4 className="font-semibold bg-gradient-to-r from-gray-800 to-teal-800 bg-clip-text text-transparent mb-2">Informacione Kontakti</h4>
+                              <h4 className="font-semibold bg-gradient-to-r from-gray-800 to-teal-800 bg-clip-text text-transparent mb-2">Informacionet e Biznesit</h4>
                               <div className="space-y-3 bg-white rounded">
                                 <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
                                   <div>

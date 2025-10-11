@@ -1,5 +1,8 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { prisma } from '@/lib/database-prisma'
+import { sendEmail, emailTemplates } from '@/lib/email'
+import { format } from 'date-fns'
+import { sq } from 'date-fns/locale'
 
 export async function PATCH(
   request: NextRequest,
@@ -49,9 +52,57 @@ export async function PATCH(
         totalPrice: true,
         serviceDuration: true,
         status: true,
-        createdAt: true
+        createdAt: true,
+        business: {
+          select: {
+            name: true,
+            phone: true,
+            staff: true
+          }
+        }
       }
     })
+
+    // Send cancellation email if booking is cancelled
+    if (body.status === 'CANCELLED') {
+      try {
+        // Find the staff member for this booking
+        const staffArray = updatedBooking.business.staff as any[] || []
+        const staffMember = staffArray.find(
+          (staff: any) => staff.name === updatedBooking.staffName
+        )
+
+        // Prepare email data
+        const emailData = {
+          customerName: updatedBooking.customerName,
+          customerEmail: updatedBooking.customerEmail,
+          businessName: updatedBooking.business.name,
+          serviceName: updatedBooking.serviceName,
+          staffName: updatedBooking.staffName,
+          date: format(new Date(updatedBooking.appointmentDate), 'EEEE, d MMMM yyyy', { locale: sq }),
+          time: updatedBooking.appointmentTime,
+          duration: updatedBooking.serviceDuration,
+          notes: updatedBooking.notes || '',
+          staffPhone: staffMember?.phone || updatedBooking.business.phone
+        }
+
+        // Send cancellation email
+        const emailResult = await sendEmail({
+          to: updatedBooking.customerEmail,
+          subject: emailTemplates.bookingCancellation(emailData).subject,
+          html: emailTemplates.bookingCancellation(emailData).html,
+          text: emailTemplates.bookingCancellation(emailData).text
+        })
+
+        if (emailResult.success) {
+          console.log(`Cancellation email sent successfully for booking ${updatedBooking.id}`)
+        } else {
+          console.error(`Failed to send cancellation email for booking ${updatedBooking.id}:`, emailResult.error)
+        }
+      } catch (error) {
+        console.error(`Error sending cancellation email for booking ${updatedBooking.id}:`, error)
+      }
+    }
 
     return NextResponse.json(updatedBooking)
 
