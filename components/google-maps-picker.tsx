@@ -445,7 +445,7 @@ export function GoogleMapsPicker({
           placeholder="Kërko për një adresë ose biznes..."
           value={searchQuery}
           onChange={(e) => setSearchQuery(e.target.value)}
-          className="pl-10 pr-20"
+          className="pl-10 pr-20 bg-white"
         />
         <Button 
           size="sm" 
@@ -495,11 +495,11 @@ export function GoogleMapsPicker({
       {/* Selected Location Display */}
       {selectedLocation && (
         <Card className="bg-emerald-50 border-emerald-200">
-          <CardContent className="p-4">
+          <CardContent className="p-2">
             <div className="flex items-start gap-3">
               <Check className="w-5 h-5 text-emerald-600 mt-0.5" />
               <div className="flex-1">
-                <h4 className="font-medium text-emerald-900">Vendndodhja Është Vendosur</h4>
+                <h4 className="font-medium text-emerald-900">Vendndodhja u regjistrua</h4>
                 <p className="text-sm text-emerald-700 mt-1">{selectedLocation.address}</p>
                 <div className="flex items-center gap-4 mt-2 text-base text-emerald-600">
                   <span>Lat: {selectedLocation.latitude.toFixed(6)}</span>

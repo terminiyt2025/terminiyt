@@ -16,11 +16,11 @@ export async function POST(request: NextRequest) {
     const today = new Date()
     const todayString = today.toISOString().split('T')[0] // "2025-10-10"
     
-    // Calculate the time window for reminders (25-35 minutes from now) in LOCAL time
+    // Calculate the time window for reminders (26-34 minutes from now) in LOCAL time
     // Convert current UTC time to local time (UTC+2)
     const localNow = new Date(now.getTime() + 2 * 60 * 60 * 1000) // Add 2 hours for UTC+2
-    const reminderWindowStart = new Date(localNow.getTime() + 25 * 60 * 1000) // 25 minutes from local now
-    const reminderWindowEnd = new Date(localNow.getTime() + 35 * 60 * 1000)   // 35 minutes from local now
+    const reminderWindowStart = new Date(localNow.getTime() + 26 * 60 * 1000) // 26 minutes from local now
+    const reminderWindowEnd = new Date(localNow.getTime() + 34 * 60 * 1000)   // 34 minutes from local now
     
     // Convert to local time for comparison with appointment_time
     const localWindowStart = format(reminderWindowStart, 'HH:mm')
@@ -29,8 +29,8 @@ export async function POST(request: NextRequest) {
     console.log('=== REMINDER API DEBUG ===')
     console.log('Current UTC time:', now.toISOString())
     console.log('Current local time:', format(localNow, 'HH:mm'))
-    console.log('Reminder window start (25 min):', reminderWindowStart.toISOString())
-    console.log('Reminder window end (35 min):', reminderWindowEnd.toISOString())
+    console.log('Reminder window start (26 min):', reminderWindowStart.toISOString())
+    console.log('Reminder window end (34 min):', reminderWindowEnd.toISOString())
     console.log('Today string:', todayString)
     console.log('Local time window (HH:mm):', localWindowStart, 'to', localWindowEnd)
     
@@ -164,11 +164,11 @@ export async function GET() {
     const today = new Date()
     const todayString = today.toISOString().split('T')[0] // "2025-10-10"
     
-    // Calculate the time window for reminders (25-35 minutes from now) in LOCAL time
+    // Calculate the time window for reminders (26-34 minutes from now) in LOCAL time
     // Convert current UTC time to local time (UTC+2)
     const localNow = new Date(now.getTime() + 2 * 60 * 60 * 1000) // Add 2 hours for UTC+2
-    const reminderWindowStart = new Date(localNow.getTime() + 25 * 60 * 1000) // 25 minutes from local now
-    const reminderWindowEnd = new Date(localNow.getTime() + 35 * 60 * 1000)   // 35 minutes from local now
+    const reminderWindowStart = new Date(localNow.getTime() + 26 * 60 * 1000) // 26 minutes from local now
+    const reminderWindowEnd = new Date(localNow.getTime() + 34 * 60 * 1000)   // 34 minutes from local now
     
     // Convert to local time for comparison with appointment_time
     const localWindowStart = format(reminderWindowStart, 'HH:mm')

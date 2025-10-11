@@ -321,7 +321,7 @@ export function BookingSteps({ business }: BookingStepsProps) {
     return slots
   }
 
-  // Check if a time slot has a booking
+  // Check if a time slot has a booking or would conflict with existing bookings
   const hasBookingAtTime = (date: Date, timeSlot: string) => {
     if (!bookings.length) return false
     
@@ -343,9 +343,25 @@ export function BookingSteps({ business }: BookingStepsProps) {
       
       if (!isSameDate || !isStaffMatch || !isNotCancelled) return false
       
-      // Check if this time slot is covered by this booking
-      const bookingSlots = getBookingTimeSlots(booking)
-      return bookingSlots.includes(timeSlot)
+      // Check for time overlap instead of just exact slot matches
+      const bookingStartTime = booking.appointmentTime
+      const bookingDuration = booking.serviceDuration || (() => {
+        const service = business.services?.find((s: any) => s.name === booking.serviceName)
+        return service?.duration || 30
+      })()
+      
+      // Parse times to minutes for easier comparison
+      const [bookingStartHour, bookingStartMin] = bookingStartTime.split(':').map(Number)
+      const bookingStartMinutes = bookingStartHour * 60 + bookingStartMin
+      const bookingEndMinutes = bookingStartMinutes + bookingDuration
+      
+      const [slotHour, slotMin] = timeSlot.split(':').map(Number)
+      const slotStartMinutes = slotHour * 60 + slotMin
+      const slotEndMinutes = slotStartMinutes + serviceDuration
+      
+      // Check if the new booking would overlap with existing booking
+      // Overlap occurs if: new start < existing end AND new end > existing start
+      return slotStartMinutes < bookingEndMinutes && slotEndMinutes > bookingStartMinutes
     })
   }
 
@@ -366,10 +382,23 @@ export function BookingSteps({ business }: BookingStepsProps) {
                       String(slotDateObj.getDate()).padStart(2, '0')
       
       const isSameDate = slotDate === dateStr
-      const isTimeInRange = timeSlot >= slot.startTime && timeSlot <= slot.endTime
       const isStaffMatch = !slot.staffName || !selectedStaff || slot.staffName === selectedStaff.name
       
-      return isSameDate && isTimeInRange && isStaffMatch
+      if (!isSameDate || !isStaffMatch) return false
+      
+      // Check for time overlap with blocked slot
+      const [blockedHour, blockedMin] = slot.startTime.split(':').map(Number)
+      const blockedMinutes = blockedHour * 60 + blockedMin
+      
+      const [timeSlotHour, timeSlotMin] = timeSlot.split(':').map(Number)
+      const timeSlotStartMinutes = timeSlotHour * 60 + timeSlotMin
+      const timeSlotEndMinutes = timeSlotStartMinutes + serviceDuration
+      
+      // Check if the service would overlap with blocked time
+      // Overlap occurs if: service start < blocked end AND service end > blocked start
+      // Since blocked slot is 15 minutes, blocked end = blocked start + 15
+      const blockedEndMinutes = blockedMinutes + 15
+      return timeSlotStartMinutes < blockedEndMinutes && timeSlotEndMinutes > blockedMinutes
     })
   }
 

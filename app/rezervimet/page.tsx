@@ -132,13 +132,25 @@ export default function ReservationsPage() {
     if (!business) return
 
     try {
-      const today = new Date()
-      const todayString = today.toISOString().split('T')[0]
+      const now = new Date()
       
-      // Find reservations that are past due and still confirmed
+      // Find reservations that are past their service finish time and still confirmed
       const pastReservations = bookings.filter(booking => {
-        const bookingDate = new Date(booking.appointmentDate).toISOString().split('T')[0]
-        return bookingDate < todayString && booking.status === 'CONFIRMED'
+        if (booking.status !== 'CONFIRMED') return false
+        
+        // Get service duration
+        const serviceDuration = booking.serviceDuration || getServiceDuration(booking.serviceName)
+        const durationMinutes = typeof serviceDuration === 'string' 
+          ? parseInt(serviceDuration.replace(/\D/g, '')) || 30
+          : serviceDuration || 30
+        
+        // Calculate service finish time
+        const [hours, minutes] = booking.appointmentTime.split(':').map(Number)
+        const serviceEndTime = new Date(booking.appointmentDate)
+        serviceEndTime.setHours(hours, minutes + durationMinutes, 0, 0)
+        
+        // Check if service finish time has passed
+        return serviceEndTime < now
       })
 
       if (pastReservations.length > 0) {
@@ -390,7 +402,7 @@ export default function ReservationsPage() {
     return slots
   }
 
-  // Check if a time slot has a booking
+  // Check if a time slot has a booking or would conflict with existing bookings
   const hasBookingAtTime = (date: Date, timeSlot: string, staffName?: string) => {
     // Use local date format to avoid timezone issues
     const dateString = date.getFullYear() + '-' + 
@@ -425,11 +437,31 @@ export default function ReservationsPage() {
       
       if (!dateMatch || !staffMatch || !isNotCancelled) return false
       
-      // Check if this time slot is covered by this booking
-      const bookingSlots = getBookingTimeSlots(booking)
-      console.log('Booking slots for', booking.appointmentTime, ':', bookingSlots)
-      const isBlocked = bookingSlots.includes(timeSlot)
-      console.log('Is time slot', timeSlot, 'blocked by booking?', isBlocked)
+      // Check for time overlap instead of just exact slot matches
+      const bookingStartTime = booking.appointmentTime
+      const bookingDuration = booking.serviceDuration || getServiceDuration(booking.serviceName)
+      
+      // Parse times to minutes for easier comparison
+      const [bookingStartHour, bookingStartMin] = bookingStartTime.split(':').map(Number)
+      const bookingStartMinutes = bookingStartHour * 60 + bookingStartMin
+      const bookingEndMinutes = bookingStartMinutes + bookingDuration
+      
+      const [slotHour, slotMin] = timeSlot.split(':').map(Number)
+      const slotStartMinutes = slotHour * 60 + slotMin
+      const slotEndMinutes = slotStartMinutes + 15 // 15-minute slot duration
+      
+      // Check if the new booking would overlap with existing booking
+      // Overlap occurs if: new start < existing end AND new end > existing start
+      const isBlocked = slotStartMinutes < bookingEndMinutes && slotEndMinutes > bookingStartMinutes
+      console.log('Time overlap check:', {
+        bookingTime: bookingStartTime,
+        bookingDuration: bookingDuration,
+        bookingEnd: bookingEndMinutes,
+        slotTime: timeSlot,
+        slotStart: slotStartMinutes,
+        slotEnd: slotEndMinutes,
+        isBlocked
+      })
       return isBlocked
     })
   }
@@ -449,10 +481,22 @@ export default function ReservationsPage() {
                       String(slotDateObj.getDate()).padStart(2, '0')
       
       const staffMatch = !staffName || !slot.staffName || slot.staffName === staffName
-      return slotDate === dateString && 
-             timeSlot >= slot.startTime && 
-             timeSlot <= slot.endTime &&
-             staffMatch
+      
+      if (slotDate !== dateString || !staffMatch) return false
+      
+      // Check for time overlap with blocked slot
+      const [blockedHour, blockedMin] = slot.startTime.split(':').map(Number)
+      const blockedMinutes = blockedHour * 60 + blockedMin
+      
+      const [timeSlotHour, timeSlotMin] = timeSlot.split(':').map(Number)
+      const timeSlotStartMinutes = timeSlotHour * 60 + timeSlotMin
+      const timeSlotEndMinutes = timeSlotStartMinutes + 15 // 15-minute slot duration
+      
+      // Check if the service would overlap with blocked time
+      // Overlap occurs if: service start < blocked end AND service end > blocked start
+      // Since blocked slot is 15 minutes, blocked end = blocked start + 15
+      const blockedEndMinutes = blockedMinutes + 15
+      return timeSlotStartMinutes < blockedEndMinutes && timeSlotEndMinutes > blockedMinutes
     })
   }
 
@@ -1226,6 +1270,18 @@ export default function ReservationsPage() {
                             <span className="text-xs text-gray-500">Shërbimi:</span>
                             <span className="font-medium">{booking.serviceName}</span>
                           </div>
+                          <div className="flex items-center gap-2">
+                            <span className="text-xs text-gray-500">Statusi:</span>
+                            <span className={`text-xs font-medium ${
+                              booking.status === 'COMPLETED' ? 'text-green-600' :
+                              booking.status === 'CANCELLED' ? 'text-red-600' :
+                              'text-blue-600'
+                            }`}>
+                              {booking.status === 'COMPLETED' ? 'Përfunduar' :
+                               booking.status === 'CANCELLED' ? 'Anuluar' :
+                               'Konfirmuar'}
+                            </span>
+                          </div>
                           {booking.notes && (
                             <div className="flex items-center gap-2">
                               <span className="text-xs text-gray-500">Shënime:</span>
@@ -1413,12 +1469,16 @@ export default function ReservationsPage() {
              <h3 className="text-lg font-semibold text-gray-900 mb-4">
                Konfirmo Anulimin
              </h3>
-             <p className="text-gray-600 mb-6">
+             <p className="text-gray-600 mb-4">
                A jeni të sigurtë që doni të anuloni terminin e <strong>{showCancelModal.booking.customerName}</strong> nga ora <strong>{showCancelModal.booking.appointmentTime}</strong> për shërbimin <strong>{showCancelModal.booking.serviceName}</strong>? 
-               <br /><br />
-               Në rast të anulimit, një email njoftues do të shkojë te klienti.
              </p>
-             <div className="flex gap-3 justify-end">
+             <div className="flex items-center gap-2 mb-6 p-3 bg-red-50 border border-red-200 rounded-lg">
+               <div className="text-red-600 text-lg font-bold">!</div>
+               <p className="text-red-700 text-xs font-medium">
+                 Në rast të anulimit, një email njoftues do të shkojë te klienti.
+               </p>
+             </div>
+             <div className="flex gap-3 justify-center">
                <Button
                  onClick={() => setShowCancelModal({ show: false, booking: null })}
                  variant="outline"

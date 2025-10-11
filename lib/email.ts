@@ -135,9 +135,9 @@ export const emailTemplates = {
         
         <h4 style="font-size: 16px;">📋 Çfarë duhet të bëni:</h4>
         <ul style="margin: 0;">
-          <li style="margin: 8px 0;">Kontrolloni kalendarin tuaj për këtë rezervim</li>
+          <li style="margin: 8px 0;">Kontrolloni kalendarin tuaj për këtë rezervim në: <a href="https://terminiyt.com/rezervimet">terminiyt.com/rezervimet</a></li>
           <li style="margin: 8px 0;">Sigurohuni që jeni i disponueshëm në kohën e caktuar</li>
-          <li style="margin: 8px 0;">Kontaktoni klientin nëse ka nevojë për ndonjë informacion shtesë</li>
+          <li style="margin: 8px 0;">Kontaktoni klientin nëse keni nevojë për ndonjë informacion shtesë</li>
         </ul>
         
         <div style="text-align: center; margin-top: 40px; padding-top: 20px; border-top: 1px solid #ccc;">
@@ -167,9 +167,9 @@ export const emailTemplates = {
       ${bookingData.notes ? `Shënime nga klienti: ${bookingData.notes}` : ''}
       
       📋 Çfarë duhet të bëni:
-      • Kontrolloni kalendarin tuaj për këtë rezervim
+      • Kontrolloni kalendarin tuaj për këtë rezervim në: terminiyt.com/rezervimet
       • Sigurohuni që jeni i disponueshëm në kohën e caktuar
-      • Kontaktoni klientin nëse ka nevojë për ndonjë informacion shtesë
+      • Kontaktoni klientin nëse keni nevojë për ndonjë informacion shtesë
 
       
       Ky email u dërgua automatikisht nga sistemi i rezervimeve.
@@ -198,9 +198,8 @@ export const emailTemplates = {
         
         <h4 style="font-size: 16px;">ℹ️ Çfarë duhet të bëni:</h4>
         <ul style="margin: 0;">
-          <li style="margin: 8px 0;">Nëse dëshironi të bëni një rezervim të ri, ju lutemi kontaktoni biznesin</li>
           <li style="margin: 8px 0;">Për pyetje apo ndihmë, kontaktoni në numrin: ${bookingData.staffPhone}</li>
-          <li style="margin: 8px 0;">Mund të bëni rezervime të reja në <a href="https://terminiyt.com">terminiyt.com</a></li>
+          <li style="margin: 8px 0;">Nëse dëshironi të bëni një rezervim të ri në këtë biznes, përdoreni linkun: <a href="https://terminiyt.com/${bookingData.businessSlug}">terminiyt.com/${bookingData.businessSlug}</a></li>
         </ul>
         
         <div style="text-align: center; margin-top: 40px; padding-top: 20px; border-top: 1px solid #ccc;">
@@ -227,9 +226,8 @@ export const emailTemplates = {
       ${bookingData.notes ? `Shënime: ${bookingData.notes}` : ''}
       
       ℹ️ Çfarë duhet të bëni:
-      • Nëse dëshironi të bëni një rezervim të ri, ju lutemi kontaktoni biznesin
       • Për pyetje apo ndihmë, kontaktoni në numrin: ${bookingData.staffPhone}
-      • Mund të bëni rezervime të reja në terminiyt.com
+      • Nëse dëshironi të bëni një rezervim të ri në këtë biznes, përdoreni linkun: terminiyt.com/${bookingData.businessSlug}
       
       Ky email u dërgua automatikisht nga sistemi i rezervimeve.
       
@@ -258,8 +256,8 @@ export const emailTemplates = {
         <h4 style="font-size: 16px;">⏰ Rikujtim i Rëndësishëm:</h4>
         <ul style="margin: 0;">
           <li style="margin: 8px 0;">Ju lutemi arrini 5-10 minuta para orës së caktuar</li>
-          <li style="margin: 8px 0;">Sigurohuni që keni marrë me vete dokumentet e nevojshme</li>
-          <li style="margin: 8px 0;">Nëse nuk mund të arrini, ju lutemi kontaktoni në numrin: ${bookingData.staffPhone}</li>
+       
+          <li style="margin: 8px 0;">Nëse nuk mund të arrini, ju lutemi informoni biznesin për anulim në numrin: ${bookingData.staffPhone}</li>
         </ul>
         
         <div style="background-color: #f8f9fa; padding: 20px; border-radius: 8px; margin: 20px 0;">
@@ -293,8 +291,7 @@ export const emailTemplates = {
       
       ⏰ Rikujtim i Rëndësishëm:
       • Ju lutemi arrini 5-10 minuta para orës së caktuar
-      • Sigurohuni që keni marrë me vete dokumentet e nevojshme
-      • Nëse nuk mund të arrini, ju lutemi kontaktoni në numrin: ${bookingData.staffPhone}
+      • Nëse nuk mund të arrini, ju lutemi informoni biznesin për anulim në numrin: ${bookingData.staffPhone}
       
       💡 Këshillë: Nëse keni pyetje apo nevojë për ndryshime, kontaktoni biznesin sa më shpejt që të jetë e mundur.
       

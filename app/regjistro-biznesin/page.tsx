@@ -21,9 +21,9 @@ import { z } from "zod"
 
 // Validation schemas
 const businessSchema = z.object({
-  businessName: z.string().min(2, "Emri i biznesit duhet të ketë të paktën 2 karaktere"),
-  category: z.string().min(1, "Ju lutemi zgjidhni një kategori"),
-  description: z.string().min(10, "Përshkrimi duhet të ketë të paktën 10 karaktere"),
+  businessName: z.string().min(2, "Emri i biznesit duhet të jetë i vlefshëm!"),
+  category: z.string().min(1, "Ju lutemi zgjidhni një kategori!"),
+  description: z.string().min(10, "Ju lutem shënoni një përshkrim korrekt!"),
   ownerName: z.string().min(2, "Emri i pronarit duhet të ketë të paktën 2 karaktere"),
   phone: z.string().min(8, "Numri i telefonit duhet të ketë të paktën 8 shifra"),
   address: z.string().min(5, "Adresa duhet të ketë të paktën 5 karaktere"),
@@ -97,22 +97,7 @@ const validateTimeSelection = (openTime: string, closeTime: string) => {
   return close > open
 }
 
-// Helper function to convert category name to ID
-const getCategoryId = (categoryName: string): number => {
-  const categoryMap: { [key: string]: number } = {
-    "Parukari": 1,
-    "Salon Bukurie": 2, 
-    "Doktor": 3,
-    "Dentist": 4,
-    "Spa & Mirëqenie": 5,
-    "Qendër Fitnesi": 6,
-    "Shërbime për Kafshë": 7,
-    "Shërbime Auto": 8,
-    "Shërbime Shtëpie": 9,
-    "Të Tjera": 10
-  }
-  return categoryMap[categoryName] || 10
-}
+
 
 // City coordinates mapping
 const cityCoordinates: { [key: string]: { lat: number, lng: number } } = {
@@ -228,7 +213,7 @@ export default function RegisterBusinessPage() {
     // Step 1 fields
     if (fieldName === 'businessName') {
       if (!value || value.length < 2) {
-        errors.businessName = "Emri i biznesit duhet të ketë të paktën 2 karaktere"
+        errors.businessName = "Emri i biznesit duhet të jetë i vlefshëm!"
       } else {
         delete errors.businessName
       }
@@ -236,7 +221,7 @@ export default function RegisterBusinessPage() {
     
     if (fieldName === 'category') {
       if (!value || value === '') {
-        errors.category = "Ju lutemi zgjidhni një kategori"
+        errors.category = "Ju lutemi zgjidhni një kategori!"
       } else {
         delete errors.category
       }
@@ -244,7 +229,7 @@ export default function RegisterBusinessPage() {
     
     if (fieldName === 'description') {
       if (!value || value.length < 10) {
-        errors.description = "Përshkrimi duhet të ketë të paktën 10 karaktere"
+        errors.description = "Ju lutem shënoni një përshkrim korrekt!"
       } else {
         delete errors.description
       }
@@ -253,7 +238,7 @@ export default function RegisterBusinessPage() {
     // Step 2 fields
     if (fieldName === 'ownerName') {
       if (!value || value.length < 2) {
-        errors.ownerName = "Emri i pronarit duhet të plotësohet"
+        errors.ownerName = "Emri i pronarit duhet të plotësohet!"
       } else {
         delete errors.ownerName
       }
@@ -323,9 +308,9 @@ export default function RegisterBusinessPage() {
     if (step === 1) {
       // Only validate step 1 fields
       const step1Schema = z.object({
-        businessName: z.string().min(2, "Emri i biznesit duhet të ketë të paktën 2 karaktere"),
-        category: z.string().min(1, "Ju lutemi zgjidhni një kategori"),
-        description: z.string().min(10, "Përshkrimi duhet të ketë të paktën 10 karaktere"),
+        businessName: z.string().min(2, "Emri i biznesit duhet të jetë i vlefshëm!"),
+        category: z.string().min(1, "Ju lutemi zgjidhni një kategori!"),
+        description: z.string().min(10, "Ju lutem shënoni një përshkrim korrekt!"),
       })
       
       const result = step1Schema.safeParse({
@@ -344,13 +329,13 @@ export default function RegisterBusinessPage() {
     if (step === 2) {
       // Only validate step 2 fields
       const step2Schema = z.object({
-  ownerName: z.string().min(1, "Emri i pronarit duhet të plotësohet"),
+  ownerName: z.string().min(1, "Kjo fushë është e detyrueshme!"),
   phone: z.string()
-    .min(1, "Numri i telefonit duhet të jetë i vlefshëm")
-    .regex(/^\+?[0-9]+$/, "Numri i telefonit duhet të përmbajë vetëm numra dhe mund të fillojë me +"),
-  address: z.string().min(5, "Adresa duhet të ketë të paktën 5 karaktere"),
-  city: z.string().min(2, "Qyteti duhet të ketë të paktën 2 karaktere"),
-  state: z.string().min(2, "Rajoni duhet të ketë të paktën 2 karaktere"),
+    .min(1, "Kjo fushë është e detyrueshme!")
+    .regex(/^\+?[0-9]+$/, "Numri i telefonit duhet të jetë i vlefshëm!"),
+  address: z.string().min(5, "Kjo fushë është e detyrueshme!"),
+  city: z.string().min(2, "Kjo fushë është e detyrueshme!"),
+  state: z.string().min(2, "Kjo fushë është e detyrueshme!"),
   accountEmail: z.string().email("Email-i i llogarisë nuk është i vlefshëm"),
   accountPassword: z.string()
     .min(8, "Fjalëkalimi duhet të përmbajë të paktën 1 shkronjë të madhe dhe 1 numër dhe 8 karaktere minimum në total")
@@ -388,7 +373,7 @@ export default function RegisterBusinessPage() {
       // Validate operating hours
       const hasOpenDay = Object.values(formData.operatingHours).some(day => !day.closed)
       if (!hasOpenDay) {
-        errors.operatingHours = "Ju duhet të keni të paktën një ditë të hapur"
+        errors.operatingHours = "Të paktën një ditë pune duhet të selektohet!"
       } else {
         // Validate individual days
         Object.entries(formData.operatingHours).forEach(([day, dayData]) => {
@@ -439,7 +424,7 @@ export default function RegisterBusinessPage() {
       )
       
       if (validTeamMembers.length === 0) {
-        errors.teamMembers = "Ju duhet të shtoni të paktën një anëtar të ekipit"
+        errors.teamMembers = "Ju duhet të shtoni të paktën një anëtar!"
       }
       
       // Validate each team member
@@ -465,7 +450,7 @@ export default function RegisterBusinessPage() {
       if (validServices.length > 0 && validTeamMembers.length > 0) {
         validServices.forEach((service, serviceIndex) => {
           const hasAssignedMember = validTeamMembers.some(member => 
-            member.services && member.services.includes(service.name)
+            member.services && (member.services as number[]).includes(serviceIndex)
           )
           
           if (!hasAssignedMember) {
@@ -516,7 +501,7 @@ export default function RegisterBusinessPage() {
     },
 
     // Services & Pricing
-    services: [{ name: "", cost: "", duration: "" }],
+    services: [{ name: "", cost: "", duration: "", description: "" }],
 
     // Team Members
     teamMembers: [{ name: "", email: "", phone: "", services: [] }],
@@ -589,7 +574,7 @@ export default function RegisterBusinessPage() {
   const addService = () => {
     setFormData((prev) => ({
       ...prev,
-      services: [...prev.services, { name: "", cost: "", duration: "" }],
+      services: [...prev.services, { name: "", cost: "", duration: "", description: "" }],
     }))
   }
 
@@ -600,6 +585,12 @@ export default function RegisterBusinessPage() {
         i === index ? { ...service, [field]: value } : service
       ),
     }))
+    
+    // Clear validation errors for this field
+    const newErrors = { ...validationErrors }
+    delete newErrors[`service_${index}_${field}`]
+    delete newErrors[`service_${index}_assignment`]
+    setValidationErrors(newErrors)
   }
 
   const removeService = (index: number) => {
@@ -623,6 +614,20 @@ export default function RegisterBusinessPage() {
         i === index ? { ...member, [field]: value } : member
       ),
     }))
+    
+    // Clear validation errors for this field
+    const newErrors = { ...validationErrors }
+    delete newErrors[`member_${index}_${field}`]
+    delete newErrors[`member_${index}_services`]
+    if (field === 'services') {
+      // Also clear service assignment errors when services are updated
+      Object.keys(newErrors).forEach(key => {
+        if (key.startsWith('service_') && key.endsWith('_assignment')) {
+          delete newErrors[key]
+        }
+      })
+    }
+    setValidationErrors(newErrors)
   }
 
   const removeTeamMember = (index: number) => {
@@ -740,8 +745,8 @@ export default function RegisterBusinessPage() {
         description: `"${formData.businessName}" është shtuar në platformën tonë! Ju jeni kyçur automatikisht në panelin e biznesit.`,
       })
 
-      // Redirect to business panel (user will be automatically authenticated)
-      router.push("/business-panel")
+      // Redirect to business management (user will be automatically authenticated)
+      router.push("/menaxho-biznesin")
     } catch (error) {
       console.error("Error creating business:", error)
       toast({
@@ -797,20 +802,18 @@ export default function RegisterBusinessPage() {
 
       <Header transparent={true} />
 
-      <div className="container mx-auto px-[15px] md:px-4 py-20 relative z-10">
+      <div className="container mx-auto px-[15px] md:px-4 py-12 md:py-18 relative z-10">
         
 
         {/* Welcome Section */}
-        <div className="text-center mb-6 md:mb-12">
-          <div className="inline-flex items-center gap-2 bg-white/10 backdrop-blur-sm text-white px-6 py-2 rounded-full text-sm font-medium mb-4 md:mb-6">
+        <div className="text-center mb-3 md:mb-6">
+          <div className="inline-flex items-center gap-1 bg-white/10 backdrop-blur-sm text-white px-6 py-2 rounded-full text-sm font-medium mb-2 md:mb-3">
             <span className="w-2 h-2 bg-white rounded-full animate-pulse"></span>
-            Regjistrimi i Biznesit
+            Listimi i Biznesit
           </div>
-          <h1 className="text-3xl md:text-4xl font-heading font-bold text-white mb-4">
-            Listoni Biznesin Tuaj
-          </h1>
-          <p className="text-white/80 text-base md:text-lg max-w-2xl mx-auto">
-            Regjistrohuni si ofrues shërbimesh dhe filloni të pranoni rezervime nga klientët tuaj
+          
+          <p className="text-white/80 text-sm md:text-lg max-w-2xl mx-auto">
+            Regjistrohuni si ofrues shërbimesh dhe filloni të pranoni rezervime 
           </p>
         </div>
 
@@ -818,43 +821,43 @@ export default function RegisterBusinessPage() {
 
         <div className="max-w-4xl mx-auto">
           <Card className="bg-[#f4f4f4] border-0 shadow-2xl backdrop-blur-sm">
-            <CardContent className="px-4 md:px-8 py-3 md:py-3 md:py-5">
+            <CardContent className="px-4 md:px-8 py-1 ">
               {/* Hapi 1: Informacioni Bazë */}
               {currentStep === 1 && (
-                <div className="space-y-8">
+                <div className="space-y-5">
                   <div className="flex items-center gap-6 mb-6">
-                    <div className="w-16 h-16 bg-gradient-to-r from-gray-800 to-teal-800 rounded-2xl flex items-center justify-center flex-shrink-0">
-                      <Building2 className="w-8 h-8 text-white" />
+                    <div className="md:w-16 md:h-16 w-14 h-14 bg-gradient-to-r from-gray-800 to-teal-800 rounded-2xl flex items-center justify-center flex-shrink-0">
+                      <Building2 className="md:w-8 md:h-8 w-6 h-6 text-white" />
                     </div>
                     <div>
-                      <h3 className="text-xl md:text-2xl font-heading font-bold text-gray-800 mb-1">Informacioni Bazë</h3>
+                      <h3 className="text-xl md:text-2xl font-heading font-bold text-gray-800 ">Informacioni Bazë</h3>
                       <p className="text-gray-600">Na tregoni për biznesin tuaj</p>
                     </div>
                   </div>
 
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                    <div className="space-y-2">
+                    <div className="space-y-1">
                       <Label htmlFor="businessName" className="text-base md:text-base md:text-lg font-semibold text-gray-800">Emri i Biznesit *</Label>
                       <Input
                         id="businessName"
                         placeholder="Shkruani emrin e biznesit tuaj"
                         value={formData.businessName}
                         onChange={(e) => updateFormData("businessName", e.target.value)}
-                        className={`w-full text-lg py-3 md:py-5 bg-white border-gray-300 focus:border-gray-400 focus:ring-gray-400/30 placeholder:text-gray-500 placeholder:text-base placeholder:font-normal ${validationErrors.businessName ? 'border-red-500' : ''}`}
+                        className={`w-full text-sm md:text-lg py-3 md:py-5 bg-white border-gray-300 focus:border-gray-400 focus:ring-gray-400/30 placeholder:text-gray-500 placeholder:text-sm md:placeholder:text-base placeholder:font-normal ${validationErrors.businessName ? 'border-red-500' : ''}`}
                       />
                     {validationErrors.businessName && (
-                      <p className="text-red-500 text-sm">Emri i biznesit duhet të plotësohet</p>
+                      <p className="text-red-500 text-sm">Emri i biznesi duhet të jetë i vlefshëm!</p>
                     )}
                     </div>
 
-                    <div className="space-y-2">
+                    <div className="space-y-1">
                       <Label htmlFor="category" className="text-base md:text-base md:text-lg font-semibold text-gray-800">Kategoria e Biznesit *</Label>
                       <Select 
                         value={formData.category} 
                         onValueChange={(value) => updateFormData("category", value)}
                         disabled={categoriesLoading}
                       >
-                        <SelectTrigger className={`w-full text-md py-3 md:py-5 bg-white border-gray-300 focus:border-gray-400 focus:ring-gray-400/30 placeholder:text-gray-500 placeholder:text-base placeholder:font-normal ${validationErrors.category ? 'border-red-500' : ''} ${categoriesLoading ? 'opacity-50' : ''}`}>
+                        <SelectTrigger className={`w-full text-sm md:text-lg py-3 md:py-5 bg-white border-gray-300 focus:border-gray-400 focus:ring-gray-400/30 placeholder:text-gray-500 placeholder:text-sm md:placeholder:text-base placeholder:font-normal ${validationErrors.category ? 'border-red-500' : ''} ${categoriesLoading ? 'opacity-50' : ''}`}>
                           <SelectValue placeholder={categoriesLoading ? "Duke ngarkuar kategoritë..." : "Zgjidhni kategorinë e biznesit tuaj"} />
                         </SelectTrigger>
                         <SelectContent>
@@ -919,15 +922,15 @@ export default function RegisterBusinessPage() {
                       </div>
                     )}
 
-                  <div className="space-y-2">
+                  <div className="space-y-1" >
                     <Label htmlFor="description" className="text-base md:text-base md:text-lg font-semibold text-gray-800">Përshkrimi i Biznesit *</Label>
                     <Textarea
                       id="description"
                       placeholder="Përshkruani biznesin tuaj, shërbimet dhe atë që ju bën të veçantë..."
-                      rows={5}
+                      rows={3}
                       value={formData.description}
                       onChange={(e) => updateFormData("description", e.target.value)}
-                      className={`text-lg bg-white border-gray-300 focus:border-gray-400 focus:ring-gray-400/30 placeholder:text-gray-500 placeholder:text-base placeholder:font-normal ${validationErrors.description ? 'border-red-500' : ''}`}
+                      className={`text-sm md:text-lg bg-white border-gray-300 focus:border-gray-400 focus:ring-gray-400/30 placeholder:text-gray-500 placeholder:text-sm md:placeholder:text-base placeholder:font-normal ${validationErrors.description ? 'border-red-500' : ''}`}
                     />
                     {validationErrors.description && (
                       <p className="text-red-500 text-sm">{validationErrors.description}</p>
@@ -940,37 +943,37 @@ export default function RegisterBusinessPage() {
               {currentStep === 2 && (
                 <div className="space-y-4">
                   <div className="flex items-center gap-6 mb-4">
-                    <div className="w-16 h-16 bg-gradient-to-r from-gray-800 to-teal-800 rounded-2xl flex items-center justify-center flex-shrink-0">
-                      <User className="w-8 h-8 text-white" />
+                    <div className="md:w-16 md:h-16 w-14 h-14 bg-gradient-to-r from-gray-800 to-teal-800 rounded-2xl flex items-center justify-center flex-shrink-0">
+                      <User className="md:w-8 md:h-8 w-6 h-6 text-white" />
                     </div>
                     <div>
-                      <h3 className="text-xl md:text-2xl font-heading font-bold text-gray-800 mb-1">Kontakti & Vendndodhja</h3>
+                      <h3 className="text-xl md:text-2xl font-heading font-bold text-gray-800">Kontakti & Vendndodhja</h3>
                       <p className="text-gray-600">Si mund t'ju gjejnë klientët</p>
                     </div>
                   </div>
 
-                  <div className="grid md:grid-cols-2 gap-6">
-                    <div className="space-y-2">
+                  <div className="grid md:grid-cols-2 gap-3 md:gap-6">
+                    <div className="space-y-1">
                       <Label htmlFor="ownerName" className="text-base md:text-lg font-semibold text-gray-800">Emri i Pronarit/Menaxherit *</Label>
                       <Input
                         id="ownerName"
                         placeholder="Emri juaj i plotë"
                         value={formData.ownerName}
                         onChange={(e) => updateFormData("ownerName", e.target.value)}
-                        className={`text-lg py-3 md:py-5 bg-white border-gray-300 focus:border-gray-400 focus:ring-gray-400/30 placeholder:text-gray-500 placeholder:text-base placeholder:font-normal ${validationErrors.ownerName ? 'border-red-500' : ''}`}
+                        className={`text-sm md:text-lg py-3 md:py-5 bg-white border-gray-300 focus:border-gray-400 focus:ring-gray-400/30 placeholder:text-gray-500 placeholder:text-sm md:placeholder:text-base placeholder:font-normal ${validationErrors.ownerName ? 'border-red-500' : ''}`}
                       />
                       {validationErrors.ownerName && (
                         <p className="text-red-500 text-sm">{validationErrors.ownerName}</p>
                       )}
                     </div>
-                    <div className="space-y-2">
+                    <div className="space-y-1">
                       <Label htmlFor="phone" className="text-base md:text-lg font-semibold text-gray-800">Numri i Telefonit *</Label>
                       <Input
                         id="phone"
                         placeholder="+383 44 123 456"
                         value={formData.phone}
                         onChange={(e) => updateFormData("phone", e.target.value)}
-                        className={`text-lg py-3 md:py-5 bg-white border-gray-300 focus:border-gray-400 focus:ring-gray-400/30 placeholder:text-gray-500 placeholder:text-base placeholder:font-normal ${validationErrors.phone ? 'border-red-500' : ''}`}
+                        className={`text-sm md:text-lg py-3 md:py-5 bg-white border-gray-300 focus:border-gray-400 focus:ring-gray-400/30 placeholder:text-gray-500 placeholder:text-sm md:placeholder:text-base placeholder:font-normal ${validationErrors.phone ? 'border-red-500' : ''}`}
                       />
                       {validationErrors.phone && (
                         <p className="text-red-500 text-sm">{validationErrors.phone}</p>
@@ -980,13 +983,13 @@ export default function RegisterBusinessPage() {
 
                   <Separator className="bg-gray-300" />
 
-                  <div className="space-y-2">
-                    <h4 className="text-lg md:text-xl font-semibold text-gray-800 mb-2">Kredencialet e Llogarisë</h4>
+                  <div className="space-y-1">
+                    <h4 className="text-lg md:text-xl font-semibold text-gray-800 mb-1">Kredencialet e Llogarisë</h4>
                     <p className="text-gray-600 text-sm">Përdoren për të hyrë në panelin e biznesit tuaj</p>
                   </div>
 
-                  <div className="grid md:grid-cols-2 gap-6">
-                    <div className="space-y-2">
+                  <div className="grid md:grid-cols-2 gap-3 md:gap-6">
+                    <div className="space-y-1">
                       <Label htmlFor="accountEmail" className="text-base md:text-lg font-semibold text-gray-800">Email i Llogarisë *</Label>
                       <Input
                         id="accountEmail"
@@ -994,13 +997,13 @@ export default function RegisterBusinessPage() {
                         placeholder="account@yourbusiness.com"
                         value={formData.accountEmail}
                         onChange={(e) => updateFormData("accountEmail", e.target.value)}
-                        className={`text-lg py-3 md:py-5 bg-white border-gray-300 focus:border-gray-400 focus:ring-gray-400/30 placeholder:text-gray-500 placeholder:text-base placeholder:font-normal ${validationErrors.accountEmail ? 'border-red-500' : ''}`}
+                        className={`text-sm md:text-lg py-3 md:py-5 bg-white border-gray-300 focus:border-gray-400 focus:ring-gray-400/30 placeholder:text-gray-500 placeholder:text-sm md:placeholder:text-base placeholder:font-normal ${validationErrors.accountEmail ? 'border-red-500' : ''}`}
                       />
                       {validationErrors.accountEmail && (
                         <p className="text-red-500 text-sm">{validationErrors.accountEmail}</p>
                       )}
                     </div>
-                    <div className="space-y-2">
+                    <div className="space-y-1">
                       <Label htmlFor="accountPassword" className="text-base md:text-lg font-semibold text-gray-800">Fjalëkalimi *</Label>
                       <Input
                         id="accountPassword"
@@ -1008,7 +1011,7 @@ export default function RegisterBusinessPage() {
                         placeholder="Fjalëkalimi juaj"
                         value={formData.accountPassword}
                         onChange={(e) => updateFormData("accountPassword", e.target.value)}
-                        className={`text-lg py-3 md:py-5 bg-white border-gray-300 focus:border-gray-400 focus:ring-gray-400/30 placeholder:text-gray-500 placeholder:text-base placeholder:font-normal ${validationErrors.accountPassword ? 'border-red-500' : ''}`}
+                        className={`text-sm md:text-lg py-3 md:py-5 bg-white border-gray-300 focus:border-gray-400 focus:ring-gray-400/30 placeholder:text-gray-500 placeholder:text-sm md:placeholder:text-base placeholder:font-normal ${validationErrors.accountPassword ? 'border-red-500' : ''}`}
                       />
                       {validationErrors.accountPassword && (
                         <p className="text-red-500 text-sm">{validationErrors.accountPassword}</p>
@@ -1018,28 +1021,28 @@ export default function RegisterBusinessPage() {
 
                   <Separator className="bg-gray-300" />
 
-                  <div className="space-y-2">
+                  <div className="space-y-1">
                     <Label htmlFor="address" className="text-base md:text-lg font-semibold text-gray-800">Adresa e Rrugës *</Label>
                     <Input
                       id="address"
                       placeholder="123 Rruga Kryesore"
                       value={formData.address}
                       onChange={(e) => updateFormData("address", e.target.value)}
-                      className={`text-lg py-3 md:py-5 bg-white border-gray-300 focus:border-gray-400 focus:ring-gray-400/30 placeholder:text-gray-500 placeholder:text-base placeholder:font-normal ${validationErrors.address ? 'border-red-500' : ''}`}
+                      className={`text-sm md:text-lg py-3 md:py-5 bg-white border-gray-300 focus:border-gray-400 focus:ring-gray-400/30 placeholder:text-gray-500 placeholder:text-sm md:placeholder:text-base placeholder:font-normal ${validationErrors.address ? 'border-red-500' : ''}`}
                     />
                     {validationErrors.address && (
                       <p className="text-red-500 text-sm">{validationErrors.address}</p>
                     )}
                   </div>
 
-                  <div className="grid md:grid-cols-2 gap-6">
-                    <div className="space-y-2">
+                  <div className="grid md:grid-cols-2 gap-3 md:gap-6">
+                    <div className="space-y-1">
                       <Label htmlFor="city" className="text-base md:text-lg font-semibold text-gray-800">Qyteti *</Label>
                       <Select
                         value={formData.city}
                         onValueChange={handleCityChange}
                       >
-                        <SelectTrigger className={`w-full text-lg py-3 md:py-5 bg-white border-gray-300 focus:border-gray-400 focus:ring-gray-400/30 ${validationErrors.city ? 'border-red-500' : ''}`}>
+                        <SelectTrigger className={`w-full text-sm md:text-lg py-3 md:py-5 bg-white border-gray-300 focus:border-gray-400 focus:ring-gray-400/30 placeholder:text-gray-500 placeholder:text-sm md:placeholder:text-base placeholder:font-normal ${validationErrors.city ? 'border-red-500' : ''}`}>
                           <SelectValue placeholder="Zgjidhni qytetin" />
                         </SelectTrigger>
                         <SelectContent>
@@ -1087,14 +1090,14 @@ export default function RegisterBusinessPage() {
                         <p className="text-red-500 text-sm">{validationErrors.city}</p>
                       )}
                     </div>
-                    <div className="space-y-2">
+                    <div className="space-y-1">
                       <Label htmlFor="state" className="text-base md:text-lg font-semibold text-gray-800">Shteti *</Label>
                       <Select
                         value={formData.state}
                         onValueChange={(value) => updateFormData("state", value)}
                         disabled={true}
                       >
-                        <SelectTrigger className={`w-full text-lg py-3 md:py-5 bg-white border-gray-300 focus:border-gray-400 focus:ring-gray-400/30 ${validationErrors.state ? 'border-red-500' : ''} opacity-75`}>
+                        <SelectTrigger className={`w-full text-sm md:text-lg py-3 md:py-5 bg-white border-gray-300 focus:border-gray-400 focus:ring-gray-400/30 placeholder:text-gray-500 placeholder:text-sm md:placeholder:text-base placeholder:font-normal ${validationErrors.state ? 'border-red-500' : ''} opacity-75`}>
                           <SelectValue placeholder="Kosovë" />
                         </SelectTrigger>
                         <SelectContent>
@@ -1107,7 +1110,7 @@ export default function RegisterBusinessPage() {
                     </div>
                   </div>
 
-                  <div className="space-y-2">
+                  <div className="space-y-1">
                     <Label className="text-base md:text-lg font-semibold text-gray-800">Vendndodhja në Hartë *</Label>
                     <GoogleMapsPickerWrapper
                       key={`map-${currentStep}-${mapReady}-${mapCenter?.lat}-${mapCenter?.lng}`}
@@ -1144,11 +1147,11 @@ export default function RegisterBusinessPage() {
               {currentStep === 3 && (
                 <div className="space-y-8">
                   <div className="flex items-center gap-6 mb-6">
-                    <div className="w-16 h-16 bg-gradient-to-r from-gray-800 to-teal-800 rounded-2xl flex items-center justify-center flex-shrink-0">
-                      <Clock className="w-8 h-8 text-white" />
+                    <div className="md:w-16 md:h-16 w-14 h-14 bg-gradient-to-r from-gray-800 to-teal-800 rounded-2xl flex items-center justify-center flex-shrink-0">
+                      <Clock className="md:w-8 md:h-8 w-6 h-6 text-white" />
                     </div>
                     <div>
-                      <h3 className="text-xl md:text-2xl font-heading font-bold text-gray-800 mb-2">Orari i Punës</h3>
+                      <h3 className="text-xl md:text-2xl font-heading font-bold text-gray-800">Orari i Punës</h3>
                       <p className="text-gray-600">Kur jeni i disponueshëm</p>
                     </div>
                   </div>
@@ -1161,15 +1164,15 @@ export default function RegisterBusinessPage() {
                           <div className="flex items-center space-x-3">
                             <Label className="text-base font-medium text-gray-700">{day.label}</Label>
                           </div>
-                          <div className="flex flex-col md:flex-row md:items-center space-y-3 md:space-y-0 md:space-x-4">
+                          <div className="flex flex-row items-center space-x-2 md:space-x-4">
                             <div className="flex items-center space-x-2">
                               <input
                                 type="checkbox"
                                 checked={!dayData.closed}
                                 onChange={(e) => updateOperatingHours(day.key, "closed", !e.target.checked)}
-                                className="w-4 h-4 text-gray-600 rounded border-gray-300 focus:ring-gray-400/30"
+                                className="w-4 h-4 text-teal-800 bg-white rounded focus:ring-teal-800 focus:ring-2 accent-teal-800 border-0"
                               />
-                              <span className="text-sm text-gray-600">Hapur?</span>
+                              <span className="text-xs md:text-sm text-gray-600">Ditë pune?</span>
                             </div>
                             {!dayData.closed && (
                               <div className="flex items-center space-x-2">
@@ -1177,8 +1180,8 @@ export default function RegisterBusinessPage() {
                                   value={dayData.open}
                                   onValueChange={(value) => updateOperatingHours(day.key, "open", value)}
                                 >
-                                  <SelectTrigger className={`w-32 md:w-36 ${validationErrors[`${day.key}_open`] ? 'border-red-500' : ''}`}>
-                                    <SelectValue placeholder="Ora e hapjes" />
+                                  <SelectTrigger className={`w-22 md:w-36 text-sm md:text-lg placeholder:text-gray-500 placeholder:text-sm md:placeholder:text-base placeholder:font-normal ${validationErrors[`${day.key}_open`] ? 'border-red-500' : ''}`}>
+                                    <SelectValue placeholder="Hapja" />
                                   </SelectTrigger>
                                   <SelectContent>
                                     {operatingHours.map((hour) => (
@@ -1193,8 +1196,8 @@ export default function RegisterBusinessPage() {
                                   value={dayData.close}
                                   onValueChange={(value) => updateOperatingHours(day.key, "close", value)}
                                 >
-                                  <SelectTrigger className={`w-32 md:w-36 ${validationErrors[`${day.key}_close`] ? 'border-red-500' : ''}`}>
-                                    <SelectValue placeholder="Ora e mbylljes" />
+                                  <SelectTrigger className={`w-22 md:w-36 text-sm md:text-lg placeholder:text-gray-500 placeholder:text-sm md:placeholder:text-base placeholder:font-normal ${validationErrors[`${day.key}_close`] ? 'border-red-500' : ''}`}>
+                                    <SelectValue placeholder="Mbyllja" />
                                   </SelectTrigger>
                                   <SelectContent>
                                     {operatingHours.map((hour) => (
@@ -1210,6 +1213,9 @@ export default function RegisterBusinessPage() {
                         </div>
                       )
                     })}
+                    {validationErrors.operatingHours && (
+                      <p className="text-red-500 text-sm">{validationErrors.operatingHours}</p>
+                    )}
                   </div>
                 </div>
               )}
@@ -1218,26 +1224,26 @@ export default function RegisterBusinessPage() {
               {currentStep === 4 && (
                 <div className="space-y-8">
                   <div className="flex items-center gap-6 mb-6">
-                    <div className="w-16 h-16 bg-gradient-to-r from-gray-800 to-teal-800 rounded-2xl flex items-center justify-center flex-shrink-0">
-                      <Upload className="w-8 h-8 text-white" />
+                    <div className="md:w-16 md:h-16 w-14 h-14 bg-gradient-to-r from-gray-800 to-teal-800 rounded-2xl flex items-center justify-center flex-shrink-0">
+                      <Upload className="md:w-8 md:h-8 w-6 h-6 text-white" />
                     </div>
                     <div>
-                      <h3 className="text-xl md:text-2xl font-heading font-bold text-gray-800 mb-2">Shërbimet & Imazhet</h3>
+                      <h3 className="text-xl md:text-2xl font-heading font-bold text-gray-800">Shërbimet & Imazhet</h3>
                       <p className="text-gray-600">Çfarë ofroni</p>
                     </div>
                   </div>
 
                   <div className="space-y-8">
                     <div>
-                      <Label className="text-base md:text-base md:text-lg font-semibold text-gray-800 mb-4 block">Shërbimet që Ofroni *</Label>
+                      <Label className="text-base md:text-base md:text-lg font-semibold text-gray-800 mb-4 block">Shto shërbimet që ofroni: *</Label>
                       {validationErrors.services && (
                         <p className="text-red-500 text-sm mb-4">{validationErrors.services}</p>
                       )}
                       <div className="space-y-4">
                         {formData.services.map((service, index) => (
-                          <div key={index} className="bg-white p-4 rounded-lg border border-gray-200 space-y-4">
+                          <div key={index} className="bg-white p-4 rounded-lg border border-gray-200 ">
                             <div className="flex items-center justify-between">
-                              <h4 className="text-base font-semibold text-gray-800">Shërbimi {index + 1}</h4>
+                           
                               {formData.services.length > 1 && (
                                 <Button
                                   type="button"
@@ -1251,60 +1257,63 @@ export default function RegisterBusinessPage() {
                               )}
                             </div>
                             <div className="space-y-4">
-                              <div className="grid md:grid-cols-2 gap-4">
-                                <div className="space-y-2">
+                              {/* Service Name, Price and Duration - All in one line */}
+                              <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                                <div className="space-y-1">
                                   <Label className="text-xs md:text-sm font-medium text-gray-700">Emri i Shërbimit *</Label>
                                   <Input
                                     placeholder="Shkruani emrin e shërbimit"
                                     value={service.name}
                                     onChange={(e) => updateService(index, "name", e.target.value)}
-                                    className={`text-lg py-3 md:py-5 bg-white border-gray-300 focus:border-gray-400 focus:ring-gray-400/30 placeholder:text-gray-500 placeholder:text-base placeholder:font-normal ${validationErrors[`service_${index}_name`] ? 'border-red-500' : ''}`}
+                                    className={`text-sm md:text-lg py-3 md:py-5 bg-white border-gray-300 focus:border-gray-400 focus:ring-gray-400/30 placeholder:text-gray-500 placeholder:text-sm md:placeholder:text-base placeholder:font-normal ${validationErrors[`service_${index}_name`] ? 'border-red-500' : ''}`}
                                   />
                                   {validationErrors[`service_${index}_name`] && (
                                     <p className="text-red-500 text-sm">{validationErrors[`service_${index}_name`]}</p>
                                   )}
                                 </div>
-                                 <div className="space-y-2">
-                                   <Label className="text-xs md:text-sm font-medium text-gray-700">Çmimi (€)</Label>
-                                   <Input
-                                     type="number"
-                                     placeholder="0.00 (opsional)"
-                                     value={service.cost || ''}
-                                     onChange={(e) => updateService(index, "cost", e.target.value)}
-                                     className="text-lg py-3 md:py-5 bg-white border-gray-300 focus:border-gray-400 focus:ring-gray-400/30 placeholder:text-gray-500 placeholder:text-base placeholder:font-normal"
-                                   />
-                                 </div>
+                                <div className="space-y-1">
+                                  <Label className="text-xs md:text-sm font-medium text-gray-700">Çmimi (€)</Label>
+                                  <Input
+                                    type="number"
+                                    placeholder="0.00 (opsional)"
+                                    value={service.cost || ''}
+                                    onChange={(e) => updateService(index, "cost", e.target.value)}
+                                    className="text-sm md:text-lg py-3 md:py-5 bg-white border-gray-300 focus:border-gray-400 focus:ring-gray-400/30 placeholder:text-gray-500 placeholder:text-sm md:placeholder:text-base placeholder:font-normal"
+                                  />
+                                </div>
+                                <div className="space-y-1">
+                                  <Label className="text-xs md:text-sm font-medium text-gray-700">Kohëzgjatja *</Label>
+                                  <Select
+                                    value={service.duration}
+                                    onValueChange={(value) => updateService(index, "duration", value)}
+                                  >
+                                    <SelectTrigger className={`text-sm md:text-lg py-3 md:py-5 bg-white border-gray-300 focus:border-gray-400 focus:ring-gray-400/30 placeholder:text-gray-500 placeholder:text-sm md:placeholder:text-base placeholder:font-normal ${validationErrors[`service_${index}_duration`] ? 'border-red-500' : ''}`}>
+                                      <SelectValue placeholder="Zgjidhni kohëzgjatjen" />
+                                    </SelectTrigger>
+                                    <SelectContent>
+                                      {serviceDurations.map((duration) => (
+                                        <SelectItem key={duration} value={duration}>
+                                          {duration}
+                                        </SelectItem>
+                                      ))}
+                                    </SelectContent>
+                                  </Select>
+                                  {validationErrors[`service_${index}_duration`] && (
+                                    <p className="text-red-500 text-sm">{validationErrors[`service_${index}_duration`]}</p>
+                                  )}
+                                </div>
                               </div>
-                               <div className="space-y-2">
-                                 <Label className="text-xs md:text-sm font-medium text-gray-700">Përshkrimi i Shërbimit</Label>
-                                 <Textarea
-                                   placeholder="Shkruani përshkrimin e shërbimit (opsional)"
-                                   value={service.description || ''}
-                                   onChange={(e) => updateService(index, "description", e.target.value)}
-                                   className="text-lg py-3 md:py-5 bg-white border-gray-300 focus:border-gray-400 focus:ring-gray-400/30 placeholder:text-gray-500 placeholder:text-base placeholder:font-normal"
-                                   rows={3}
-                                 />
-                               </div>
-                              <div className="space-y-2">
-                                <Label className="text-xs md:text-sm font-medium text-gray-700">Kohëzgjatja *</Label>
-                                <Select
-                                  value={service.duration}
-                                  onValueChange={(value) => updateService(index, "duration", value)}
-                                >
-                                  <SelectTrigger className={`text-lg py-3 md:py-5 bg-white border-gray-300 focus:border-gray-400 focus:ring-gray-400/30 ${validationErrors[`service_${index}_duration`] ? 'border-red-500' : ''}`}>
-                                    <SelectValue placeholder="Zgjidhni kohëzgjatjen" />
-                                  </SelectTrigger>
-                                  <SelectContent>
-                                    {serviceDurations.map((duration) => (
-                                      <SelectItem key={duration} value={duration}>
-                                        {duration}
-                                      </SelectItem>
-                                    ))}
-                                  </SelectContent>
-                                </Select>
-                                {validationErrors[`service_${index}_duration`] && (
-                                  <p className="text-red-500 text-sm">{validationErrors[`service_${index}_duration`]}</p>
-                                )}
+
+                              {/* Description - Full width */}
+                              <div className="space-y-1">
+                                <Label className="text-xs md:text-sm font-medium text-gray-700">Përshkrimi i Shërbimit</Label>
+                                <Textarea
+                                  placeholder="Shkruani përshkrimin e shërbimit (opsional)"
+                                  value={service.description || ''}
+                                  onChange={(e) => updateService(index, "description", e.target.value)}
+                                  className="text-sm md:text-lg py-2 bg-white border-gray-300 focus:border-gray-400 focus:ring-gray-400/30 placeholder:text-gray-500 placeholder:text-sm md:placeholder:text-base placeholder:font-normal"
+                                  rows={2}
+                                />
                               </div>
                             </div>
                           </div>
@@ -1323,12 +1332,15 @@ export default function RegisterBusinessPage() {
                     <Separator className="bg-gray-300" />
 
                     <div>
-                      <Label className="text-base md:text-base md:text-lg font-semibold text-gray-800 mb-4 block">Ekipi i Stafit</Label>
+                      <Label className="text-base md:text-base md:text-lg font-semibold text-gray-800 mb-4 block">Shto anëtarët e stafit tuaj:</Label>
+                      {validationErrors.teamMembers && (
+                        <p className="text-red-500 text-sm mb-4">{validationErrors.teamMembers}</p>
+                      )}
                       <div className="space-y-4">
                         {formData.teamMembers.map((member, index) => (
-                          <div key={index} className="bg-white p-4 rounded-lg border border-gray-200 space-y-4">
+                          <div key={index} className="bg-white p-4 rounded-lg border border-gray-200 ">
                             <div className="flex items-center justify-between">
-                              <h4 className="text-base font-semibold text-gray-800">Anëtari i Ekipit {index + 1}</h4>
+                             
                               {formData.teamMembers.length > 1 && (
                                 <Button
                                   type="button"
@@ -1342,33 +1354,42 @@ export default function RegisterBusinessPage() {
                               )}
                             </div>
                             <div className="grid md:grid-cols-3 gap-4">
-                              <div className="space-y-2">
+                              <div className="space-y-1">
                                 <Label className="text-xs md:text-sm font-medium text-gray-700">Emri i Plotë *</Label>
                                 <Input
                                   placeholder="Emri i plotë i anëtarit"
                                   value={member.name}
                                   onChange={(e) => updateTeamMember(index, "name", e.target.value)}
-                                  className="text-lg py-3 md:py-5 bg-white border-gray-300 focus:border-gray-400 focus:ring-gray-400/30 placeholder:text-gray-500 placeholder:text-base placeholder:font-normal"
+                                  className={`text-sm md:text-lg py-3 md:py-5 bg-white border-gray-300 focus:border-gray-400 focus:ring-gray-400/30 placeholder:text-gray-500 placeholder:text-sm md:placeholder:text-base placeholder:font-normal ${validationErrors[`member_${index}_name`] ? 'border-red-500' : ''}`}
                                 />
+                                {validationErrors[`member_${index}_name`] && (
+                                  <p className="text-red-500 text-sm">{validationErrors[`member_${index}_name`]}</p>
+                                )}
                               </div>
-                              <div className="space-y-2">
+                              <div className="space-y-1">
                                 <Label className="text-xs md:text-sm font-medium text-gray-700">Email *</Label>
                                 <Input
                                   type="email"
                                   placeholder="email@example.com"
                                   value={member.email}
                                   onChange={(e) => updateTeamMember(index, "email", e.target.value)}
-                                  className="text-lg py-3 md:py-5 bg-white border-gray-300 focus:border-gray-400 focus:ring-gray-400/30 placeholder:text-gray-500 placeholder:text-base placeholder:font-normal"
+                                  className={`text-sm md:text-lg py-3 md:py-5 bg-white border-gray-300 focus:border-gray-400 focus:ring-gray-400/30 placeholder:text-gray-500 placeholder:text-sm md:placeholder:text-base placeholder:font-normal ${validationErrors[`member_${index}_email`] ? 'border-red-500' : ''}`}
                                 />
+                                {validationErrors[`member_${index}_email`] && (
+                                  <p className="text-red-500 text-sm">{validationErrors[`member_${index}_email`]}</p>
+                                )}
                               </div>
-                              <div className="space-y-2">
+                              <div className="space-y-1">
                                 <Label className="text-xs md:text-sm font-medium text-gray-700">Numri i Telefonit *</Label>
                                 <Input
                                   placeholder="+383 44 123 456"
                                   value={member.phone}
                                   onChange={(e) => updateTeamMember(index, "phone", e.target.value)}
-                                  className="text-lg py-3 md:py-5 bg-white border-gray-300 focus:border-gray-400 focus:ring-gray-400/30 placeholder:text-gray-500 placeholder:text-base placeholder:font-normal"
+                                  className={`text-sm md:text-lg py-3 md:py-5 bg-white border-gray-300 focus:border-gray-400 focus:ring-gray-400/30 placeholder:text-gray-500 placeholder:text-sm md:placeholder:text-base placeholder:font-normal ${validationErrors[`member_${index}_phone`] ? 'border-red-500' : ''}`}
                                 />
+                                {validationErrors[`member_${index}_phone`] && (
+                                  <p className="text-red-500 text-sm">{validationErrors[`member_${index}_phone`]}</p>
+                                )}
                               </div>
                             </div>
                             
@@ -1394,7 +1415,7 @@ export default function RegisterBusinessPage() {
                                         
                                         updateTeamMember(index, "services", newServices)
                                       }}
-                                      className="h-4 w-4 text-teal-600 focus:ring-teal-500 border-gray-300 rounded"
+                                      className="h-4 w-4 text-teal-900 bg-white rounded focus:ring-teal-800 focus:ring-2 accent-teal-800 border-0"
                                     />
                                     <label 
                                       htmlFor={`member-${index}-service-${serviceIndex}`}
@@ -1407,6 +1428,9 @@ export default function RegisterBusinessPage() {
                               </div>
                               {formData.services.length === 0 && (
                                 <p className="text-sm text-gray-500 italic">Shtoni shërbime në seksionin e shërbimeve për t'u zgjedhur këtu.</p>
+                              )}
+                              {validationErrors[`member_${index}_services`] && (
+                                <p className="text-red-500 text-sm mt-2">{validationErrors[`member_${index}_services`]}</p>
                               )}
                             </div>
                           </div>
@@ -1605,7 +1629,7 @@ export default function RegisterBusinessPage() {
               )}
 
               {/* Navigation Buttons */}
-              <div className="flex justify-between mt-12 pt-8 border-t border-gray-300">
+              <div className="flex justify-between mt-6 pt-4 border-t border-gray-300">
                 <Button
                   type="button"
                   variant="outline"

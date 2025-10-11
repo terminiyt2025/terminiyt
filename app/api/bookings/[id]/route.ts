@@ -57,7 +57,8 @@ export async function PATCH(
           select: {
             name: true,
             phone: true,
-            staff: true
+            staff: true,
+            slug: true
           }
         }
       }
@@ -77,6 +78,7 @@ export async function PATCH(
           customerName: updatedBooking.customerName,
           customerEmail: updatedBooking.customerEmail,
           businessName: updatedBooking.business.name,
+          businessSlug: updatedBooking.business.slug,
           serviceName: updatedBooking.serviceName,
           staffName: updatedBooking.staffName,
           date: format(new Date(updatedBooking.appointmentDate), 'EEEE, d MMMM yyyy', { locale: sq }),
