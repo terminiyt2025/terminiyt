@@ -59,7 +59,7 @@ const cityCoordinates: { [key: string]: { lat: number, lng: number } } = {
   "Junik": { lat: 42.4833, lng: 20.2833 },
   "Mamushë": { lat: 42.3167, lng: 20.7167 },
   "Drenas": { lat: 42.6264, lng: 20.8939 },
-  "F.Kosovë": { lat: 42.6629, lng: 21.1655 },
+  "F.Kosovë": { lat: 42.6408, lng: 21.1038 },
   "Obiliq": { lat: 42.6867, lng: 21.0775 },
   "Shtërpce": { lat: 42.2167, lng: 21.0167 },
   "Skenderaj": { lat: 42.7381, lng: 20.7897 },
@@ -719,96 +719,197 @@ export function GoogleMaps({ businesses: propBusinesses, categories, selectedCat
   return (
     <div className="space-y-4">
       {/* Category and City Filters */}
-      <div className="flex items-center justify-center gap-4">
-        <div className="flex items-center gap-2">
-          <Filter className="w-4 h-4 text-white" />
-          <span className="text-md text-white">Filtro:</span>
-        </div>
-        
-        {/* Category Filter */}
-        <div className="flex items-center gap-2">
-          <div className="relative" ref={categoryDropdownRef}>
-            <button
-              type="button"
-              className="w-40 px-3 py-2 text-left bg-white border border-white rounded-md shadow-sm flex items-center justify-between text-black"
-              onClick={() => setIsCategoryDropdownOpen(!isCategoryDropdownOpen)}
-            >
-              <span className="truncate text-sm">
-                {selectedCategory === "all" ? (
-                  <span className="text-gray-600">Kategorinë</span>
-                ) : (
-                  <span className="font-sm">{getSelectedCategoryName()}</span>
-                )}
-              </span>
-              <svg className="w-4 h-4 ml-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
-              </svg>
-            </button>
-            
-            {isCategoryDropdownOpen && (
-              <div className="absolute z-50 w-full mt-1 bg-white border border-gray-300 rounded-md shadow-lg overflow-visible">
-                <div
-                  className="px-3 py-2 hover:bg-gray-100 cursor-pointer flex items-center gap-2"
-                  onClick={() => handleCategorySelect("all")}
+      <div className="flex flex-col lg:flex-row items-center justify-center gap-3 lg:gap-4">
+        {/* Mobile Layout: Filtro above, dropdowns below */}
+        <div className="flex flex-col items-center gap-3 lg:hidden">
+          <div className="flex items-center gap-2">
+            <Filter className="w-4 h-4 text-white" />
+            <span className="text-md text-white">Filtro:</span>
+          </div>
+          <div className="flex items-center gap-4 justify-center">
+            {/* Category Filter */}
+            <div className="flex items-center gap-2">
+              <div className="relative" ref={categoryDropdownRef}>
+                <button
+                  type="button"
+                  className="w-32 px-3 py-2 text-left bg-white border border-white rounded-md shadow-sm flex items-center justify-between text-black"
+                  onClick={() => setIsCategoryDropdownOpen(!isCategoryDropdownOpen)}
                 >
-                  <span className="text-gray-600 text-sm">Të Gjitha</span>
-                </div>
-                {categories
-                  .sort((a, b) => {
-                    if (a.sort_order !== undefined && b.sort_order !== undefined) {
-                      return a.sort_order - b.sort_order
-                    }
-                    if (a.sort_order !== undefined) return -1
-                    if (b.sort_order !== undefined) return 1
-                    return a.name.localeCompare(b.name)
-                  })
-                  .map((category) => (
+                  <span className="truncate text-sm">
+                    {selectedCategory === "all" ? (
+                      <span className="text-gray-600">Kategorinë</span>
+                    ) : (
+                      <span className="font-medium">{getSelectedCategoryName()}</span>
+                    )}
+                  </span>
+                  <svg className="w-4 h-4 ml-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
+                  </svg>
+                </button>
+                
+                {isCategoryDropdownOpen && (
+                  <div className="absolute z-50 w-full mt-1 bg-white border border-gray-300 rounded-md shadow-lg overflow-visible">
                     <div
-                      key={category.id}
-                      className="px-3 text-sm py-2 hover:bg-gray-100 cursor-pointer flex items-center gap-2"
-                      onClick={() => handleCategorySelect(String(category.id))}
+                      className="px-3 py-2 hover:bg-gray-100 cursor-pointer flex items-center gap-2"
+                      onClick={() => handleCategorySelect("all")}
                     >
-                      {category.icon && (
-                        <img 
-                          src={category.icon} 
-                          alt={category.name}
-                          className="w-4 h-4 rounded object-cover flex-shrink-0"
-                          onError={(e) => {
-                            ;(e.target as HTMLImageElement).style.display = 'none'
-                          }}
-                        />
-                      )}
-                      <span className="truncate text-black">{category.name}</span>
+                      <span className="text-gray-600 text-sm">Të gjitha</span>
                     </div>
-                  ))}
+                    {categories
+                      .sort((a, b) => {
+                        if (a.sort_order !== undefined && b.sort_order !== undefined) {
+                          return a.sort_order - b.sort_order
+                        }
+                        if (a.sort_order !== undefined) return -1
+                        if (b.sort_order !== undefined) return 1
+                        return a.name.localeCompare(b.name)
+                      })
+                      .map((category) => (
+                        <div
+                          key={category.id}
+                          className="px-3 py-2 hover:bg-gray-100 cursor-pointer flex items-center gap-2"
+                          onClick={() => handleCategorySelect(String(category.id))}
+                        >
+                          {category.icon && (
+                            <img 
+                              src={category.icon} 
+                              alt={category.name}
+                              className="w-4 h-4 rounded object-cover flex-shrink-0"
+                              onError={(e) => {
+                                ;(e.target as HTMLImageElement).style.display = 'none'
+                              }}
+                            />
+                          )}
+                          <span className="truncate text-sm text-black">{category.name}</span>
+                        </div>
+                      ))}
+                  </div>
+                )}
               </div>
-            )}
+            </div>
+
+            {/* City Filter */}
+            <div className="flex items-center gap-2">
+              <div className="relative">
+                <button
+                  type="button"
+                  className="w-32 px-3 py-2 text-left bg-white border border-white rounded-md shadow-sm flex items-center justify-between text-black"
+                  onClick={() => {
+                    // For mobile, we'll use a simple approach - just cycle through cities
+                    const cityKeys = Object.keys(cityCoordinates)
+                    const currentIndex = cityKeys.indexOf(selectedCity)
+                    const nextIndex = (currentIndex + 1) % cityKeys.length
+                    handleCityChange(cityKeys[nextIndex])
+                  }}
+                >
+                  <span className="truncate text-sm">
+                    {selectedCity === "all" ? (
+                      <span className="text-gray-600">Qytetit</span>
+                    ) : (
+                      <span className="font-medium">{selectedCity}</span>
+                    )}
+                  </span>
+                  <svg className="w-4 h-4 ml-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
+                  </svg>
+                </button>
+              </div>
+            </div>
           </div>
         </div>
 
-        {/* City Filter */}
-        <div className="flex items-center gap-2">
-          <Select value={selectedCity} onValueChange={handleCityChange}>
-            <SelectTrigger className="w-40 bg-white text-black border-white">
-              <div className="flex items-center gap-2">
-                {selectedCity === "all" ? (
-                  <span className="text-gray-600">Qytetin:</span>
-                ) : (
-                  <span className="font-medium">{selectedCity}</span>
-                )}
-              </div>
-            </SelectTrigger>
-            <SelectContent className="bg-white text-black">
-              <SelectItem value="all" className="text-black hover:bg-gray-100 focus:bg-gray-100">
-                <span className="text-black">Të Gjitha</span>
-              </SelectItem>
-              {Object.keys(cityCoordinates).map((city) => (
-                <SelectItem key={city} value={city} className="text-black hover:bg-gray-100 focus:bg-gray-100">
-                  <span className="text-black">{city}</span>
+        {/* Desktop Layout: Horizontal */}
+        <div className="hidden lg:flex items-center justify-center gap-4">
+          <div className="flex items-center gap-2">
+            <Filter className="w-4 h-4 text-white" />
+            <span className="text-md text-white">Filtro:</span>
+          </div>
+          
+          {/* Category Filter */}
+          <div className="flex items-center gap-2">
+            <div className="relative" ref={categoryDropdownRef}>
+              <button
+                type="button"
+                className="w-40 px-3 py-2 text-left bg-white border border-white rounded-md shadow-sm flex items-center justify-between text-black"
+                onClick={() => setIsCategoryDropdownOpen(!isCategoryDropdownOpen)}
+              >
+                <span className="truncate text-sm">
+                  {selectedCategory === "all" ? (
+                    <span className="text-gray-600">Kategorinë</span>
+                  ) : (
+                    <span className="font-sm">{getSelectedCategoryName()}</span>
+                  )}
+                </span>
+                <svg className="w-4 h-4 ml-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
+                </svg>
+              </button>
+              
+              {isCategoryDropdownOpen && (
+                <div className="absolute z-50 w-full mt-1 bg-white border border-gray-300 rounded-md shadow-lg overflow-visible">
+                  <div
+                    className="px-3 py-2 hover:bg-gray-100 cursor-pointer flex items-center gap-2"
+                    onClick={() => handleCategorySelect("all")}
+                  >
+                    <span className="text-gray-600 text-sm">Të gjitha</span>
+                  </div>
+                  {categories
+                    .sort((a, b) => {
+                      if (a.sort_order !== undefined && b.sort_order !== undefined) {
+                        return a.sort_order - b.sort_order
+                      }
+                      if (a.sort_order !== undefined) return -1
+                      if (b.sort_order !== undefined) return 1
+                      return a.name.localeCompare(b.name)
+                    })
+                    .map((category) => (
+                      <div
+                        key={category.id}
+                        className="px-3 text-sm py-2 hover:bg-gray-100 cursor-pointer flex items-center gap-2"
+                        onClick={() => handleCategorySelect(String(category.id))}
+                      >
+                        {category.icon && (
+                          <img 
+                            src={category.icon} 
+                            alt={category.name}
+                            className="w-4 h-4 rounded object-cover flex-shrink-0"
+                            onError={(e) => {
+                              ;(e.target as HTMLImageElement).style.display = 'none'
+                            }}
+                          />
+                        )}
+                        <span className="truncate text-black">{category.name}</span>
+                      </div>
+                    ))}
+                </div>
+              )}
+            </div>
+          </div>
+
+          {/* City Filter */}
+          <div className="flex items-center gap-2">
+            <Select value={selectedCity} onValueChange={handleCityChange}>
+              <SelectTrigger className="w-40 bg-white text-black border-white">
+                <div className="flex items-center gap-2">
+                  {selectedCity === "all" ? (
+                    <span className="text-gray-600">Qytetit</span>
+                  ) : (
+                    <span className="font-medium">{selectedCity}</span>
+                  )}
+                </div>
+              </SelectTrigger>
+              <SelectContent className="bg-white text-black">
+                <SelectItem value="all" className="text-black hover:bg-gray-100 focus:bg-gray-100">
+                  <span className="text-black">Të gjitha</span>
                 </SelectItem>
-              ))}
-            </SelectContent>
-          </Select>
+                {Object.keys(cityCoordinates).map((city) => (
+                  <SelectItem key={city} value={city} className="text-black hover:bg-gray-100 focus:bg-gray-100">
+                    <span className="text-black">{city}</span>
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+          </div>
         </div>
       </div>
 

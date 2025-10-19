@@ -136,13 +136,23 @@ export async function POST(request: NextRequest) {
     const staffData = body.team_members && Array.isArray(body.team_members)
       ? body.team_members
           .filter((member: any) => member.name && member.email && member.phone)
-          .map((member: any) => ({
-            name: member.name,
-            email: member.email,
-            phone: member.phone,
-            services: member.services || [], // Include services array
-            isActive: true
-          }))
+          .map((member: any) => {
+            // Convert service indices to service names
+            const serviceNames = (member.services || []).map((serviceIndex: number) => {
+              if (typeof serviceIndex === 'number' && body.services && body.services[serviceIndex]) {
+                return body.services[serviceIndex].name
+              }
+              return serviceIndex // If it's already a string, keep it
+            }).filter(Boolean) // Remove any undefined values
+            
+            return {
+              name: member.name,
+              email: member.email,
+              phone: member.phone,
+              services: serviceNames, // Use service names instead of indices
+              isActive: true
+            }
+          })
       : []
 
     // Create business object
@@ -185,7 +195,7 @@ export async function POST(request: NextRequest) {
           ${businessData.owner_name}, ${businessData.phone}, ${businessData.address},
           ${businessData.city}, ${businessData.state},
           ${businessData.latitude}, ${businessData.longitude}, ${businessData.account_email},
-          ${businessData.account_password}, ${businessData.logo}, ${JSON.stringify(businessData.businessImages || null)}::jsonb,
+          ${businessData.account_password}, ${businessData.logo}, ${businessData.businessImages || null},
           ${JSON.stringify(businessData.operating_hours || null)}::jsonb,
           ${JSON.stringify(servicesData)}::jsonb, ${JSON.stringify(staffData)}::jsonb,
           ${businessData.is_active}, false, 0, 0, NOW(), NOW()
@@ -207,7 +217,7 @@ export async function POST(request: NextRequest) {
           ${businessData.owner_name}, ${businessData.phone}, ${businessData.address},
           ${businessData.city}, ${businessData.state},
           ${businessData.latitude}, ${businessData.longitude}, ${businessData.account_email},
-          ${businessData.account_password}, ${businessData.logo}, ${JSON.stringify(businessData.businessImages || null)}::jsonb,
+          ${businessData.account_password}, ${businessData.logo}, ${businessData.businessImages || null},
           ${JSON.stringify(businessData.operating_hours || null)}::jsonb,
           ${JSON.stringify(servicesData)}::jsonb, ${JSON.stringify(staffData)}::jsonb,
           ${businessData.is_active}, false, 0, 0, NOW(), NOW()

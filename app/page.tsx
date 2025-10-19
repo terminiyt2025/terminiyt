@@ -40,21 +40,33 @@ export default function HomePage() {
   const [modalType, setModalType] = useState<'staff-sherbimet' | 'orari' | null>(null)
   const [showAllCards, setShowAllCards] = useState(false)
   const [isCategoryDropdownOpen, setIsCategoryDropdownOpen] = useState(false)
+  const [isCityDropdownOpen, setIsCityDropdownOpen] = useState(false)
   const categoryDropdownRef = useRef<HTMLDivElement>(null)
+  const cityDropdownRef = useRef<HTMLDivElement>(null)
   const { user, isAuthenticated, logout } = useAuth()
-  const { calculateDistance, getCurrentLocation, setLocationToPrishtina, detectedCity } = useLocation()
+  const { calculateDistance, getCurrentLocation, setLocationToPrishtina, detectedCity, isUserLocation } = useLocation()
   const { businesses, loading } = useBusinesses()
 
   // Helper functions for category dropdown
   const getSelectedCategoryName = () => {
-    if (selectedCategory === "all") return "Të Gjitha"
+    if (selectedCategory === "all") return "Të gjitha"
     const category = categories.find(cat => String(cat.id) === selectedCategory)
-    return category ? category.name : "Të Gjitha"
+    return category ? category.name : "Të gjitha"
+  }
+
+  const getSelectedCityName = () => {
+    if (selectedCity === "all") return "Të gjitha"
+    return selectedCity
   }
 
   const handleCategorySelect = (categoryId: string) => {
     setSelectedCategory(categoryId)
     setIsCategoryDropdownOpen(false)
+  }
+
+  const handleCitySelect = (city: string) => {
+    setSelectedCity(city)
+    setIsCityDropdownOpen(false)
   }
 
   // Fetch categories from database
@@ -89,6 +101,9 @@ export default function HomePage() {
       if (categoryDropdownRef.current && !categoryDropdownRef.current.contains(event.target as Node)) {
         setIsCategoryDropdownOpen(false)
       }
+      if (cityDropdownRef.current && !cityDropdownRef.current.contains(event.target as Node)) {
+        setIsCityDropdownOpen(false)
+      }
     }
 
     document.addEventListener('mousedown', handleClickOutside)
@@ -97,58 +112,64 @@ export default function HomePage() {
     }
   }, [])
 
-  // Predefined Kosovo cities
-  const cities = [
-    "Deçan",
-    "Dragash", 
-    "Drenas",
-    "F.Kosovë",
-    "Ferizaj",
-    "Gjakovë",
-    "Gjilan",
-    "Graçanic",
-    "Hani Elezit",
-    "Istog",
-    "Junik",
-    "Kaçanik",
-    "Kamenicë",
-    "Klinë",
-    "Kllokot",
-    "Lipjan",
-    "Malishevë",
-    "Mamushë",
-    "Mitrovicë",
-    "Novobërdë",
-    "Obiliq",
-    "Partesh",
-    "Pejë",
-    "Podujevë",
-    "Prishtinë",
-    "Prizren",
-    "Rahovec",
-    "Ranillug",
-    "Shtërpce",
-    "Shtime",
-    "Skenderaj",
-    "Therandë",
-    "Viti",
-    "Vushtrri",
-    "Mitrovicë E Veriut",
-    "Zubin Potok",
-    "Zveçan",
-    "Leposaviq"
-  ]
+  // City coordinates mapping (same as Google Maps component)
+  const cityCoordinates: { [key: string]: { lat: number, lng: number } } = {
+    "Prishtinë": { lat: 42.6629, lng: 21.1655 },
+    "Prizren": { lat: 42.2139, lng: 20.7397 },
+    "Pejë": { lat: 42.6593, lng: 20.2883 },
+    "Gjakovë": { lat: 42.3803, lng: 20.4308 },
+    "Gjilan": { lat: 42.4635, lng: 21.4694 },
+    "Mitrovicë": { lat: 42.8826, lng: 20.8677 },
+    "Ferizaj": { lat: 42.3709, lng: 21.1553 },
+    "Podujeva": { lat: 42.9106, lng: 21.1933 },
+    "Gllogoc": { lat: 42.6264, lng: 20.8939 },
+    "Lipjan": { lat: 42.5242, lng: 21.1258 },
+    "Rahovec": { lat: 42.3992, lng: 20.6547 },
+    "Malishevë": { lat: 42.4822, lng: 20.7458 },
+    "Suharekë": { lat: 42.3589, lng: 20.8258 },
+    "Klinë": { lat: 42.6203, lng: 20.5775 },
+    "Skënderaj": { lat: 42.7381, lng: 20.7897 },
+    "Vushtrri": { lat: 42.8231, lng: 20.9675 },
+    "Deçan": { lat: 42.5403, lng: 20.2875 },
+    "Istog": { lat: 42.7806, lng: 20.4889 },
+    "Kamenicë": { lat: 42.5781, lng: 21.5758 },
+    "Dragash": { lat: 42.0625, lng: 20.6531 },
+    "Shtime": { lat: 42.4331, lng: 21.0408 },
+    "Kaçanik": { lat: 42.2306, lng: 21.2581 },
+    "Novobërdë": { lat: 42.3167, lng: 21.4167 },
+    "Ranillug": { lat: 42.5500, lng: 21.6000 },
+    "Partesh": { lat: 42.4000, lng: 21.4500 },
+    "Kllokot": { lat: 42.3667, lng: 21.3833 },
+    "Graçanicë": { lat: 42.6000, lng: 21.2000 },
+    "Han i Elezit": { lat: 42.1500, lng: 21.3000 },
+    "Junik": { lat: 42.4833, lng: 20.2833 },
+    "Mamushë": { lat: 42.3167, lng: 20.7167 },
+    "Drenas": { lat: 42.6264, lng: 20.8939 },
+    "F.Kosovë": { lat: 42.6629, lng: 21.1655 },
+    "Obiliq": { lat: 42.6867, lng: 21.0775 },
+    "Shtërpce": { lat: 42.2167, lng: 21.0167 },
+    "Skenderaj": { lat: 42.7381, lng: 20.7897 },
+    "Therandë": { lat: 42.3803, lng: 20.4308 },
+    "Viti": { lat: 42.3167, lng: 21.4167 },
+    "Mitrovicë E Veriut": { lat: 42.8945, lng: 20.8655 },
+    "Zubin Potok": { lat: 42.9167, lng: 20.8333 },
+    "Zveçan": { lat: 42.9167, lng: 20.8333 },
+    "Leposaviq": { lat: 43.1000, lng: 20.8000 }
+  }
+
+  // Get cities in the same order as Google Maps component
+  const cities = Object.keys(cityCoordinates)
 
   const filteredProviders = businesses
     .map((provider) => {
-      // Calculate real distance if location is available
+      // Calculate real distance only if user's actual location is available (not fallback)
       const distance =
-        provider.latitude && provider.longitude ? calculateDistance(provider.latitude, provider.longitude) : null
+        provider.latitude && provider.longitude && isUserLocation ? calculateDistance(provider.latitude, provider.longitude) : null
 
       return {
         ...provider,
         calculatedDistance: distance,
-        displayDistance: distance ? `${distance} km` : "Distance unavailable",
+        displayDistance: distance ? `${distance} km` : null, // Don't show "Distance unavailable" when location is blocked
       };
     })
     .filter((provider) => {
@@ -181,7 +202,7 @@ export default function HomePage() {
       <section className="w-full bg-gradient-to-r  from-gray-800 to-teal-800 text-white py-10 pt-18 md:pt-24 map-section">
         <div className="w-full">
           {/* Map Title and Slogan */}
-          <div className="text-center mb-8">
+          <div className="text-center mb-3 md:mb-2">
             <h2 className="text-3xl md:text-4xl font-heading font-bold text-foreground mb-3 text-white text-balance">
             Gjej Shërbime Lokale sipas Interesit tënd
             </h2>
@@ -224,194 +245,197 @@ export default function HomePage() {
                         <div className="flex items-center gap-4 justify-center">
                           {/* Category Filter */}
                           <div className="flex items-center gap-2">
-                            <span className="text-sm text-gray-600">Kategorisë:</span>
-                            {selectedCategory !== "all" ? (
-                              <div className="flex items-center gap-2">
-                                <span className="font-semibold text-teal-600 bg-teal-50 px-3 py-1 rounded-full">
-                                  {categories.find(cat => String(cat.id) === selectedCategory)?.name || "Unknown"}
+                            <div className="relative" ref={categoryDropdownRef}>
+                              <button
+                                type="button"
+                                className="w-32 px-3 py-2 text-left bg-white border border-gray-300 rounded-md shadow-sm flex items-center justify-between text-black"
+                                onClick={() => setIsCategoryDropdownOpen(!isCategoryDropdownOpen)}
+                              >
+                                <span className="truncate text-sm">
+                                  {selectedCategory === "all" ? (
+                                    <span className="text-gray-600">Kategorisë</span>
+                                  ) : (
+                                    <span className="font-medium">{getSelectedCategoryName()}</span>
+                                  )}
                                 </span>
-                                <Button
-                                  variant="ghost"
-                                  size="sm"
-                                  onClick={() => setSelectedCategory("all")}
-                                  className="h-6 w-6 p-0 hover:bg-gray-200"
-                                >
-                                  <X className="w-4 h-4 text-gray-500" />
-                                </Button>
-                              </div>
-                            ) : (
-                              <div className="relative" ref={categoryDropdownRef}>
-                                <button
-                                  type="button"
-                                  className="w-28 md:w-40 px-3 py-2 text-left bg-white border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-teal-500 focus:border-teal-500 flex items-center justify-between"
-                                  onClick={() => setIsCategoryDropdownOpen(!isCategoryDropdownOpen)}
-                                >
-                                  <span className="truncate">{getSelectedCategoryName()}</span>
-                                  <svg className="w-4 h-4 ml-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
-                                  </svg>
-                                </button>
-                                
-                                {isCategoryDropdownOpen && (
-                                  <div className="absolute z-50 w-full mt-1 bg-white border border-gray-300 rounded-md shadow-lg overflow-visible">
-                                    <div
-                                      className="px-3 py-2 hover:bg-gray-100 cursor-pointer flex items-center gap-2"
-                                      onClick={() => handleCategorySelect("all")}
-                                    >
-                                      <span className="text-gray-600">Të Gjitha</span>
-                                    </div>
-                                    {categories
-                                      .sort((a, b) => {
-                                        // Use sort_order if both have it
-                                        if (a.sort_order !== undefined && b.sort_order !== undefined) {
-                                          return a.sort_order - b.sort_order
-                                        }
-                                        // If only one has sort_order, prioritize it
-                                        if (a.sort_order !== undefined) return -1
-                                        if (b.sort_order !== undefined) return 1
-                                        // Fallback to alphabetical
-                                        return a.name.localeCompare(b.name)
-                                      })
-                                      .map((category) => (
-                                        <div
-                                          key={category.id}
-                                          className="px-3 py-2 hover:bg-gray-100 cursor-pointer flex items-center gap-2"
-                                          onClick={() => handleCategorySelect(String(category.id))}
-                                        >
-                                          {category.icon && (
-                                            <img 
-                                              src={category.icon} 
-                                              alt={category.name}
-                                              className="w-4 h-4 rounded object-cover flex-shrink-0"
-                                              onError={(e) => {
-                                                ;(e.target as HTMLImageElement).style.display = 'none'
-                                              }}
-                                            />
-                                          )}
-                                          <span className="truncate">{category.name}</span>
-                                        </div>
-                                      ))}
+                                <svg className="w-4 h-4 ml-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
+                                </svg>
+                              </button>
+                              
+                              {isCategoryDropdownOpen && (
+                                <div className="absolute z-50 w-full mt-1 bg-white border border-gray-300 rounded-md shadow-lg overflow-visible">
+                                  <div
+                                    className="px-3 py-2 hover:bg-gray-100 cursor-pointer flex items-center gap-2"
+                                    onClick={() => handleCategorySelect("all")}
+                                  >
+                                    <span className="text-gray-600 text-sm">Të gjitha</span>
                                   </div>
-                                )}
-                              </div>
-                            )}
+                                  {categories
+                                    .sort((a, b) => {
+                                      if (a.sort_order !== undefined && b.sort_order !== undefined) {
+                                        return a.sort_order - b.sort_order
+                                      }
+                                      if (a.sort_order !== undefined) return -1
+                                      if (b.sort_order !== undefined) return 1
+                                      return a.name.localeCompare(b.name)
+                                    })
+                                    .map((category) => (
+                                      <div
+                                        key={category.id}
+                                        className="px-3 py-2 hover:bg-gray-100 cursor-pointer flex items-center gap-2"
+                                        onClick={() => handleCategorySelect(String(category.id))}
+                                      >
+                                        <span className="truncate text-sm text-black">{category.name}</span>
+                                      </div>
+                                    ))}
+                                </div>
+                              )}
+                            </div>
                           </div>
 
                           {/* City Filter */}
                           <div className="flex items-center gap-2">
-                            <span className="text-sm text-gray-600">Qytetit:</span>
-                            {selectedCity !== "all" ? (
-                              <div className="flex items-center gap-2">
-                                <span className="font-semibold text-teal-600 bg-teal-50 px-3 py-1 rounded-full">
-                                  {selectedCity}
+                            <div className="relative" ref={cityDropdownRef}>
+                              <button
+                                type="button"
+                                className="w-32 px-3 py-2 text-left bg-white border border-gray-300 rounded-md shadow-sm flex items-center justify-between text-black"
+                                onClick={() => setIsCityDropdownOpen(!isCityDropdownOpen)}
+                              >
+                                <span className="truncate text-sm">
+                                  {selectedCity === "all" ? (
+                                    <span className="text-gray-600">Qytetit</span>
+                                  ) : (
+                                    <span className="font-medium">{getSelectedCityName()}</span>
+                                  )}
                                 </span>
-                                <Button
-                                  variant="ghost"
-                                  size="sm"
-                                  onClick={() => setSelectedCity("all")}
-                                  className="h-6 w-6 p-0 hover:bg-gray-200"
-                                >
-                                  <X className="w-4 h-4 text-gray-500" />
-                                </Button>
-                              </div>
-                            ) : (
-                              <Select value={selectedCity} onValueChange={setSelectedCity}>
-                                <SelectTrigger className="w-24 md:w-32">
-                                  <SelectValue placeholder="Qyteti" />
-                                </SelectTrigger>
-                                <SelectContent>
-                                  <SelectItem value="all" className="hover:bg-gray-100 focus:bg-gray-100 hover:text-black focus:text-black">Të Gjitha</SelectItem>
+                                <svg className="w-4 h-4 ml-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
+                                </svg>
+                              </button>
+                              
+                              {isCityDropdownOpen && (
+                                <div className="absolute z-50 w-full mt-1 bg-white border border-gray-300 rounded-md shadow-lg max-h-60 overflow-auto">
+                                  <div
+                                    className="px-3 py-2 hover:bg-gray-100 cursor-pointer flex items-center gap-2"
+                                    onClick={() => handleCitySelect("all")}
+                                  >
+                                    <span className="text-gray-600 text-sm">Të gjitha</span>
+                                  </div>
                                   {cities.map((city) => (
-                                    <SelectItem key={city} value={city} className="hover:bg-gray-100 focus:bg-gray-100 hover:text-black focus:text-black">
-                                      {city}
-                                    </SelectItem>
+                                    <div
+                                      key={city}
+                                      className="px-3 py-2 hover:bg-gray-100 cursor-pointer flex items-center gap-2"
+                                      onClick={() => handleCitySelect(city)}
+                                    >
+                                      <span className="truncate text-sm text-black">{city}</span>
+                                    </div>
                                   ))}
-                                </SelectContent>
-                              </Select>
-                            )}
+                                </div>
+                              )}
+                            </div>
                           </div>
                         </div>
                       </div>
 
-                      {/* Desktop Layout: Original horizontal layout */}
-                      <div className="hidden lg:flex items-center gap-3 justify-start">
+                      {/* Desktop Layout: Custom dropdowns */}
+                      <div className="hidden lg:flex items-center gap-4 justify-start">
                         <p className="text-lg text-gray-700">
                           Filtro sipas:
                         </p>
                         
                         {/* Category Filter */}
                         <div className="flex items-center gap-2">
-                        
-                        <span className="text-sm text-gray-600">Kategorisë:</span>
-                          {selectedCategory !== "all" ? (
-                            <div className="flex items-center gap-2">
-                              <span className="font-semibold text-teal-600 bg-teal-50 px-3 py-1 rounded-full">
-                                {categories.find(cat => String(cat.id) === selectedCategory)?.name || "Unknown"}
+                          <div className="relative" ref={categoryDropdownRef}>
+                            <button
+                              type="button"
+                              className="w-32 px-3 py-2 text-left bg-white border border-gray-300 rounded-md shadow-sm  flex items-center justify-between text-black"
+                              onClick={() => setIsCategoryDropdownOpen(!isCategoryDropdownOpen)}
+                            >
+                              <span className="truncate text-sm">
+                                {selectedCategory === "all" ? (
+                                  <span className="text-gray-600">Kategorisë</span>
+                                ) : (
+                                  <span className="font-medium">{getSelectedCategoryName()}</span>
+                                )}
                               </span>
-                              <Button
-                                variant="ghost"
-                                size="sm"
-                                onClick={() => setSelectedCategory("all")}
-                                className="h-6 w-6 p-0 hover:bg-gray-200"
-                              >
-                                <X className="w-4 h-4 text-gray-500" />
-                              </Button>
-                            </div>
-                          ) : (
-                            <Select value={selectedCategory} onValueChange={setSelectedCategory}>
-                              <SelectTrigger className="w-40">
-                                <SelectValue placeholder="Kategoria" />
-                              </SelectTrigger>
-                              <SelectContent>
-                                <SelectItem value="all" className="hover:bg-gray-100 focus:bg-gray-100 hover:text-black focus:text-black">Të Gjitha</SelectItem>
+                              <svg className="w-4 h-4 ml-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
+                              </svg>
+                            </button>
+                            
+                            {isCategoryDropdownOpen && (
+                              <div className="absolute z-50 w-full mt-1 bg-white border border-gray-300 rounded-md shadow-lg overflow-visible">
+                                <div
+                                  className="px-3 py-2 hover:bg-gray-100 cursor-pointer flex items-center gap-2"
+                                  onClick={() => handleCategorySelect("all")}
+                                >
+                                  <span className="text-gray-600 text-sm">Të gjitha</span>
+                                </div>
                                 {categories
                                   .sort((a, b) => {
-                                    if (a.name === "Të tjera" || a.name === "Të Tjera") return 1;
-                                    if (b.name === "Të tjera" || b.name === "Të Tjera") return -1;
-                                    return a.name.localeCompare(b.name);
+                                    if (a.sort_order !== undefined && b.sort_order !== undefined) {
+                                      return a.sort_order - b.sort_order
+                                    }
+                                    if (a.sort_order !== undefined) return -1
+                                    if (b.sort_order !== undefined) return 1
+                                    return a.name.localeCompare(b.name)
                                   })
                                   .map((category) => (
-                                  <SelectItem key={category.id} value={String(category.id)} className="hover:bg-gray-100 focus:bg-gray-100 hover:text-black focus:text-black">
-                                    {category.name}
-                                  </SelectItem>
-                                ))}
-                              </SelectContent>
-                            </Select>
-                          )}
+                                    <div
+                                      key={category.id}
+                                      className="px-3 py-2 hover:bg-gray-100 cursor-pointer flex items-center gap-2"
+                                      onClick={() => handleCategorySelect(String(category.id))}
+                                    >
+                                     
+                                      <span className="truncate text-sm text-black">{category.name}</span>
+                                    </div>
+                                  ))}
+                              </div>
+                            )}
+                          </div>
                         </div>
 
                         {/* City Filter */}
                         <div className="flex items-center gap-2">
-                          <span className="text-sm text-gray-600">Qytetit:</span>
-                          {selectedCity !== "all" ? (
-                            <div className="flex items-center gap-2">
-                              <span className="font-semibold text-teal-600 bg-teal-50 px-3 py-1 rounded-full">
-                                {selectedCity}
+                          <div className="relative" ref={cityDropdownRef}>
+                            <button
+                              type="button"
+                              className="w-32 px-3 py-2 text-left bg-white border border-gray-300 rounded-md shadow-sm  flex items-center justify-between text-black"
+                              onClick={() => setIsCityDropdownOpen(!isCityDropdownOpen)}
+                            >
+                              <span className="truncate text-sm">
+                                {selectedCity === "all" ? (
+                                  <span className="text-gray-600">Qytetit</span>
+                                ) : (
+                                  <span className="font-medium">{getSelectedCityName()}</span>
+                                )}
                               </span>
-                              <Button
-                                variant="ghost"
-                                size="sm"
-                                onClick={() => setSelectedCity("all")}
-                                className="h-6 w-6 p-0 hover:bg-gray-200"
-                              >
-                                <X className="w-4 h-4 text-gray-500" />
-                              </Button>
-                            </div>
-                          ) : (
-                            <Select value={selectedCity} onValueChange={setSelectedCity}>
-                              <SelectTrigger className="w-32">
-                                <SelectValue placeholder="Qyteti" />
-                              </SelectTrigger>
-                              <SelectContent>
-                                <SelectItem value="all" className="hover:bg-gray-100 focus:bg-gray-100 hover:text-black focus:text-black">Të Gjitha</SelectItem>
+                              <svg className="w-4 h-4 ml-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
+                              </svg>
+                            </button>
+                            
+                            {isCityDropdownOpen && (
+                              <div className="absolute z-50 w-full mt-1 bg-white border border-gray-300 rounded-md shadow-lg max-h-60 overflow-auto">
+                                <div
+                                  className="px-3 py-2 hover:bg-gray-100 cursor-pointer flex items-center gap-2"
+                                  onClick={() => handleCitySelect("all")}
+                                >
+                                  <span className="text-gray-600 text-sm">Të gjitha</span>
+                                </div>
                                 {cities.map((city) => (
-                                  <SelectItem key={city} value={city} className="hover:bg-gray-100 focus:bg-gray-100 hover:text-black focus:text-black">
-                                    {city}
-                                  </SelectItem>
+                                  <div
+                                    key={city}
+                                    className="px-3 py-2 hover:bg-gray-100 cursor-pointer flex items-center gap-2"
+                                    onClick={() => handleCitySelect(city)}
+                                  >
+                                    <span className="truncate text-sm text-black">{city}</span>
+                                  </div>
                                 ))}
-                              </SelectContent>
-                            </Select>
-                          )}
+                              </div>
+                            )}
+                          </div>
                         </div>
                       </div>
                     </div>

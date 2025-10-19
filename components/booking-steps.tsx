@@ -598,14 +598,14 @@ export function BookingSteps({ business }: BookingStepsProps) {
                     />
                   </div>
                 )}
-                <div className="text-center">
+                <div className="text-left">
                   {/* Welcome Message */}
                   <div className={`text-left mb-1 transition-all duration-700 ease-out ${
                     showWelcome ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-4'
                   }`}>
                     <p className="text-gray-600 text-sm md:text-md">Mirëseerdhet në</p>
                   </div>
-                  <h2 className={`text-2xl md:text-3xl font-bold text-gray-900 mb-2 transition-all duration-700 ease-out ${
+                  <h2 className={`text-xl md:text-3xl font-bold text-gray-900 mb-2 transition-all duration-700 ease-out ${
                     showBusinessName ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-4'
                   }`}>
                     {business.name}
@@ -632,7 +632,7 @@ export function BookingSteps({ business }: BookingStepsProps) {
 
             {/* Service Options - Only show if no service selected */}
             {!selectedService && (
-              <div className={`grid gap-3 ${
+              <div className={`grid gap-2 ${
                 business.services?.length === 1 
                   ? 'grid-cols-1 max-w-md mx-auto' 
                   : business.services?.length === 2 
@@ -657,7 +657,7 @@ export function BookingSteps({ business }: BookingStepsProps) {
                       onClick={() => handleServiceSelect(service)}
                     >
                       <CardContent >
-                        <div className="space-y-1">
+                        <div>
                           {/* Service Header */}
                           <div className="flex items-start justify-between">
                             <div className="flex-1">

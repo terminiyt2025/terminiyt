@@ -149,21 +149,21 @@ export default function BusinessPanel() {
       if (businessAuthData) {
         try {
           const parsedData = JSON.parse(businessAuthData)
-        const { businessId } = parsedData
-        if (businessId) {
+          const { businessId } = parsedData
+          if (businessId) {
             setIsAuthenticated(true)
             await fetchBusinessData(businessId)
             await fetchCategories()
-        } else {
+          } else {
             router.push('/identifikohu')
-        }
-      } catch (error) {
+          }
+        } catch (error) {
           console.error('Auth check error:', error)
           router.push('/identifikohu')
-      }
-    } else {
+        }
+      } else {
         router.push('/identifikohu')
-    }
+      }
       setIsLoading(false)
     }
 

@@ -132,7 +132,7 @@ const cityCoordinates: { [key: string]: { lat: number, lng: number } } = {
   "Junik": { lat: 42.4833, lng: 20.2833 },
   "Mamushë": { lat: 42.3167, lng: 20.7167 },
   "Drenas": { lat: 42.6264, lng: 20.8939 },
-  "F.Kosovë": { lat: 42.6629, lng: 21.1655 },
+  "F.Kosovë": { lat: 42.6408, lng: 21.1038 },
   "Obiliq": { lat: 42.6867, lng: 21.0775 },
   "Shtërpce": { lat: 42.2167, lng: 21.0167 },
   "Skenderaj": { lat: 42.7381, lng: 20.7897 },
@@ -142,6 +142,8 @@ const cityCoordinates: { [key: string]: { lat: number, lng: number } } = {
   "Zubin Potok": { lat: 42.9167, lng: 20.8333 },
   "Zveçan": { lat: 42.9167, lng: 20.8333 },
   "Leposaviq": { lat: 43.1000, lng: 20.8000 }
+
+
 }
 
 export default function RegisterBusinessPage() {
@@ -483,7 +485,7 @@ export default function RegisterBusinessPage() {
     category: "",
     description: "",
     logo: null as File | string | null,
-    businessImages: [] as string[],
+    businessImages: null as string | null,
 
     // Contact Information
     ownerName: "",
@@ -741,23 +743,13 @@ export default function RegisterBusinessPage() {
       // Add business to local store for immediate UI update
       addBusiness(savedBusiness)
 
-      // Automatically log in the business after registration
-      const authData = {
-        businessId: savedBusiness.id,
-        email: savedBusiness.account_email
-      }
-      localStorage.setItem('businessAuth', JSON.stringify(authData))
-      
-      // Trigger custom event to update header
-      window.dispatchEvent(new Event('businessLogin'))
-
       toast({
         title: "Regjistrimi i Biznesit u Krye me Sukses!",
-        description: `"${formData.businessName}" është shtuar në platformën tonë! Ju jeni kyçur automatikisht në panelin e biznesit.`,
+        description: `"${formData.businessName}" është shtuar në platformën tonë! Ju lutemi identifikohuni për të hyrë në panelin e biznesit.`,
       })
 
-      // Redirect to business management (user will be automatically authenticated)
-      router.push("/menaxho-biznesin")
+      // Redirect to identification page
+      router.push("/identifikohu")
     } catch (error) {
       console.error("Error creating business:", error)
       toast({
@@ -895,16 +887,7 @@ export default function RegisterBusinessPage() {
                               .map((category) => (
                                 <SelectItem key={category.id} value={category.name}>
                                   <div className="flex items-center gap-2">
-                                    {category.icon && (
-                                      <img 
-                                        src={category.icon} 
-                                        alt={category.name}
-                                        className="w-4 h-4 rounded"
-                                        onError={(e) => {
-                                          (e.target as HTMLImageElement).style.display = 'none'
-                                        }}
-                                      />
-                                    )}
+                                   
                                     <span>{category.name}</span>
                                   </div>
                                 </SelectItem>
@@ -1074,44 +1057,9 @@ export default function RegisterBusinessPage() {
                           <SelectValue placeholder="Zgjidhni qytetin" />
                         </SelectTrigger>
                         <SelectContent>
-                          <SelectItem value="Deçan">Deçan</SelectItem>
-                          <SelectItem value="Dragash">Dragash</SelectItem>
-                          <SelectItem value="Drenas">Drenas</SelectItem>
-                          <SelectItem value="F.Kosovë">F.Kosovë</SelectItem>
-                          <SelectItem value="Ferizaj">Ferizaj</SelectItem>
-                          <SelectItem value="Gjakovë">Gjakovë</SelectItem>
-                          <SelectItem value="Gjilan">Gjilan</SelectItem>
-                          <SelectItem value="Graçanic">Graçanic</SelectItem>
-                          <SelectItem value="Hani Elezit">Hani Elezit</SelectItem>
-                          <SelectItem value="Istog">Istog</SelectItem>
-                          <SelectItem value="Junik">Junik</SelectItem>
-                          <SelectItem value="Kaçanik">Kaçanik</SelectItem>
-                          <SelectItem value="Kamenicë">Kamenicë</SelectItem>
-                          <SelectItem value="Klinë">Klinë</SelectItem>
-                          <SelectItem value="Kllokot">Kllokot</SelectItem>
-                          <SelectItem value="Lipjan">Lipjan</SelectItem>
-                          <SelectItem value="Malishevë">Malishevë</SelectItem>
-                          <SelectItem value="Mamushë">Mamushë</SelectItem>
-                          <SelectItem value="Mitrovicë">Mitrovicë</SelectItem>
-                          <SelectItem value="Novobërdë">Novobërdë</SelectItem>
-                          <SelectItem value="Obiliq">Obiliq</SelectItem>
-                          <SelectItem value="Partesh">Partesh</SelectItem>
-                          <SelectItem value="Pejë">Pejë</SelectItem>
-                          <SelectItem value="Podujevë">Podujevë</SelectItem>
-                          <SelectItem value="Prishtinë">Prishtinë</SelectItem>
-                          <SelectItem value="Prizren">Prizren</SelectItem>
-                          <SelectItem value="Rahovec">Rahovec</SelectItem>
-                          <SelectItem value="Ranillug">Ranillug</SelectItem>
-                          <SelectItem value="Shtërpce">Shtërpce</SelectItem>
-                          <SelectItem value="Shtime">Shtime</SelectItem>
-                          <SelectItem value="Skenderaj">Skenderaj</SelectItem>
-                          <SelectItem value="Therandë">Therandë</SelectItem>
-                          <SelectItem value="Viti">Viti</SelectItem>
-                          <SelectItem value="Vushtrri">Vushtrri</SelectItem>
-                          <SelectItem value="Mitrovicë E Veriut">Mitrovicë E Veriut</SelectItem>
-                          <SelectItem value="Zubin Potok">Zubin Potok</SelectItem>
-                          <SelectItem value="Zveçan">Zveçan</SelectItem>
-                          <SelectItem value="Leposaviq">Leposaviq</SelectItem>
+                          {Object.keys(cityCoordinates).map((city) => (
+                            <SelectItem key={city} value={city}>{city}</SelectItem>
+                          ))}
                         </SelectContent>
                       </Select>
                       {validationErrors.city && (
@@ -1270,7 +1218,7 @@ export default function RegisterBusinessPage() {
                       <div className="space-y-4">
                         {formData.services.map((service, index) => (
                           <div key={index} className="bg-white p-4 rounded-lg border border-gray-200 ">
-                            <div className="flex items-center justify-between">
+                            <div className="flex items-center justify-end">
                            
                               {formData.services.length > 1 && (
                                 <Button
@@ -1343,6 +1291,13 @@ export default function RegisterBusinessPage() {
                                   rows={2}
                                 />
                               </div>
+                              
+                              {/* Service Assignment Error */}
+                              {validationErrors[`service_${index}_assignment`] && (
+                                <div className="mt-2 p-3 bg-red-50 border border-red-200 rounded-md">
+                                  <p className="text-red-600 text-sm font-medium">{validationErrors[`service_${index}_assignment`]}</p>
+                                </div>
+                              )}
                             </div>
                           </div>
                         ))}
@@ -1367,7 +1322,7 @@ export default function RegisterBusinessPage() {
                       <div className="space-y-4">
                         {formData.teamMembers.map((member, index) => (
                           <div key={index} className="bg-white p-4 rounded-lg border border-gray-200 ">
-                            <div className="flex items-center justify-between">
+                            <div className="flex items-center justify-end">
                              
                               {formData.teamMembers.length > 1 && (
                                 <Button
@@ -1564,27 +1519,22 @@ export default function RegisterBusinessPage() {
                           </div>
                           <div className="space-y-4">
                             {/* Current Images Display */}
-                            <div className="grid grid-cols-2 gap-3">
-                              {formData.businessImages && formData.businessImages.length > 0 ? (
-                                formData.businessImages.map((image: string, index: number) => (
-                                  <div key={index} className="w-full min-h-48 bg-gray-100 rounded-lg border-2 border-gray-200 relative group flex items-center justify-center p-2">
-                                    <img 
-                                      src={image} 
-                                      alt={`Business Image ${index + 1}`} 
-                                      className="max-w-full max-h-80 object-contain"
-                                    />
-                                    <button 
-                                      type="button"
-                                      onClick={() => {
-                                        const updatedImages = formData.businessImages.filter((_: any, i: number) => i !== index);
-                                        updateFormData("businessImages", updatedImages);
-                                      }}
-                                      className="absolute top-1 right-1 bg-red-500 text-white rounded-full w-6 h-6 flex items-center justify-center text-xs opacity-0 group-hover:opacity-100 transition-opacity hover:bg-red-600"
-                                    >
-                                      ×
-                                    </button>
-                                  </div>
-                                ))
+                            <div className="grid grid-cols-1 gap-3">
+                              {formData.businessImages ? (
+                                <div className="w-full min-h-48 bg-gray-100 rounded-lg border-2 border-gray-200 relative group flex items-center justify-center p-2">
+                                  <img 
+                                    src={formData.businessImages} 
+                                    alt="Business Image" 
+                                    className="max-w-full max-h-80 object-contain"
+                                  />
+                                  <button 
+                                    type="button"
+                                    onClick={() => updateFormData("businessImages", null)}
+                                    className="absolute top-1 right-1 bg-red-500 text-white rounded-full w-6 h-6 flex items-center justify-center text-xs opacity-0 group-hover:opacity-100 transition-opacity hover:bg-red-600"
+                                  >
+                                    ×
+                                  </button>
+                                </div>
                               ) : (
                                 <div className="col-span-2 text-center py-8 text-gray-500 min-h-48 flex items-center justify-center bg-gray-100 rounded-lg border-2 border-gray-200">
                                   Nuk keni imazhe të ngarkuara
@@ -1594,46 +1544,43 @@ export default function RegisterBusinessPage() {
                             
                             {/* Upload Area */}
                             <div className="border-2 border-dashed border-gray-300 rounded-lg p-6 text-center hover:border-teal-500 transition-colors">
-                              <p className="text-gray-600 mb-2">Klikoni për të ngarkuar imazhe</p>
+                              <p className="text-gray-600 mb-2">Klikoni për të ngarkuar një imazh</p>
                               <p className="text-sm text-gray-500 mb-4">PNG, JPG deri në 2MB</p>
                             <input 
                               type="file" 
                               accept="image/png,image/jpeg,image/jpg" 
                               className="hidden" 
                               id="business-images-upload"
-                              multiple
                               onChange={async (e) => {
                                 const files = Array.from(e.target.files || []);
                                 if (files.length > 0) {
-                                  for (const file of files) {
-                                    if (file.size > 2 * 1024 * 1024) { // 2MB limit
-                                      alert('Imazhi duhet të jetë më pak se 2MB');
-                                      continue;
-                                    }
+                                  const file = files[0]; // Only process the first file
+                                  if (file.size > 2 * 1024 * 1024) { // 2MB limit
+                                    alert('Imazhi duhet të jetë më pak se 2MB');
+                                    return;
+                                  }
+                                  
+                                  // Upload to Cloudinary
+                                  const uploadFormData = new FormData();
+                                  uploadFormData.append('file', file);
+                                  uploadFormData.append('type', 'business_image');
+                                  
+                                  try {
+                                    const response = await fetch('/api/upload', {
+                                      method: 'POST',
+                                      body: uploadFormData,
+                                    });
                                     
-                                    // Upload to Cloudinary
-                                    const uploadFormData = new FormData();
-                                    uploadFormData.append('file', file);
-                                    uploadFormData.append('type', 'business_image');
+                                    const result = await response.json();
                                     
-                                    try {
-                                      const response = await fetch('/api/upload', {
-                                        method: 'POST',
-                                        body: uploadFormData,
-                                      });
-                                      
-                                      const result = await response.json();
-                                      
-                                      if (result.success) {
-                                        const currentImages = formData.businessImages || [];
-                                        updateFormData("businessImages", [...currentImages, result.url]);
-                                      } else {
-                                        alert(result.error || 'Gabim gjatë ngarkimit');
-                                      }
-                                    } catch (error) {
-                                      console.error('Upload error:', error);
-                                      alert('Gabim gjatë ngarkimit të imazhit');
+                                    if (result.success) {
+                                      updateFormData("businessImages", result.url);
+                                    } else {
+                                      alert(result.error || 'Gabim gjatë ngarkimit');
                                     }
+                                  } catch (error) {
+                                    console.error('Upload error:', error);
+                                    alert('Gabim gjatë ngarkimit të imazhit');
                                   }
                                 }
                               }}
