@@ -84,7 +84,9 @@ export function GoogleMaps({ businesses: propBusinesses, categories, selectedCat
   const [mapError, setMapError] = useState<string | null>(null)
   const [selectedCity, setSelectedCity] = useState<string>("all")
   const [isCategoryDropdownOpen, setIsCategoryDropdownOpen] = useState(false)
+  const [isCityDropdownOpen, setIsCityDropdownOpen] = useState(false)
   const categoryDropdownRef = useRef<HTMLDivElement>(null)
+  const cityDropdownRef = useRef<HTMLDivElement>(null)
 
   // Set city based on location detection
   useEffect(() => {
@@ -100,11 +102,14 @@ export function GoogleMaps({ businesses: propBusinesses, categories, selectedCat
     }
   }, [detectedCity, isUserLocation])
 
-  // Handle clicking outside category dropdown
+  // Handle clicking outside dropdowns
   useEffect(() => {
     const handleClickOutside = (event: MouseEvent) => {
       if (categoryDropdownRef.current && !categoryDropdownRef.current.contains(event.target as Node)) {
         setIsCategoryDropdownOpen(false)
+      }
+      if (cityDropdownRef.current && !cityDropdownRef.current.contains(event.target as Node)) {
+        setIsCityDropdownOpen(false)
       }
     }
 
@@ -126,6 +131,17 @@ export function GoogleMaps({ businesses: propBusinesses, categories, selectedCat
     setIsCategoryDropdownOpen(false)
   }
 
+  // Helper functions for city dropdown
+  const getSelectedCityName = () => {
+    if (selectedCity === "all") return "Të gjitha"
+    return selectedCity
+  }
+
+  const handleCitySelect = (city: string) => {
+    handleCityChange(city)
+    setIsCityDropdownOpen(false)
+  }
+
   // Handle city selection
   const handleCityChange = (city: string) => {
     setSelectedCity(city)
@@ -143,7 +159,7 @@ export function GoogleMaps({ businesses: propBusinesses, categories, selectedCat
         const prishtinaCoords = cityCoordinates["Prishtinë"]
         if (prishtinaCoords && mapInstanceRef.current) {
           mapInstanceRef.current.setCenter({ lat: prishtinaCoords.lat, lng: prishtinaCoords.lng })
-          mapInstanceRef.current.setZoom(9) // Wide view for all cities
+          mapInstanceRef.current.setZoom(11) // Wide view for all cities
         }
       }
     } else {
@@ -571,7 +587,7 @@ export function GoogleMaps({ businesses: propBusinesses, categories, selectedCat
         // Create info window content - updated
         const distance = calculateDistance(business.latitude, business.longitude)
         const infoWindowContent = `
-          <div style="padding: 12px; min-width: 180px; font-family: system-ui, -apple-system, sans-serif;">
+          <div style=" min-width: 180px; font-family: system-ui, -apple-system, sans-serif;">
             <h3 style="font-weight: 600; color: #1f2937; margin: 0 0 8px 0; font-size: 16px;">${business.name}</h3>
             <div style="display: flex; align-items: center; gap: 6px; margin: 0 0 6px 0; font-size: 14px;">
               <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#6b7280" stroke-width="2">
@@ -588,7 +604,7 @@ export function GoogleMaps({ businesses: propBusinesses, categories, selectedCat
             </div>
             <p style="background: linear-gradient(135deg, #1f2937, #0d9488); -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text; margin: 0 0 12px 0; font-size: 13px; font-weight: 500;">${(business as any).category_name || 'Unknown Category'}</p>
             <button 
-              onclick="window.selectBusiness('${business.id}')"
+              onclick="window.open('/${business.slug}', '_blank')"
               style="
                 width: 100%; 
                 background: linear-gradient(135deg, #1f2937, #0d9488); 
@@ -604,7 +620,7 @@ export function GoogleMaps({ businesses: propBusinesses, categories, selectedCat
               onmouseover="this.style.background='linear-gradient(135deg, #374151, #0f766e)'"
               onmouseout="this.style.background='linear-gradient(135deg, #1f2937, #0d9488)'"
             >
-              Shiko Detajet
+              Rezervo
             </button>
           </div>
         `
@@ -720,24 +736,24 @@ export function GoogleMaps({ businesses: propBusinesses, categories, selectedCat
     <div className="space-y-4">
       {/* Category and City Filters */}
       <div className="flex flex-col lg:flex-row items-center justify-center gap-3 lg:gap-4">
-        {/* Mobile Layout: Filtro above, dropdowns below */}
-        <div className="flex flex-col items-center gap-3 lg:hidden">
-          <div className="flex items-center gap-2">
-            <Filter className="w-4 h-4 text-white" />
-            <span className="text-md text-white">Filtro:</span>
-          </div>
+        {/* Single Layout: Works for both mobile and desktop */}
+        <div className="flex items-center gap-2 lg:gap-4 justify-center">
+        <div className="flex items-center gap-1">
+          <Filter className="w-4 h-4 text-white" />
+            <span className="text-sm md:text-md text-white">Filtro:</span>
+        </div>
           <div className="flex items-center gap-4 justify-center">
             {/* Category Filter */}
             <div className="flex items-center gap-2">
               <div className="relative" ref={categoryDropdownRef}>
                 <button
                   type="button"
-                  className="w-32 px-3 py-2 text-left bg-white border border-white rounded-md shadow-sm flex items-center justify-between text-black"
+                  className="w-38 lg:w-40 px-3 py-2 text-left bg-white border border-white rounded-md shadow-sm flex items-center justify-between text-black"
                   onClick={() => setIsCategoryDropdownOpen(!isCategoryDropdownOpen)}
                 >
                   <span className="truncate text-sm">
-                    {selectedCategory === "all" ? (
-                      <span className="text-gray-600">Kategorinë</span>
+              {selectedCategory === "all" ? (
+                      <span className="text-gray-600">Kategorinë:</span>
                     ) : (
                       <span className="font-medium">{getSelectedCategoryName()}</span>
                     )}
@@ -781,7 +797,7 @@ export function GoogleMaps({ businesses: propBusinesses, categories, selectedCat
                             />
                           )}
                           <span className="truncate text-sm text-black">{category.name}</span>
-                        </div>
+            </div>
                       ))}
                   </div>
                 )}
@@ -789,22 +805,16 @@ export function GoogleMaps({ businesses: propBusinesses, categories, selectedCat
             </div>
 
             {/* City Filter */}
-            <div className="flex items-center gap-2">
-              <div className="relative">
+              <div className="flex items-center gap-2">
+              <div className="relative" ref={cityDropdownRef}>
                 <button
                   type="button"
-                  className="w-32 px-3 py-2 text-left bg-white border border-white rounded-md shadow-sm flex items-center justify-between text-black"
-                  onClick={() => {
-                    // For mobile, we'll use a simple approach - just cycle through cities
-                    const cityKeys = Object.keys(cityCoordinates)
-                    const currentIndex = cityKeys.indexOf(selectedCity)
-                    const nextIndex = (currentIndex + 1) % cityKeys.length
-                    handleCityChange(cityKeys[nextIndex])
-                  }}
+                  className="w-30 lg:w-40 px-3 py-2 text-left bg-white border border-white rounded-md shadow-sm flex items-center justify-between text-black"
+                  onClick={() => setIsCityDropdownOpen(!isCityDropdownOpen)}
                 >
                   <span className="truncate text-sm">
                     {selectedCity === "all" ? (
-                      <span className="text-gray-600">Qytetit</span>
+                      <span className="text-gray-600">Qytetin:</span>
                     ) : (
                       <span className="font-medium">{selectedCity}</span>
                     )}
@@ -813,104 +823,32 @@ export function GoogleMaps({ businesses: propBusinesses, categories, selectedCat
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
                   </svg>
                 </button>
+                
+                {isCityDropdownOpen && (
+                  <div className="absolute z-50 w-full mt-1 bg-white border border-gray-300 rounded-md shadow-lg max-h-60 overflow-auto">
+                    <div
+                      className="px-3 py-2 hover:bg-gray-100 cursor-pointer flex items-center gap-2"
+                      onClick={() => handleCitySelect("all")}
+                    >
+                      <span className="text-gray-600 text-sm">Të gjitha</span>
+              </div>
+                    {Object.keys(cityCoordinates).map((city) => (
+                      <div
+                        key={city}
+                        className="px-3 py-2 hover:bg-gray-100 cursor-pointer flex items-center gap-2"
+                        onClick={() => handleCitySelect(city)}
+                      >
+                        <span className="truncate text-sm text-black">{city}</span>
+                </div>
+                    ))}
+                  </div>
+                )}
               </div>
             </div>
           </div>
         </div>
 
-        {/* Desktop Layout: Horizontal */}
-        <div className="hidden lg:flex items-center justify-center gap-4">
-          <div className="flex items-center gap-2">
-            <Filter className="w-4 h-4 text-white" />
-            <span className="text-md text-white">Filtro:</span>
-          </div>
-          
-          {/* Category Filter */}
-          <div className="flex items-center gap-2">
-            <div className="relative" ref={categoryDropdownRef}>
-              <button
-                type="button"
-                className="w-40 px-3 py-2 text-left bg-white border border-white rounded-md shadow-sm flex items-center justify-between text-black"
-                onClick={() => setIsCategoryDropdownOpen(!isCategoryDropdownOpen)}
-              >
-                <span className="truncate text-sm">
-                  {selectedCategory === "all" ? (
-                    <span className="text-gray-600">Kategorinë</span>
-                  ) : (
-                    <span className="font-sm">{getSelectedCategoryName()}</span>
-                  )}
-                </span>
-                <svg className="w-4 h-4 ml-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
-                </svg>
-              </button>
-              
-              {isCategoryDropdownOpen && (
-                <div className="absolute z-50 w-full mt-1 bg-white border border-gray-300 rounded-md shadow-lg overflow-visible">
-                  <div
-                    className="px-3 py-2 hover:bg-gray-100 cursor-pointer flex items-center gap-2"
-                    onClick={() => handleCategorySelect("all")}
-                  >
-                    <span className="text-gray-600 text-sm">Të gjitha</span>
-                  </div>
-                  {categories
-                    .sort((a, b) => {
-                      if (a.sort_order !== undefined && b.sort_order !== undefined) {
-                        return a.sort_order - b.sort_order
-                      }
-                      if (a.sort_order !== undefined) return -1
-                      if (b.sort_order !== undefined) return 1
-                      return a.name.localeCompare(b.name)
-                    })
-                    .map((category) => (
-                      <div
-                        key={category.id}
-                        className="px-3 text-sm py-2 hover:bg-gray-100 cursor-pointer flex items-center gap-2"
-                        onClick={() => handleCategorySelect(String(category.id))}
-                      >
-                        {category.icon && (
-                          <img 
-                            src={category.icon} 
-                            alt={category.name}
-                            className="w-4 h-4 rounded object-cover flex-shrink-0"
-                            onError={(e) => {
-                              ;(e.target as HTMLImageElement).style.display = 'none'
-                            }}
-                          />
-                        )}
-                        <span className="truncate text-black">{category.name}</span>
-                      </div>
-                    ))}
-                </div>
-              )}
-            </div>
-          </div>
-
-          {/* City Filter */}
-          <div className="flex items-center gap-2">
-            <Select value={selectedCity} onValueChange={handleCityChange}>
-              <SelectTrigger className="w-40 bg-white text-black border-white">
-                <div className="flex items-center gap-2">
-                  {selectedCity === "all" ? (
-                    <span className="text-gray-600">Qytetit</span>
-                  ) : (
-                    <span className="font-medium">{selectedCity}</span>
-                  )}
-                </div>
-              </SelectTrigger>
-              <SelectContent className="bg-white text-black">
-                <SelectItem value="all" className="text-black hover:bg-gray-100 focus:bg-gray-100">
-                  <span className="text-black">Të gjitha</span>
-                </SelectItem>
-                {Object.keys(cityCoordinates).map((city) => (
-                  <SelectItem key={city} value={city} className="text-black hover:bg-gray-100 focus:bg-gray-100">
-                    <span className="text-black">{city}</span>
-                  </SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
-          </div>
-        </div>
+        {/* Desktop Layout removed - using single layout for both */}
       </div>
 
       {/* Map Container */}

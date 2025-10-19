@@ -1,6 +1,7 @@
 "use client"
 
 import React, { useState, useEffect, useRef } from "react"
+import { createPortal } from 'react-dom'
 import Link from "next/link"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
@@ -145,7 +146,7 @@ export default function HomePage() {
     "Junik": { lat: 42.4833, lng: 20.2833 },
     "Mamushë": { lat: 42.3167, lng: 20.7167 },
     "Drenas": { lat: 42.6264, lng: 20.8939 },
-    "F.Kosovë": { lat: 42.6629, lng: 21.1655 },
+    "F.Kosovë": { lat: 42.6408, lng: 21.1038 },
     "Obiliq": { lat: 42.6867, lng: 21.0775 },
     "Shtërpce": { lat: 42.2167, lng: 21.0167 },
     "Skenderaj": { lat: 42.7381, lng: 20.7897 },
@@ -232,116 +233,17 @@ export default function HomePage() {
       </section>
 
       {/* Filter and Search Section */}
-      <section className="py-8 px-[15px] md:px-4 bg-white">
-        <div className="container mx-auto">
-          <div className="flex flex-col lg:flex-row items-center justify-between gap-4">
+      <section className="py-8 px-[15px] md:px-4 bg-white" style={{ overflow: 'visible' }}>
+        <div className="container mx-auto" style={{ overflow: 'visible' }}>
+          <div className="flex flex-col lg:flex-row items-center justify-between gap-4" style={{ overflow: 'visible' }}>
                     {/* Category and City Selection */}
                     <div className="text-center lg:text-left">
-                      {/* Mobile Layout: Filtro sipas on own line, filters below */}
-                      <div className="flex flex-col items-center gap-3 lg:hidden">
-                        <p className="text-lg text-gray-700">
-                          Filtro sipas:
-                        </p>
-                        <div className="flex items-center gap-4 justify-center">
-                          {/* Category Filter */}
-                          <div className="flex items-center gap-2">
-                            <div className="relative" ref={categoryDropdownRef}>
-                              <button
-                                type="button"
-                                className="w-32 px-3 py-2 text-left bg-white border border-gray-300 rounded-md shadow-sm flex items-center justify-between text-black"
-                                onClick={() => setIsCategoryDropdownOpen(!isCategoryDropdownOpen)}
-                              >
-                                <span className="truncate text-sm">
-                                  {selectedCategory === "all" ? (
-                                    <span className="text-gray-600">Kategorisë</span>
-                                  ) : (
-                                    <span className="font-medium">{getSelectedCategoryName()}</span>
-                                  )}
-                                </span>
-                                <svg className="w-4 h-4 ml-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
-                                </svg>
-                              </button>
-                              
-                              {isCategoryDropdownOpen && (
-                                <div className="absolute z-50 w-full mt-1 bg-white border border-gray-300 rounded-md shadow-lg overflow-visible">
-                                  <div
-                                    className="px-3 py-2 hover:bg-gray-100 cursor-pointer flex items-center gap-2"
-                                    onClick={() => handleCategorySelect("all")}
-                                  >
-                                    <span className="text-gray-600 text-sm">Të gjitha</span>
-                                  </div>
-                                  {categories
-                                    .sort((a, b) => {
-                                      if (a.sort_order !== undefined && b.sort_order !== undefined) {
-                                        return a.sort_order - b.sort_order
-                                      }
-                                      if (a.sort_order !== undefined) return -1
-                                      if (b.sort_order !== undefined) return 1
-                                      return a.name.localeCompare(b.name)
-                                    })
-                                    .map((category) => (
-                                      <div
-                                        key={category.id}
-                                        className="px-3 py-2 hover:bg-gray-100 cursor-pointer flex items-center gap-2"
-                                        onClick={() => handleCategorySelect(String(category.id))}
-                                      >
-                                        <span className="truncate text-sm text-black">{category.name}</span>
-                                      </div>
-                                    ))}
-                                </div>
-                              )}
-                            </div>
-                          </div>
+                      {/* Mobile Layout removed - using single layout for both */}
 
-                          {/* City Filter */}
-                          <div className="flex items-center gap-2">
-                            <div className="relative" ref={cityDropdownRef}>
-                              <button
-                                type="button"
-                                className="w-32 px-3 py-2 text-left bg-white border border-gray-300 rounded-md shadow-sm flex items-center justify-between text-black"
-                                onClick={() => setIsCityDropdownOpen(!isCityDropdownOpen)}
-                              >
-                                <span className="truncate text-sm">
-                                  {selectedCity === "all" ? (
-                                    <span className="text-gray-600">Qytetit</span>
-                                  ) : (
-                                    <span className="font-medium">{getSelectedCityName()}</span>
-                                  )}
-                                </span>
-                                <svg className="w-4 h-4 ml-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
-                                </svg>
-                              </button>
-                              
-                              {isCityDropdownOpen && (
-                                <div className="absolute z-50 w-full mt-1 bg-white border border-gray-300 rounded-md shadow-lg max-h-60 overflow-auto">
-                                  <div
-                                    className="px-3 py-2 hover:bg-gray-100 cursor-pointer flex items-center gap-2"
-                                    onClick={() => handleCitySelect("all")}
-                                  >
-                                    <span className="text-gray-600 text-sm">Të gjitha</span>
-                                  </div>
-                                  {cities.map((city) => (
-                                    <div
-                                      key={city}
-                                      className="px-3 py-2 hover:bg-gray-100 cursor-pointer flex items-center gap-2"
-                                      onClick={() => handleCitySelect(city)}
-                                    >
-                                      <span className="truncate text-sm text-black">{city}</span>
-                                    </div>
-                                  ))}
-                                </div>
-                              )}
-                            </div>
-                          </div>
-                        </div>
-                      </div>
-
-                      {/* Desktop Layout: Custom dropdowns */}
-                      <div className="hidden lg:flex items-center gap-4 justify-start">
+                      {/* Single Layout: Works for both mobile and desktop */}
+                      <div className="flex items-center gap-3 lg:gap-4 justify-center lg:justify-start" style={{ overflow: 'visible' }}>
                         <p className="text-lg text-gray-700">
-                          Filtro sipas:
+                          Filtro:
                         </p>
                         
                         {/* Category Filter */}
@@ -349,12 +251,12 @@ export default function HomePage() {
                           <div className="relative" ref={categoryDropdownRef}>
                             <button
                               type="button"
-                              className="w-32 px-3 py-2 text-left bg-white border border-gray-300 rounded-md shadow-sm  flex items-center justify-between text-black"
+                              className="w-35 px-3 py-2 text-left bg-white border border-gray-300 rounded-md shadow-sm  flex items-center justify-between text-black"
                               onClick={() => setIsCategoryDropdownOpen(!isCategoryDropdownOpen)}
                             >
                               <span className="truncate text-sm">
                                 {selectedCategory === "all" ? (
-                                  <span className="text-gray-600">Kategorisë</span>
+                                  <span className="text-gray-600">Kategorisë:</span>
                                 ) : (
                                   <span className="font-medium">{getSelectedCategoryName()}</span>
                                 )}
@@ -401,12 +303,12 @@ export default function HomePage() {
                           <div className="relative" ref={cityDropdownRef}>
                             <button
                               type="button"
-                              className="w-32 px-3 py-2 text-left bg-white border border-gray-300 rounded-md shadow-sm  flex items-center justify-between text-black"
+                              className="w-35 px-3 py-2 text-left bg-white border border-gray-300 rounded-md shadow-sm  flex items-center justify-between text-black"
                               onClick={() => setIsCityDropdownOpen(!isCityDropdownOpen)}
                             >
                               <span className="truncate text-sm">
                                 {selectedCity === "all" ? (
-                                  <span className="text-gray-600">Qytetit</span>
+                                  <span className="text-gray-600">Qytetin:</span>
                                 ) : (
                                   <span className="font-medium">{getSelectedCityName()}</span>
                                 )}
