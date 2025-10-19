@@ -9,7 +9,7 @@ export async function PUT(
   try {
     const { id } = await params
     const body = await request.json()
-    const { name, icon } = body
+    const { name, icon, sort_order } = body
 
     if (!name || name.trim() === '') {
       return NextResponse.json(
@@ -36,9 +36,9 @@ export async function PUT(
     // Update category
     const updatedCategory = await prisma.$queryRaw`
       UPDATE categories 
-      SET name = ${name}, slug = ${slug}, icon = ${icon || null}, updated_at = NOW()
+      SET name = ${name}, slug = ${slug}, icon = ${icon || null}, sort_order = ${sort_order || 0}, updated_at = NOW()
       WHERE id = ${parseInt(id)}
-      RETURNING id, name, slug, icon, created_at, updated_at
+      RETURNING id, name, slug, icon, sort_order, created_at, updated_at
     `
 
     if (!updatedCategory || (updatedCategory as any[]).length === 0) {

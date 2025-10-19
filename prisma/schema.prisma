@@ -18,6 +18,7 @@ model Category {
   name      String   @unique
   slug      String   @unique
   icon      String?  // URL or identifier for the icon
+  sortOrder Int      @default(0) @map("sort_order") // For custom sorting
   createdAt DateTime @default(now()) @map("created_at")
   updatedAt DateTime @updatedAt @map("updated_at")
 

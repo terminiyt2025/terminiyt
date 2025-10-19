@@ -5,9 +5,9 @@ import { generateSlug } from '@/lib/slug'
 export async function GET() {
   try {
     const categories = await prisma.$queryRaw`
-      SELECT id, name, slug, icon, created_at, updated_at
+      SELECT id, name, slug, icon, COALESCE(sort_order, 0) as sort_order, created_at, updated_at
       FROM categories 
-      ORDER BY name ASC
+      ORDER BY COALESCE(sort_order, 0) ASC, name ASC
     `
 
     return NextResponse.json(categories)
@@ -23,7 +23,7 @@ export async function GET() {
 export async function POST(request: NextRequest) {
   try {
     const body = await request.json()
-    const { name, icon } = body
+    const { name, icon, sort_order } = body
 
     if (!name || name.trim() === '') {
       return NextResponse.json(
@@ -47,11 +47,20 @@ export async function POST(request: NextRequest) {
       )
     }
 
+    // Get the next sort order if not provided
+    let nextSortOrder = sort_order
+    if (nextSortOrder === undefined || nextSortOrder === null) {
+      const maxSortResult = await prisma.$queryRaw`
+        SELECT COALESCE(MAX(sort_order), 0) + 1 as next_order FROM categories
+      `
+      nextSortOrder = (maxSortResult as any[])[0]?.next_order || 1
+    }
+
     // Create new category
     const newCategory = await prisma.$queryRaw`
-      INSERT INTO categories (name, slug, icon, created_at, updated_at)
-      VALUES (${name}, ${slug}, ${icon || null}, NOW(), NOW())
-      RETURNING id, name, slug, icon, created_at, updated_at
+      INSERT INTO categories (name, slug, icon, sort_order, created_at, updated_at)
+      VALUES (${name}, ${slug}, ${icon || null}, ${nextSortOrder}, NOW(), NOW())
+      RETURNING id, name, slug, icon, sort_order, created_at, updated_at
     `
 
     return NextResponse.json((newCategory as any[])[0])

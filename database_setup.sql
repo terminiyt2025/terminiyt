@@ -10,6 +10,7 @@ CREATE TABLE "categories" (
     "name" VARCHAR UNIQUE NOT NULL,
     "slug" VARCHAR UNIQUE NOT NULL,
     "icon" VARCHAR,
+    "sort_order" INTEGER NOT NULL DEFAULT 0,
     "created_at" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
     "updated_at" TIMESTAMP(3) NOT NULL
 );

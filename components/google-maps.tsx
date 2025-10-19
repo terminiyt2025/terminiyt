@@ -26,25 +26,143 @@ interface GoogleMapsProps {
   onBusinessSelect?: (business: Business) => void
 }
 
+// City coordinates mapping
+const cityCoordinates: { [key: string]: { lat: number, lng: number } } = {
+  "Prishtinë": { lat: 42.6629, lng: 21.1655 },
+  "Prizren": { lat: 42.2139, lng: 20.7397 },
+  "Pejë": { lat: 42.6593, lng: 20.2883 },
+  "Gjakovë": { lat: 42.3803, lng: 20.4308 },
+  "Gjilan": { lat: 42.4635, lng: 21.4694 },
+  "Mitrovicë": { lat: 42.8826, lng: 20.8677 },
+  "Ferizaj": { lat: 42.3709, lng: 21.1553 },
+  "Podujeva": { lat: 42.9106, lng: 21.1933 },
+  "Gllogoc": { lat: 42.6264, lng: 20.8939 },
+  "Lipjan": { lat: 42.5242, lng: 21.1258 },
+  "Rahovec": { lat: 42.3992, lng: 20.6547 },
+  "Malishevë": { lat: 42.4822, lng: 20.7458 },
+  "Suharekë": { lat: 42.3589, lng: 20.8258 },
+  "Klinë": { lat: 42.6203, lng: 20.5775 },
+  "Skënderaj": { lat: 42.7381, lng: 20.7897 },
+  "Vushtrri": { lat: 42.8231, lng: 20.9675 },
+  "Deçan": { lat: 42.5403, lng: 20.2875 },
+  "Istog": { lat: 42.7806, lng: 20.4889 },
+  "Kamenicë": { lat: 42.5781, lng: 21.5758 },
+  "Dragash": { lat: 42.0625, lng: 20.6531 },
+  "Shtime": { lat: 42.4331, lng: 21.0408 },
+  "Kaçanik": { lat: 42.2306, lng: 21.2581 },
+  "Novobërdë": { lat: 42.3167, lng: 21.4167 },
+  "Ranillug": { lat: 42.5500, lng: 21.6000 },
+  "Partesh": { lat: 42.4000, lng: 21.4500 },
+  "Kllokot": { lat: 42.3667, lng: 21.3833 },
+  "Graçanicë": { lat: 42.6000, lng: 21.2000 },
+  "Han i Elezit": { lat: 42.1500, lng: 21.3000 },
+  "Junik": { lat: 42.4833, lng: 20.2833 },
+  "Mamushë": { lat: 42.3167, lng: 20.7167 },
+  "Drenas": { lat: 42.6264, lng: 20.8939 },
+  "F.Kosovë": { lat: 42.6629, lng: 21.1655 },
+  "Obiliq": { lat: 42.6867, lng: 21.0775 },
+  "Shtërpce": { lat: 42.2167, lng: 21.0167 },
+  "Skenderaj": { lat: 42.7381, lng: 20.7897 },
+  "Therandë": { lat: 42.3803, lng: 20.4308 },
+  "Viti": { lat: 42.3167, lng: 21.4167 },
+  "Mitrovicë E Veriut": { lat: 42.8945, lng: 20.8655 },
+  "Zubin Potok": { lat: 42.9167, lng: 20.8333 },
+  "Zveçan": { lat: 42.9167, lng: 20.8333 },
+  "Leposaviq": { lat: 43.1000, lng: 20.8000 }
+}
+
 export function GoogleMaps({ businesses: propBusinesses, categories, selectedCategory, onCategoryChange, onBusinessSelect }: GoogleMapsProps) {
   const mapRef = useRef<HTMLDivElement>(null)
   const mapInstanceRef = useRef<google.maps.Map | null>(null)
   const markersRef = useRef<google.maps.Marker[]>([])
-  const { latitude, longitude, error, loading, getCurrentLocation, calculateDistance, setLocationToPrishtina } = useLocation()
+  const { latitude, longitude, error, loading, getCurrentLocation, calculateDistance, setLocationToPrishtina, detectedCity, isUserLocation } = useLocation()
   const { businesses: storeBusinesses } = useBusinesses()
   const [selectedBusiness, setSelectedBusiness] = useState<Business | null>(null)
   const [mapLoaded, setMapLoaded] = useState(false)
   const [userMarker, setUserMarker] = useState<google.maps.Marker | null>(null)
   const [clusters, setClusters] = useState<google.maps.Marker[]>([])
   const [mapError, setMapError] = useState<string | null>(null)
+  const [selectedCity, setSelectedCity] = useState<string>("all")
+  const [isCategoryDropdownOpen, setIsCategoryDropdownOpen] = useState(false)
+  const categoryDropdownRef = useRef<HTMLDivElement>(null)
+
+  // Set city based on location detection
+  useEffect(() => {
+    if (detectedCity && isUserLocation) {
+      // User location is known and city is detected - show their city
+      setSelectedCity(detectedCity)
+    } else if (!isUserLocation) {
+      // Location is blocked - default to Prishtina
+      setSelectedCity("Prishtinë")
+    } else {
+      // Location is known but no city detected - show all cities
+      setSelectedCity("all")
+    }
+  }, [detectedCity, isUserLocation])
+
+  // Handle clicking outside category dropdown
+  useEffect(() => {
+    const handleClickOutside = (event: MouseEvent) => {
+      if (categoryDropdownRef.current && !categoryDropdownRef.current.contains(event.target as Node)) {
+        setIsCategoryDropdownOpen(false)
+      }
+    }
+
+    document.addEventListener('mousedown', handleClickOutside)
+    return () => {
+      document.removeEventListener('mousedown', handleClickOutside)
+    }
+  }, [])
+
+  // Helper functions for category dropdown
+  const getSelectedCategoryName = () => {
+    if (selectedCategory === "all") return "Të gjitha"
+    const category = categories.find(cat => String(cat.id) === selectedCategory)
+    return category ? category.name : "Kategorinë"
+  }
+
+  const handleCategorySelect = (categoryId: string) => {
+    onCategoryChange(categoryId)
+    setIsCategoryDropdownOpen(false)
+  }
+
+  // Handle city selection
+  const handleCityChange = (city: string) => {
+    setSelectedCity(city)
+    
+    if (city === "all") {
+      // Reset to user location or default to Prishtina with wide view
+      if (latitude && longitude) {
+        // Recenter on user location with wide view
+        if (mapInstanceRef.current) {
+          mapInstanceRef.current.setCenter({ lat: latitude, lng: longitude })
+          mapInstanceRef.current.setZoom(9) // Wide view for all cities
+        }
+      } else {
+        // No location available, default to Prishtina with wide view
+        const prishtinaCoords = cityCoordinates["Prishtinë"]
+        if (prishtinaCoords && mapInstanceRef.current) {
+          mapInstanceRef.current.setCenter({ lat: prishtinaCoords.lat, lng: prishtinaCoords.lng })
+          mapInstanceRef.current.setZoom(9) // Wide view for all cities
+        }
+      }
+    } else {
+      // Center on selected city
+      const cityCoords = cityCoordinates[city]
+      if (cityCoords && mapInstanceRef.current) {
+        mapInstanceRef.current.setCenter({ lat: cityCoords.lat, lng: cityCoords.lng })
+        mapInstanceRef.current.setZoom(15)
+      }
+    }
+  }
 
   // Use businesses from store if available, otherwise use props
   const businesses = storeBusinesses.length > 0 ? storeBusinesses : propBusinesses
 
-  // Filter businesses by category
+  // Filter businesses by category only (show all businesses on map)
   const filteredBusinesses = businesses.filter(business => {
-    if (selectedCategory === "all") return true
-    return String(business.category_id) === String(selectedCategory)
+    const matchesCategory = selectedCategory === "all" || String(business.category_id) === String(selectedCategory)
+    return matchesCategory
   })
 
   // Automatically get location when component mounts
@@ -80,7 +198,7 @@ export function GoogleMaps({ businesses: propBusinesses, categories, selectedCat
       
       const map = new google.maps.Map(mapRef.current, {
         center: { lat: latitude, lng: longitude },
-        zoom: 12, // City-level zoom - shows neighborhood/city area
+        zoom: 15, // More zoomed in initial view when location is allowed
          styles: [
            {
              featureType: "poi.business",
@@ -107,16 +225,19 @@ export function GoogleMaps({ businesses: propBusinesses, categories, selectedCat
              stylers: [{ visibility: "off" }]
            }
          ],
-         mapTypeControl: false,
+         mapTypeControl: true,
          streetViewControl: false,
-         fullscreenControl: false
+         fullscreenControl: false,
+         mapTypeId: google.maps.MapTypeId.SATELLITE
        })
 
       mapInstanceRef.current = map
       setMapLoaded(true)
 
-      // Add user location marker
-      const userMarkerInstance = new google.maps.Marker({
+      // Add user location marker only if location is available and not blocked
+      let userMarkerInstance: google.maps.Marker | null = null
+      if (latitude && longitude && !error && !loading && isUserLocation) {
+        userMarkerInstance = new google.maps.Marker({
         position: { lat: latitude, lng: longitude },
         map: map,
         icon: {
@@ -180,33 +301,124 @@ export function GoogleMaps({ businesses: propBusinesses, categories, selectedCat
         pixelOffset: new google.maps.Size(0, -10)
       })
       
-      
       userMarkerInstance.addListener("click", () => {
         userInfoWindow.open(map, userMarkerInstance)
       })
+      } else {
+        setUserMarker(null)
+      }
 
-      // Add 10km radius circle around user location
-      const radiusCircle = new google.maps.Circle({
-        strokeColor: "#3B82F6",
+      // Add radius circle around user location only if they're in a detected city
+      let radiusCircle: google.maps.Circle | null = null
+      if (detectedCity) {
+        radiusCircle = new google.maps.Circle({
+        strokeColor: "#3B82F600",
         strokeOpacity: 0.3,
         strokeWeight: 2,
-        fillColor: "#3B82F6",
+        fillColor: "#3B82F600",
         fillOpacity: 0.1,
         map: map,
         center: { lat: latitude, lng: longitude },
-        radius: 10000, // 10km in meters
-      })
+            radius: 4000, // 4km in meters
+        })
+        console.log(`[v0] Showing 4km radius circle for detected city: ${detectedCity}`)
+      } else {
+        console.log("[v0] No city detected, not showing radius circle")
+      }
 
-      // Set city-level view bounds (approximately 15km radius)
-      const cityBounds = new google.maps.LatLngBounds()
-      const cityRadius = 15000 // 15km in meters
+      // Set initial map view based on user location and business availability
+      const searchRadius = 4000 // 4km radius in meters
       
-      // Add bounds for city view
-      cityBounds.extend({ lat: latitude + (cityRadius / 111000), lng: longitude + (cityRadius / (111000 * Math.cos(latitude * Math.PI / 180))) })
-      cityBounds.extend({ lat: latitude - (cityRadius / 111000), lng: longitude - (cityRadius / (111000 * Math.cos(latitude * Math.PI / 180))) })
-      
-      // Fit map to city bounds with padding
-      map.fitBounds(cityBounds, 50)
+      if (latitude && longitude) {
+        // User location is known
+        console.log(`[v0] User location known: ${latitude}, ${longitude}`)
+        
+        // Check if there are businesses within 4km radius of user location
+        const nearbyBusinesses = filteredBusinesses.filter(business => {
+          if (!business.latitude || !business.longitude) return false
+          const distance = calculateDistance(business.latitude, business.longitude)
+          return distance !== null && distance <= 4 // 4km radius
+        })
+        
+        if (nearbyBusinesses.length > 0) {
+          // Businesses exist within 4km radius - show tight view around user location ONLY
+          // Use bounds calculation to show exactly 4km radius around user location
+          const userBounds = new google.maps.LatLngBounds()
+          const radiusInDegrees = 4000 / 111000 // Convert 4km to degrees (approximate)
+          
+          // Add bounds for exactly 4km radius around user location
+          userBounds.extend({ 
+            lat: latitude + radiusInDegrees, 
+            lng: longitude + radiusInDegrees / Math.cos(latitude * Math.PI / 180) 
+          })
+          userBounds.extend({ 
+            lat: latitude - radiusInDegrees, 
+            lng: longitude - radiusInDegrees / Math.cos(latitude * Math.PI / 180) 
+          })
+          
+          // Set zoom to level 15 when user location is known
+          map.setZoom(15)
+          
+          // Prevent automatic zoom adjustments by disabling auto-fit
+          map.setOptions({ 
+            gestureHandling: 'cooperative',
+            disableDefaultUI: false,
+            zoomControl: true,
+            streetViewControl: false,
+            fullscreenControl: false,
+            mapTypeControl: true
+          })
+          
+          console.log(`[v0] Map focused on user location only - ${nearbyBusinesses.length} businesses within 4km`)
+        } else {
+          // No businesses within 4km - show nearby businesses (wider view)
+          map.setZoom(15) // More zoomed in view to show nearby businesses
+          console.log(`[v0] No businesses within 4km, showing nearby businesses`)
+        }
+      } else {
+        // User location unknown - default to Prishtina
+        console.log("[v0] User location unknown, defaulting to Prishtina")
+        const prishtinaLat = 42.6629
+        const prishtinaLng = 21.1655
+        
+        // Check if there are businesses in Prishtina
+        const prishtinaBusinesses = filteredBusinesses.filter(business => business.city === "Prishtinë")
+        
+        if (prishtinaBusinesses.length > 0) {
+          // Show Prishtina area with tight bounds for exactly 4km radius
+          const prishtinaBounds = new google.maps.LatLngBounds()
+          const radiusInDegrees = 4000 / 111000 // Convert 4km to degrees (approximate)
+          
+          // Add bounds for exactly 4km radius around Prishtina
+          prishtinaBounds.extend({ 
+            lat: prishtinaLat + radiusInDegrees, 
+            lng: prishtinaLng + radiusInDegrees / Math.cos(prishtinaLat * Math.PI / 180) 
+          })
+          prishtinaBounds.extend({ 
+            lat: prishtinaLat - radiusInDegrees, 
+            lng: prishtinaLng - radiusInDegrees / Math.cos(prishtinaLat * Math.PI / 180) 
+          })
+          
+          // Fit map to Prishtina bounds only (no padding to avoid showing other cities)
+          map.fitBounds(prishtinaBounds, 0) // Zero padding to show only the 4km radius
+          
+          // Prevent automatic zoom adjustments by disabling auto-fit
+          map.setOptions({ 
+            gestureHandling: 'cooperative',
+            disableDefaultUI: false,
+            zoomControl: true,
+            streetViewControl: false,
+            fullscreenControl: false,
+            mapTypeControl: true
+          })
+          
+          console.log(`[v0] Map focused on Prishtina only (default) - ${prishtinaBusinesses.length} businesses found`)
+        } else {
+          // No businesses in Prishtina - show wider view
+          map.setZoom(15)
+          console.log("[v0] No businesses in Prishtina, showing wider view")
+        }
+      }
 
       // Get city name using reverse geocoding
       const geocoder = new google.maps.Geocoder()
@@ -225,7 +437,7 @@ export function GoogleMaps({ businesses: propBusinesses, categories, selectedCat
       console.error("Error loading Google Maps:", error)
       setMapError("Failed to load Google Maps. Please check your API key and try again.")
     }
-  }, [latitude, longitude])
+  }, [latitude, longitude, detectedCity])
 
   // Calculate distance between two points (fallback method)
   const calculateDistanceBetween = (lat1: number, lng1: number, lat2: number, lng2: number): number => {
@@ -411,21 +623,9 @@ export function GoogleMaps({ businesses: propBusinesses, categories, selectedCat
       }
     })
 
-    // Fit map to show all markers
-    if (markersRef.current.length > 0) {
-      const bounds = new google.maps.LatLngBounds()
-      markersRef.current.forEach(marker => {
-        const position = marker.getPosition()
-        if (position) {
-          bounds.extend(position)
-        }
-      })
-      // Include user location in bounds
-      if (latitude && longitude) {
-        bounds.extend({ lat: latitude, lng: longitude })
-      }
-      mapInstanceRef.current.fitBounds(bounds)
-    }
+    // Don't auto-fit to markers - keep the initial zoom level set by location
+    // This prevents the map from zooming out to show all businesses
+    console.log(`[v0] Added ${markersRef.current.length} business markers to map`)
   }, [filteredBusinesses, mapLoaded, calculateDistance, latitude, longitude])
 
   // Initialize map when location is available
@@ -518,53 +718,98 @@ export function GoogleMaps({ businesses: propBusinesses, categories, selectedCat
 
   return (
     <div className="space-y-4">
-      {/* Category Filter */}
+      {/* Category and City Filters */}
       <div className="flex items-center justify-center gap-4">
         <div className="flex items-center gap-2">
           <Filter className="w-4 h-4 text-white" />
-          <span className="text-md ">Filtro kategoritë:</span>
+          <span className="text-md text-white">Filtro:</span>
         </div>
-        <Select value={selectedCategory} onValueChange={onCategoryChange}>
-          <SelectTrigger className="w-48 bg-white text-black border-white">
-            <div className="flex items-center gap-2">
-              {selectedCategory === "all" ? (
-                <>
-                 
-                  <span className="text-md text-black">Të Gjitha Kategoritë</span>
-                </>
-              ) : (
-                <>
-                  <img 
-                    src={getCategoryPinIcon(selectedCategory)} 
-                    alt="Category" 
-                    className="w-5 h-5" 
-                  />
-                  <span className="text-black">{categories.find(cat => String(cat.id) === selectedCategory)?.name}</span>
-                </>
-              )}
-            </div>
-          </SelectTrigger>
-          <SelectContent className="bg-white text-black">
-            <SelectItem value="all" className="text-black hover:bg-gray-100 focus:bg-gray-100">
-              <div className="flex items-center gap-2">
-              
-                <span className="text-black">Të Gjitha Kategoritë</span>
-              </div>
-            </SelectItem>
-            {categories.map((category) => (
-              <SelectItem key={category.id} value={String(category.id)} className="text-black hover:bg-gray-100 focus:bg-gray-100">
-                <div className="flex items-center gap-2">
-                  <img 
-                    src={getCategoryPinIcon(category.id)} 
-                    alt={category.name} 
-                    className="w-5 h-5" 
-                  />
-                  <span className="text-black">{category.name}</span>
+        
+        {/* Category Filter */}
+        <div className="flex items-center gap-2">
+          <div className="relative" ref={categoryDropdownRef}>
+            <button
+              type="button"
+              className="w-40 px-3 py-2 text-left bg-white border border-white rounded-md shadow-sm flex items-center justify-between text-black"
+              onClick={() => setIsCategoryDropdownOpen(!isCategoryDropdownOpen)}
+            >
+              <span className="truncate text-sm">
+                {selectedCategory === "all" ? (
+                  <span className="text-gray-600">Kategorinë</span>
+                ) : (
+                  <span className="font-sm">{getSelectedCategoryName()}</span>
+                )}
+              </span>
+              <svg className="w-4 h-4 ml-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
+              </svg>
+            </button>
+            
+            {isCategoryDropdownOpen && (
+              <div className="absolute z-50 w-full mt-1 bg-white border border-gray-300 rounded-md shadow-lg overflow-visible">
+                <div
+                  className="px-3 py-2 hover:bg-gray-100 cursor-pointer flex items-center gap-2"
+                  onClick={() => handleCategorySelect("all")}
+                >
+                  <span className="text-gray-600 text-sm">Të Gjitha</span>
                 </div>
+                {categories
+                  .sort((a, b) => {
+                    if (a.sort_order !== undefined && b.sort_order !== undefined) {
+                      return a.sort_order - b.sort_order
+                    }
+                    if (a.sort_order !== undefined) return -1
+                    if (b.sort_order !== undefined) return 1
+                    return a.name.localeCompare(b.name)
+                  })
+                  .map((category) => (
+                    <div
+                      key={category.id}
+                      className="px-3 text-sm py-2 hover:bg-gray-100 cursor-pointer flex items-center gap-2"
+                      onClick={() => handleCategorySelect(String(category.id))}
+                    >
+                      {category.icon && (
+                        <img 
+                          src={category.icon} 
+                          alt={category.name}
+                          className="w-4 h-4 rounded object-cover flex-shrink-0"
+                          onError={(e) => {
+                            ;(e.target as HTMLImageElement).style.display = 'none'
+                          }}
+                        />
+                      )}
+                      <span className="truncate text-black">{category.name}</span>
+                    </div>
+                  ))}
+              </div>
+            )}
+          </div>
+        </div>
+
+        {/* City Filter */}
+        <div className="flex items-center gap-2">
+          <Select value={selectedCity} onValueChange={handleCityChange}>
+            <SelectTrigger className="w-40 bg-white text-black border-white">
+              <div className="flex items-center gap-2">
+                {selectedCity === "all" ? (
+                  <span className="text-gray-600">Qytetin:</span>
+                ) : (
+                  <span className="font-medium">{selectedCity}</span>
+                )}
+              </div>
+            </SelectTrigger>
+            <SelectContent className="bg-white text-black">
+              <SelectItem value="all" className="text-black hover:bg-gray-100 focus:bg-gray-100">
+                <span className="text-black">Të Gjitha</span>
               </SelectItem>
-            ))}
-          </SelectContent>
-        </Select>
+              {Object.keys(cityCoordinates).map((city) => (
+                <SelectItem key={city} value={city} className="text-black hover:bg-gray-100 focus:bg-gray-100">
+                  <span className="text-black">{city}</span>
+                </SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
+        </div>
       </div>
 
       {/* Map Container */}

@@ -30,7 +30,10 @@ import {
   X,
   Check,
   Search,
-  Plus
+  Plus,
+  GripVertical,
+  ChevronUp,
+  ChevronDown
 } from "lucide-react"
 import { useToast } from "@/hooks/use-toast"
 import { generateSlug } from "@/lib/slug"
@@ -163,6 +166,59 @@ export default function AdminDashboard() {
     name: '',
     icon: ''
   })
+  const [isUpdatingSort, setIsUpdatingSort] = useState(false)
+
+  const moveCategory = async (categoryId: number, direction: 'up' | 'down') => {
+    setIsUpdatingSort(true)
+    try {
+      const currentIndex = adminCategories.findIndex(cat => cat.id === categoryId)
+      if (currentIndex === -1) return
+
+      const newIndex = direction === 'up' ? currentIndex - 1 : currentIndex + 1
+      if (newIndex < 0 || newIndex >= adminCategories.length) return
+
+      // Create new array with swapped positions
+      const newCategories = [...adminCategories]
+      const temp = newCategories[currentIndex]
+      newCategories[currentIndex] = newCategories[newIndex]
+      newCategories[newIndex] = temp
+
+      // Update sort_order for both categories
+      const updates = [
+        { id: newCategories[currentIndex].id, sort_order: currentIndex + 1 },
+        { id: newCategories[newIndex].id, sort_order: newIndex + 1 }
+      ]
+
+      // Update both categories
+      for (const update of updates) {
+        await fetch(`/api/categories/${update.id}`, {
+          method: 'PUT',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ 
+            name: adminCategories.find(cat => cat.id === update.id)?.name,
+            icon: adminCategories.find(cat => cat.id === update.id)?.icon,
+            sort_order: update.sort_order
+          })
+        })
+      }
+
+      // Update local state
+      setAdminCategories(newCategories)
+      toast({
+        title: "Sukses",
+        description: "Renditja e kategorisë u përditësua",
+      })
+    } catch (error) {
+      console.error('Error moving category:', error)
+      toast({
+        title: "Gabim",
+        description: "Ndodhi një gabim gjatë përditësimit të renditjes",
+        variant: "destructive"
+      })
+    } finally {
+      setIsUpdatingSort(false)
+    }
+  }
   const [showPasswordSection, setShowPasswordSection] = useState(false)
   const [showImageSection, setShowImageSection] = useState(false)
   const [showViewImageSection, setShowViewImageSection] = useState(false)
@@ -1064,6 +1120,54 @@ export default function AdminDashboard() {
     setShowCategoryForm(true)
   }
 
+  const handleUpdateCategorySort = async (categories: any[]) => {
+    setIsUpdatingSort(true)
+    try {
+      const response = await fetch('/api/categories/sort', {
+        method: 'PUT',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ categories }),
+      })
+
+      if (response.ok) {
+        // Update local state
+        setAdminCategories(categories)
+        toast({
+          title: "Sukses",
+          description: "Renditja e kategorive u përditësua me sukses",
+        })
+      } else {
+        const errorData = await response.json()
+        toast({
+          title: "Gabim",
+          description: errorData.error || "Ndodhi një gabim",
+          variant: "destructive"
+        })
+      }
+    } catch (error) {
+      console.error('Error updating category sort:', error)
+      toast({
+        title: "Gabim",
+        description: "Ndodhi një gabim gjatë përditësimit të renditjes",
+        variant: "destructive"
+      })
+    } finally {
+      setIsUpdatingSort(false)
+    }
+  }
+
+  const handleDragEnd = (result: any) => {
+    if (!result.destination) return
+
+    const items = Array.from(adminCategories)
+    const [reorderedItem] = items.splice(result.source.index, 1)
+    items.splice(result.destination.index, 0, reorderedItem)
+
+    handleUpdateCategorySort(items)
+  }
+
   const handleDeleteCategory = async (categoryId: number) => {
     try {
       setDeletingCategory(true)
@@ -1703,15 +1807,41 @@ export default function AdminDashboard() {
                 <table className="w-full text-gray-900 min-w-[600px] border-separate border-spacing-2 sm:border-spacing-0">
                   <thead>
                     <tr className="border-b border-gray-200">
-                      <th className="text-left py-3 px-0 sm:px-4 font-semibold w-[30%] min-w-[150px] whitespace-nowrap mr-2 sm:mr-0">Emri</th>
+                      <th className="text-left py-3 px-0 sm:px-4 font-semibold w-[5%] min-w-[40px] whitespace-nowrap mr-2 sm:mr-0"></th>
+                      <th className="text-left py-3 px-0 sm:px-4 font-semibold w-[25%] min-w-[150px] whitespace-nowrap mr-2 sm:mr-0">Emri</th>
                       <th className="text-left py-3 px-0 sm:px-4 font-semibold w-[20%] min-w-[100px] whitespace-nowrap mr-2 sm:mr-0">Ikona</th>
-                      <th className="text-left py-3 px-0 sm:px-4 font-semibold w-[25%] min-w-[120px] whitespace-nowrap mr-2 sm:mr-0">Data Krijimit</th>
+                      <th className="text-left py-3 px-0 sm:px-4 font-semibold w-[20%] min-w-[120px] whitespace-nowrap mr-2 sm:mr-0">Data Krijimit</th>
                       <th className="text-right py-3 px-0 sm:px-4 font-semibold w-[25%] min-w-[120px] whitespace-nowrap">Veprime</th>
                     </tr>
                   </thead>
                   <tbody>
-                    {adminCategories.map((category) => (
+                    {adminCategories.map((category, index) => (
                       <tr key={category.id} className="border-b border-gray-200 bg-gray-50 hover:bg-gray-100">
+                        <td className="py-2 px-0 sm:px-2 mr-2 sm:mr-0">
+                          <div className="flex flex-col items-left gap-0.5">
+                       
+                            <div className="flex flex-col gap-0.5">
+                              <Button
+                                size="sm"
+                                variant="ghost"
+                                className="h-4 w-4 p-0 0 bg-gradient-to-r hover:from-gray-700 hover:to-teal-700 hover:text-white focus:from-gray-700 focus:to-teal-700 focus:text-white"
+                                onClick={() => moveCategory(category.id, 'up')}
+                                disabled={index === 0 || isUpdatingSort}
+                              >
+                                <ChevronUp className="w-3 h-3" />
+                              </Button>
+                              <Button
+                                size="sm"
+                                variant="ghost"
+                                className="h-4 w-4 p-0 bg-gradient-to-r hover:from-gray-700 hover:to-teal-700 hover:text-white"
+                                onClick={() => moveCategory(category.id, 'down')}
+                                disabled={index === adminCategories.length - 1 || isUpdatingSort}
+                              >
+                                <ChevronDown className="w-3 h-3" />
+                              </Button>
+                            </div>
+                          </div>
+                        </td>
                         <td className="py-3 px-0 sm:px-4 mr-2 sm:mr-0">
                           {editingCategoryId === category.id ? (
                             <input

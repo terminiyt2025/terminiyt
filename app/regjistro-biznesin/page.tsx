@@ -130,7 +130,18 @@ const cityCoordinates: { [key: string]: { lat: number, lng: number } } = {
   "Graçanicë": { lat: 42.6000, lng: 21.2000 },
   "Han i Elezit": { lat: 42.1500, lng: 21.3000 },
   "Junik": { lat: 42.4833, lng: 20.2833 },
-  "Mamushë": { lat: 42.3167, lng: 20.7167 }
+  "Mamushë": { lat: 42.3167, lng: 20.7167 },
+  "Drenas": { lat: 42.6264, lng: 20.8939 },
+  "F.Kosovë": { lat: 42.6629, lng: 21.1655 },
+  "Obiliq": { lat: 42.6867, lng: 21.0775 },
+  "Shtërpce": { lat: 42.2167, lng: 21.0167 },
+  "Skenderaj": { lat: 42.7381, lng: 20.7897 },
+  "Therandë": { lat: 42.3803, lng: 20.4308 },
+  "Viti": { lat: 42.3167, lng: 21.4167 },
+  "Mitrovicë E Veriut": { lat: 42.8945, lng: 20.8655 },
+  "Zubin Potok": { lat: 42.9167, lng: 20.8333 },
+  "Zveçan": { lat: 42.9167, lng: 20.8333 },
+  "Leposaviq": { lat: 43.1000, lng: 20.8000 }
 }
 
 export default function RegisterBusinessPage() {
@@ -139,7 +150,7 @@ export default function RegisterBusinessPage() {
   const { addBusiness } = useBusinesses()
   const [currentStep, setCurrentStep] = useState(1)
   const [isSubmitting, setIsSubmitting] = useState(false)
-  const [categories, setCategories] = useState<Array<{id: number, name: string, slug: string}>>([])
+  const [categories, setCategories] = useState<Array<{id: number, name: string, slug: string, sort_order?: number, icon?: string}>>([])
   const [validationErrors, setValidationErrors] = useState<{[key: string]: string}>({})
   const [categoriesLoading, setCategoriesLoading] = useState(true)
   const [mapCenter, setMapCenter] = useState<{ lat: number, lng: number } | null>(null)
@@ -871,14 +882,31 @@ export default function RegisterBusinessPage() {
                           ) : categories.length > 0 ? (
                             [...categories]
                               .sort((a, b) => {
-                                // Put "Të Tjera" at the end
-                                if (a.name === "Të Tjera") return 1;
-                                if (b.name === "Të Tjera") return -1;
-                                return a.name.localeCompare(b.name);
+                                // Use sort_order if both have it
+                                if (a.sort_order !== undefined && b.sort_order !== undefined) {
+                                  return a.sort_order - b.sort_order
+                                }
+                                // If only one has sort_order, prioritize it
+                                if (a.sort_order !== undefined) return -1
+                                if (b.sort_order !== undefined) return 1
+                                // Fallback to alphabetical
+                                return a.name.localeCompare(b.name)
                               })
                               .map((category) => (
                                 <SelectItem key={category.id} value={category.name}>
-                                  {category.name}
+                                  <div className="flex items-center gap-2">
+                                    {category.icon && (
+                                      <img 
+                                        src={category.icon} 
+                                        alt={category.name}
+                                        className="w-4 h-4 rounded"
+                                        onError={(e) => {
+                                          (e.target as HTMLImageElement).style.display = 'none'
+                                        }}
+                                      />
+                                    )}
+                                    <span>{category.name}</span>
+                                  </div>
                                 </SelectItem>
                               ))
                           ) : (

@@ -37,6 +37,7 @@ export interface Category {
   name: string
   slug: string
   icon?: string
+  sort_order?: number
   created_at: string
   updated_at: string
 }

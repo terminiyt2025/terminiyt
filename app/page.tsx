@@ -1,6 +1,6 @@
 "use client"
 
-import React, { useState, useEffect } from "react"
+import React, { useState, useEffect, useRef } from "react"
 import Link from "next/link"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
@@ -21,6 +21,7 @@ interface Category {
   name: string
   slug: string
   icon?: string
+  sort_order?: number
   color?: string
   created_at: string
   updated_at: string
@@ -38,9 +39,23 @@ export default function HomePage() {
   const [selectedBusiness, setSelectedBusiness] = useState<any>(null)
   const [modalType, setModalType] = useState<'staff-sherbimet' | 'orari' | null>(null)
   const [showAllCards, setShowAllCards] = useState(false)
+  const [isCategoryDropdownOpen, setIsCategoryDropdownOpen] = useState(false)
+  const categoryDropdownRef = useRef<HTMLDivElement>(null)
   const { user, isAuthenticated, logout } = useAuth()
-  const { calculateDistance, getCurrentLocation, setLocationToPrishtina } = useLocation()
+  const { calculateDistance, getCurrentLocation, setLocationToPrishtina, detectedCity } = useLocation()
   const { businesses, loading } = useBusinesses()
+
+  // Helper functions for category dropdown
+  const getSelectedCategoryName = () => {
+    if (selectedCategory === "all") return "Të Gjitha"
+    const category = categories.find(cat => String(cat.id) === selectedCategory)
+    return category ? category.name : "Të Gjitha"
+  }
+
+  const handleCategorySelect = (categoryId: string) => {
+    setSelectedCategory(categoryId)
+    setIsCategoryDropdownOpen(false)
+  }
 
   // Fetch categories from database
   useEffect(() => {
@@ -66,6 +81,20 @@ export default function HomePage() {
   // Get user location on component mount
   React.useEffect(() => {
     getCurrentLocation()
+  }, [])
+
+  // Handle clicking outside dropdown
+  useEffect(() => {
+    const handleClickOutside = (event: MouseEvent) => {
+      if (categoryDropdownRef.current && !categoryDropdownRef.current.contains(event.target as Node)) {
+        setIsCategoryDropdownOpen(false)
+      }
+    }
+
+    document.addEventListener('mousedown', handleClickOutside)
+    return () => {
+      document.removeEventListener('mousedown', handleClickOutside)
+    }
   }, [])
 
   // Predefined Kosovo cities
@@ -125,9 +154,14 @@ export default function HomePage() {
     .filter((provider) => {
       const matchesCategory = selectedCategory === "all" || String(provider.category_id) === selectedCategory
       const matchesCity = selectedCity === "all" || provider.city === selectedCity
+      
+      // Show ALL businesses in cards, not filtered by radius
       const matchesSearch =
         provider.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
-        ((provider as any).category_name && (provider as any).category_name.toLowerCase().includes(searchQuery.toLowerCase()))
+        ((provider as any).category_name && (provider as any).category_name.toLowerCase().includes(searchQuery.toLowerCase())) ||
+        (provider.services && provider.services.some((service: any) => 
+          service.name && service.name.toLowerCase().includes(searchQuery.toLowerCase())
+        ))
       return matchesCategory && matchesCity && matchesSearch;
     })
     .sort((a, b) => {
@@ -206,25 +240,60 @@ export default function HomePage() {
                                 </Button>
                               </div>
                             ) : (
-                              <Select value={selectedCategory} onValueChange={setSelectedCategory}>
-                                <SelectTrigger className="w-28 md:w-40">
-                                  <SelectValue placeholder="Kategoria" />
-                                </SelectTrigger>
-                                <SelectContent>
-                                  <SelectItem value="all" className="hover:bg-gray-100 focus:bg-gray-100 hover:text-black focus:text-black">Të Gjitha</SelectItem>
-                                  {categories
-                                    .sort((a, b) => {
-                                      if (a.name === "Të tjera" || a.name === "Të Tjera") return 1;
-                                      if (b.name === "Të tjera" || b.name === "Të Tjera") return -1;
-                                      return a.name.localeCompare(b.name);
-                                    })
-                                    .map((category) => (
-                                    <SelectItem key={category.id} value={String(category.id)} className="hover:bg-gray-100 focus:bg-gray-100 hover:text-black focus:text-black">
-                                      {category.name}
-                                    </SelectItem>
-                                  ))}
-                                </SelectContent>
-                              </Select>
+                              <div className="relative" ref={categoryDropdownRef}>
+                                <button
+                                  type="button"
+                                  className="w-28 md:w-40 px-3 py-2 text-left bg-white border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-teal-500 focus:border-teal-500 flex items-center justify-between"
+                                  onClick={() => setIsCategoryDropdownOpen(!isCategoryDropdownOpen)}
+                                >
+                                  <span className="truncate">{getSelectedCategoryName()}</span>
+                                  <svg className="w-4 h-4 ml-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
+                                  </svg>
+                                </button>
+                                
+                                {isCategoryDropdownOpen && (
+                                  <div className="absolute z-50 w-full mt-1 bg-white border border-gray-300 rounded-md shadow-lg overflow-visible">
+                                    <div
+                                      className="px-3 py-2 hover:bg-gray-100 cursor-pointer flex items-center gap-2"
+                                      onClick={() => handleCategorySelect("all")}
+                                    >
+                                      <span className="text-gray-600">Të Gjitha</span>
+                                    </div>
+                                    {categories
+                                      .sort((a, b) => {
+                                        // Use sort_order if both have it
+                                        if (a.sort_order !== undefined && b.sort_order !== undefined) {
+                                          return a.sort_order - b.sort_order
+                                        }
+                                        // If only one has sort_order, prioritize it
+                                        if (a.sort_order !== undefined) return -1
+                                        if (b.sort_order !== undefined) return 1
+                                        // Fallback to alphabetical
+                                        return a.name.localeCompare(b.name)
+                                      })
+                                      .map((category) => (
+                                        <div
+                                          key={category.id}
+                                          className="px-3 py-2 hover:bg-gray-100 cursor-pointer flex items-center gap-2"
+                                          onClick={() => handleCategorySelect(String(category.id))}
+                                        >
+                                          {category.icon && (
+                                            <img 
+                                              src={category.icon} 
+                                              alt={category.name}
+                                              className="w-4 h-4 rounded object-cover flex-shrink-0"
+                                              onError={(e) => {
+                                                ;(e.target as HTMLImageElement).style.display = 'none'
+                                              }}
+                                            />
+                                          )}
+                                          <span className="truncate">{category.name}</span>
+                                        </div>
+                                      ))}
+                                  </div>
+                                )}
+                              </div>
                             )}
                           </div>
 
@@ -272,7 +341,8 @@ export default function HomePage() {
                         
                         {/* Category Filter */}
                         <div className="flex items-center gap-2">
-                          <span className="text-sm text-gray-600">Kategorisë:</span>
+                        
+                        <span className="text-sm text-gray-600">Kategorisë:</span>
                           {selectedCategory !== "all" ? (
                             <div className="flex items-center gap-2">
                               <span className="font-semibold text-teal-600 bg-teal-50 px-3 py-1 rounded-full">
