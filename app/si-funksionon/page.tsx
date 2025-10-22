@@ -393,7 +393,7 @@ export default function SiFunksiononPage() {
               </div>
             </div>
 
-            {/* Right Side - Image */}
+              {/* Right Side - Image */}
             <div className="relative">
               <div className="relative w-full h-96 md:h-[500px] lg:h-[600px] rounded-2xl overflow-hidden ">
                 <Image
@@ -456,9 +456,9 @@ export default function SiFunksiononPage() {
                             />
                             {/* Gradient overlay with text - only show when scaled (center) */}
                             {isCenter && (
-                              <div className="absolute bottom-0 left-0 right-0 h-48 bg-gradient-to-t from-white via-white/80 to-transparent flex items-center">
+                              <div className="absolute bottom-0 left-0 right-0 h-48 bg-gradient-to-t from-white via-white/95 to-transparent flex items-center">
                                 <div className="p-6 w-full">
-                                  <p className="text-gray-800 font-medium text-sm md:text-base text-center leading-relaxed">
+                                  <p className="text-gray-800 font-medium text-base text-center leading-relaxed">
                                     {item.description}
                                   </p>
                                 </div>
