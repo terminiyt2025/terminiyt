@@ -82,30 +82,92 @@ export default function SiFunksiononPage() {
   const [openFAQ, setOpenFAQ] = useState<number | null>(null)
   const [visibleCards, setVisibleCards] = useState<number[]>([])
   const [currentSlide, setCurrentSlide] = useState(0) // Start from position 0 to center Slider1
+  const [isMdScreen, setIsMdScreen] = useState(false)
+  const [isClient, setIsClient] = useState(false)
   const cardRefs = useRef<(HTMLDivElement | null)[]>([])
 
   const toggleFAQ = (id: number) => {
     setOpenFAQ(openFAQ === id ? null : id)
   }
 
-  // Slider images with 2 empty spaces on left and right
+  // Check screen size
+  useEffect(() => {
+    setIsClient(true)
+    const checkScreenSize = () => {
+      setIsMdScreen(window.innerWidth < 1024)
+    }
+    
+    checkScreenSize()
+    window.addEventListener('resize', checkScreenSize)
+    
+    return () => window.removeEventListener('resize', checkScreenSize)
+  }, [])
+
+  // Get screen size info
+  const getScreenInfo = () => {
+    if (!isClient) return { isMobile: false, isMd: false, isLg: true }
+    const width = window.innerWidth
+    return {
+      isMobile: width < 768,
+      isMd: width >= 768 && width < 1024,
+      isLg: width >= 1024
+    }
+  }
+
+  // Slider images with proper empty spaces for each breakpoint
   const sliderImages = [
-    '', // Empty first position
-    '', // Empty second position
-    '/Slider1.png',
-    '/Slider2.png',
-    '/Slider3.png',
-    '/Slider4.png',
-    '/Slider5.png',
-    '/Slider6.png',
-    '/Slider7.png',
-    '', // Empty second to last position
-    ''  // Empty last position
+    '/Slider-1.png',
+    '/Slider-2.png',
+    '/Slider-3.png',
+    '/Slider-4.png',
+    '/Slider-5.png',
+    '/Slider-6.png',
+    '/Slider-7.png'
   ]
 
+  // Slider descriptions
+  const sliderDescriptions = [
+    'Zgjidhni biznesin',
+    'Zgjidhni shërbimin',
+    'Zgjidhni personelin',
+    'Zgjidhni datën',
+    'Zgjidhni orën',
+    'Plotësoni të dhënat tuaja personale',
+    'Konfirmimi i rezervimit tuaj'
+  ]
+
+  // Get the actual images to display based on screen size
+  const getDisplayImages = () => {
+    const screenInfo = getScreenInfo()
+    
+    if (screenInfo.isMobile) {
+      // Mobile: just the images, no empty spaces
+      return sliderImages.map((image, index) => ({ image, description: sliderDescriptions[index] }))
+    } else if (screenInfo.isMd) {
+      // MD: 1 empty space on each side + all 7 images
+      return [
+        { image: '', description: '' },
+        ...sliderImages.map((image, index) => ({ image, description: sliderDescriptions[index] })),
+        { image: '', description: '' }
+      ]
+    } else {
+      // LG+: 2 empty spaces on each side + all 7 images
+      return [
+        { image: '', description: '' },
+        { image: '', description: '' },
+        ...sliderImages.map((image, index) => ({ image, description: sliderDescriptions[index] })),
+        { image: '', description: '' },
+        { image: '', description: '' }
+      ]
+    }
+  }
+
   const nextSlide = () => {
-    // Don't slide beyond the last image being visible
-    const maxSlide = sliderImages.length - 5 // 5 images visible at once
+    // Calculate max slide based on total images and visible images
+    const screenInfo = getScreenInfo()
+    const visibleImages = screenInfo.isMobile ? 1 : (screenInfo.isMd ? 3 : 5)
+    const displayImages = getDisplayImages()
+    const maxSlide = Math.max(0, displayImages.length - visibleImages)
     setCurrentSlide((prev) => Math.min(prev + 1, maxSlide))
   }
 
@@ -241,37 +303,168 @@ export default function SiFunksiononPage() {
           </div>
       </section>
 
+      {/* How It Works Section */}
+      <section className="py-16 px-[15px] md:px-4 bg-white">
+        <div className="container mx-auto">
+          <div className="grid md:grid-cols-2 gap-1 lg:gap-12 items-center">
+            {/* Left Side - Steps */}
+            <div>
+              <h1 className="text-4xl md:text-5xl lg:text-6xl font-heading font-bold mb-8 text-balance">
+                <span className="bg-gradient-to-r from-gray-800 to-teal-800 bg-clip-text text-transparent">
+                  Si funksionon?
+                </span>
+              </h1>
+              
+              <div className="space-y-6">
+                {/* Step 1 */}
+                <div className="flex items-start gap-4">
+                  <div className="flex-shrink-0 w-8 h-8 bg-gradient-to-r from-gray-800 to-teal-800 rounded-full flex items-center justify-center text-white font-bold text-sm">
+                    1
+                  </div>
+                  <div>
+                    <h3 className="text-xl font-semibold text-gray-800 mb-2">
+                      Kompleto regjistrimin e biznesit
+                    </h3>
+                    <p className="text-gray-600">
+                      në vetëm katër hapa të thjeshtë.
+                    </p>
+                  </div>
+                </div>
+
+                {/* Step 2 */}
+                <div className="flex items-start gap-4">
+                  <div className="flex-shrink-0 w-8 h-8 bg-gradient-to-r from-gray-800 to-teal-800 rounded-full flex items-center justify-center text-white font-bold text-sm">
+                    2
+                  </div>
+                  <div>
+                    <h3 className="text-xl font-semibold text-gray-800 mb-2">
+                      Vendos lokacionin e saktë
+                    </h3>
+                    <p className="text-gray-600">
+                      përmes Google Maps që klientët të ju gjejnë lehtë.
+                    </p>
+                  </div>
+                </div>
+
+                {/* Step 3 */}
+                <div className="flex items-start gap-4">
+                  <div className="flex-shrink-0 w-8 h-8 bg-gradient-to-r from-gray-800 to-teal-800 rounded-full flex items-center justify-center text-white font-bold text-sm">
+                    3
+                  </div>
+                  <div>
+                    <h3 className="text-xl font-semibold text-gray-800 mb-2">
+                      Pasi të përfundosh regjistrimin
+                    </h3>
+                    <p className="text-gray-600">
+                      prit verifikimin nga stafi ynë – zakonisht nuk zgjat më shumë se një ditë pune.
+                    </p>
+                  </div>
+                </div>
+
+                {/* Step 4 */}
+                <div className="flex items-start gap-4">
+                  <div className="flex-shrink-0 w-8 h-8 bg-gradient-to-r from-gray-800 to-teal-800 rounded-full flex items-center justify-center text-white font-bold text-sm">
+                    4
+                  </div>
+                  <div>
+                    <h3 className="text-xl font-semibold text-gray-800 mb-2">
+                      Kyçu në panelin tënd
+                    </h3>
+                    <p className="text-gray-600">
+                      për të menaxhuar të dhënat, shërbimet dhe kalendarin e veçantë për secilin anëtar të ekipit.
+                    </p>
+                  </div>
+                </div>
+
+                {/* Step 5 */}
+                <div className="flex items-start gap-4">
+                  <div className="flex-shrink-0 w-8 h-8 bg-gradient-to-r from-gray-800 to-teal-800 rounded-full flex items-center justify-center text-white font-bold text-sm">
+                    5
+                  </div>
+                  <div>
+                    <h3 className="text-xl font-semibold text-gray-800 mb-2">
+                      Biznesi yt bëhet i dukshëm në hartë
+                    </h3>
+                    <p className="text-gray-600">
+                      dhe merr një <strong className="text-teal-800">link unik</strong> për pranimin e rezervimeve online.
+                    </p>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            {/* Right Side - Image */}
+            <div className="relative">
+              <div className="relative w-full h-96 md:h-[500px] lg:h-[600px] rounded-2xl overflow-hidden ">
+                <Image
+                  src="/mergeimages.png"
+                  alt="Si funksionon platforma"
+                  fill
+                  className="object-contain"
+                  priority
+                />
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+
       {/* Image Slider Section */}
       <section className="py-16 px-[15px] md:px-4">
         <div className="container mx-auto">
+          {/* Slider Title */}
+          <div className="text-center mb-12">
+            <h1 className="text-4xl md:text-5xl lg:text-6xl font-heading font-bold text-balance">
+              <span className="bg-gradient-to-r from-gray-800 to-teal-800 bg-clip-text text-transparent">
+                Si funksionon procesi i rezervimit?
+              </span>
+            </h1>
+          </div>
+          
           <div className="relative">
             {/* Slider Container */}
             <div className="relative overflow-hidden rounded-2xl bg-white- " style={{ height: '85vh' }}>
               <div 
                 className="flex transition-transform duration-500 ease-in-out"
-                style={{ transform: `translateX(-${currentSlide * (100 / 5)}%)` }}
+                style={{ transform: `translateX(-${currentSlide * (100 / (getScreenInfo().isMobile ? 1 : (getScreenInfo().isMd ? 3 : 5)))}%)` }}
               >
-                {sliderImages.map((image, index) => {
-                  const isCenter = index === currentSlide + 2 // Center image is the 3rd of 5 visible
-                  const isVisible = index >= currentSlide && index < currentSlide + 5
+                {getDisplayImages().map((item, index) => {
+                  const screenInfo = getScreenInfo()
+                  // Center calculation: Mobile: no center (1 image), MD: center is index 1, LG+: center is index 2
+                  const centerOffset = screenInfo.isMobile ? 0 : (screenInfo.isMd ? 1 : 2)
+                  const isCenter = screenInfo.isMobile ? true : (index === currentSlide + centerOffset)
+                  const visibleImages = screenInfo.isMobile ? 1 : (screenInfo.isMd ? 3 : 5)
+                  const isVisible = index >= currentSlide && index < currentSlide + visibleImages
                   return (
-                    <div key={index} className="w-1/5 flex-shrink-0">
+                    <div key={index} className={`${screenInfo.isMobile ? 'w-full' : (screenInfo.isMd ? 'w-1/3' : 'w-1/5')} flex-shrink-0`}>
                       <div 
                         className="relative w-full transition-all duration-300" 
                         style={{ 
                           height: '85vh',
-                          transform: isCenter ? 'scale(1.08)' : 'scale(1)',
+                          transform: screenInfo.isMobile ? 'scale(1)' : (isCenter ? 'scale(1.08)' : 'scale(1)'),
                           opacity: isCenter ? 1 : (isVisible ? 0.5 : 1)
                         }}
                       >
-                        {image ? (
-                          <Image
-                            src={image}
-                            alt={`Slider ${index}`}
-                            fill
-                            className="object-contain"
-                            priority={index === 2}
-                          />
+                        {item.image ? (
+                          <>
+                            <Image
+                              src={item.image}
+                              alt={`Slider ${index}`}
+                              fill
+                              className="object-contain"
+                              priority={index === 2}
+                            />
+                            {/* Gradient overlay with text - only show when scaled (center) */}
+                            {isCenter && (
+                              <div className="absolute bottom-0 left-0 right-0 h-48 bg-gradient-to-t from-white via-white/80 to-transparent flex items-center">
+                                <div className="p-6 w-full">
+                                  <p className="text-gray-800 font-medium text-sm md:text-base text-center leading-relaxed">
+                                    {item.description}
+                                  </p>
+                                </div>
+                              </div>
+                            )}
+                          </>
                         ) : (
                           <div className="w-full h-full bg-white flex items-center justify-center">
                             
@@ -311,17 +504,17 @@ export default function SiFunksiononPage() {
       <section className="py-16 px-[15px] md:px-4">
         <div className="container mx-auto">
           <div className="text-left md:text-center mb-12">
-            <h2 className="text-4xl md:text-5xl lg:text-4xl font-heading font-bold md:mb-6 mb-3 text-balance">
-              Pse ta përdorni <span className="bg-gradient-to-r from-gray-800 to-teal-800 bg-clip-text text-transparent">TerminiYt.com</span>?
-            </h2>
-            <p className="text-xl md:text-lg lg:text-lg text-muted-foreground max-w-2xl mx-auto">
-              Gjetja dhe rezervimi i shërbimeve lokale nuk ka qenë kurrë më e lehtë
-            </p>
+            <h1 className="text-4xl md:text-5xl lg:text-6xl font-heading font-bold md:mb-6 mb-0 text-balance">
+            <span className="bg-gradient-to-r from-gray-800 to-teal-800 bg-clip-text text-transparent"> Pse ta përdorni TerminiYt.com?</span>
+            </h1>
+            
           </div>
 
-          {/* Three boxes section */}
+          {/* Three boxes section - HIDDEN */}
+          {/* 
           <div className="space-y-6">
             {/* First box - 100% width with video */}
+            {/* 
             <div 
               ref={(el) => (cardRefs.current[0] = el)}
               className={`w-full px-6 py-8 sm:px-6 sm:py-8 md:px-8 md:py-10 lg:px-8 lg:py-10 xl:px-12 xl:py-16 2xl:px-14 2xl:py-18 rounded-2xl transition-all duration-1500 ease-out transform ${
@@ -361,19 +554,21 @@ export default function SiFunksiononPage() {
             </div>
 
             {/* Second and third boxes - 50% width each */}
+            {/* 
             <div className="grid md:grid-cols-2 gap-6">
               {/* Second box */}
+              {/* 
               <div 
-  ref={(el) => (cardRefs.current[1] = el)}
-  className={`px-6 py-8 sm:px-6 sm:py-8 md:px-8 md:py-10 lg:px-8 lg:py-10 xl:px-12 xl:py-16 2xl:px-14 2xl:py-18 rounded-xl transition-all duration-1500 ease-out transform delay-200 ${
-    visibleCards.includes(1) 
-      ? 'translate-y-0 opacity-100' 
-      : 'translate-y-8 opacity-0'
-  }`}
-  style={{ 
-    backgroundColor: '#F4F4F4',
-    borderRadius: '12px'
-  }}
+    ref={(el) => (cardRefs.current[1] = el)}
+    className={`px-6 py-8 sm:px-6 sm:py-8 md:px-8 md:py-10 lg:px-8 lg:py-10 xl:px-12 xl:py-16 2xl:px-14 2xl:py-18 rounded-xl transition-all duration-1500 ease-out transform delay-200 ${
+      visibleCards.includes(1) 
+        ? 'translate-y-0 opacity-100' 
+        : 'translate-y-8 opacity-0'
+    }`}
+    style={{ 
+      backgroundColor: '#F4F4F4',
+      borderRadius: '12px'
+    }}
 >
   <h3 className="text-3xl md:text-4xl lg:text-5xl font-heading font-bold mb-6 text-balance bg-gradient-to-r from-gray-800 to-teal-800 bg-clip-text text-transparent">
     Shërbimet e Biznesit
@@ -389,6 +584,7 @@ export default function SiFunksiononPage() {
 
 
               {/* Third box */}
+              {/* 
               <div 
                 ref={(el) => (cardRefs.current[2] = el)}
                 className={`px-6 py-8 sm:px-6 sm:py-8 md:px-8 md:py-10 lg:px-8 lg:py-10 xl:px-12 xl:py-16 2xl:px-14 2xl:py-18 rounded-xl transition-all duration-1500 ease-out transform delay-400 ${
@@ -413,6 +609,79 @@ export default function SiFunksiononPage() {
     className="pt-10 mx-auto rounded-xl object-cover"
   />
 </div>         
+              </div>
+            </div>
+          </div>
+          */}
+          
+          {/* New Features List */}
+          <div className="mt-0 max-w-4xl mx-auto md:mt-16">
+            <div className="grid md:grid-cols-2 gap-6 text-left">
+              <div className="space-y-4">
+                <div className="flex items-start gap-3">
+                  <div className="flex-shrink-0 w-6 h-6 bg-gradient-to-r from-gray-800 to-teal-800 rounded-full flex items-center justify-center text-white text-sm font-bold">
+                    ✓
+                  </div>
+                  <p className="text-gray-700 leading-relaxed">
+                    Menaxhoni të gjitha të dhënat e biznesit tuaj në një vend.
+                  </p>
+                </div>
+                
+                <div className="flex items-start gap-3">
+                  <div className="flex-shrink-0 w-6 h-6 bg-gradient-to-r from-gray-800 to-teal-800 rounded-full flex items-center justify-center text-white text-sm font-bold">
+                    ✓
+                  </div>
+                  <p className="text-gray-700 leading-relaxed">
+                    Krijoni dhe organizoni shërbimet që ofroni.
+                  </p>
+                </div>
+                
+                <div className="flex items-start gap-3">
+                  <div className="flex-shrink-0 w-6 h-6 bg-gradient-to-r from-gray-800 to-teal-800 rounded-full flex items-center justify-center text-white text-sm font-bold">
+                    ✓
+                  </div>
+                  <p className="text-gray-700 leading-relaxed">
+                    Shtoni anëtarë të stafit dhe caktoni oraret e tyre individuale.
+                  </p>
+                </div>
+                
+                <div className="flex items-start gap-3">
+                  <div className="flex-shrink-0 w-6 h-6 bg-gradient-to-r from-gray-800 to-teal-800 rounded-full flex items-center justify-center text-white text-sm font-bold">
+                    ✓
+                  </div>
+                  <p className="text-gray-700 leading-relaxed">
+                    Menaxhoni kalendarin për secilin anëtar, bllokoni slotet dhe vendosni pushimet.
+                  </p>
+                </div>
+              </div>
+              
+              <div className="space-y-4">
+                <div className="flex items-start gap-3">
+                  <div className="flex-shrink-0 w-6 h-6 bg-gradient-to-r from-gray-800 to-teal-800 rounded-full flex items-center justify-center text-white text-sm font-bold">
+                    ✓
+                  </div>
+                  <p className="text-gray-700 leading-relaxed">
+                    Shikoni, pranoni ose anuloni terminet me vetëm disa klikime.
+                  </p>
+                </div>
+                
+                <div className="flex items-start gap-3">
+                  <div className="flex-shrink-0 w-6 h-6 bg-gradient-to-r from-gray-800 to-teal-800 rounded-full flex items-center justify-center text-white text-sm font-bold">
+                    ✓
+                  </div>
+                  <p className="text-gray-700 leading-relaxed">
+                    Merrni njoftime automatike për çdo rezervim, anulim apo ndryshim në kohë reale.
+                  </p>
+                </div>
+                
+                <div className="flex items-start gap-3">
+                  <div className="flex-shrink-0 w-6 h-6 bg-gradient-to-r from-gray-800 to-teal-800 rounded-full flex items-center justify-center text-white text-sm font-bold">
+                    ✓
+                  </div>
+                  <p className="text-gray-700 leading-relaxed">
+                    Kurseni kohë dhe punoni më me efikasitet me një sistem të thjeshtë e të zgjuar.
+                  </p>
+                </div>
               </div>
             </div>
           </div>
@@ -449,7 +718,7 @@ export default function SiFunksiononPage() {
         <div className="container mx-auto">
           <div className="text-left md:text-center mb-10">
             <h2 className="text-4xl md:text-5xl font-heading font-bold text-gray-800 mb-3">
-              Pyetje të Shpeshta
+            <span className="bg-gradient-to-r from-gray-800 to-teal-800 bg-clip-text text-transparent">Pyetje të Shpeshta</span>
             </h2>
             <p className="text-sm md:text-xl text-gray-600 max-w-3xl mx-auto">
               Gjeni përgjigjet për pyetjet më të shpeshta rreth platformës sonë
