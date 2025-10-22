@@ -8,7 +8,7 @@ import { Input } from "@/components/ui/input"
 import { Card, CardContent } from "@/components/ui/card"
 import { Badge } from "@/components/ui/badge"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
-import { Calendar, Search, Star, Clock, Phone, MapPin, User, LogOut, Filter, X, Navigation } from "lucide-react"
+import { Calendar, Search, Star, Bell, Clock, Phone, MapPin, User, LogOut, Filter, X, Navigation } from "lucide-react"
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog"
 import { useAuth } from "@/hooks/use-auth"
 import { useLocation } from "@/hooks/use-location"
@@ -233,7 +233,7 @@ export default function HomePage() {
       </section>
 
       {/* Filter and Search Section */}
-      <section className="py-8 px-[15px] md:px-4 bg-white" style={{ overflow: 'visible' }}>
+      <section className="py-8 px-[15px] md:px-4 bg-gray-50" style={{ overflow: 'visible' }}>
         <div className="container mx-auto" style={{ overflow: 'visible' }}>
           <div className="flex flex-col lg:flex-row items-center justify-between gap-4" style={{ overflow: 'visible' }}>
                     {/* Category and City Selection */}
@@ -256,7 +256,7 @@ export default function HomePage() {
                             >
                               <span className="truncate text-sm">
                                 {selectedCategory === "all" ? (
-                                  <span className="text-gray-600">Kategorisë:</span>
+                                  <span className="text-gray-600">Kategorinë:</span>
                                 ) : (
                                   <span className="font-medium">{getSelectedCategoryName()}</span>
                                 )}
@@ -359,7 +359,7 @@ export default function HomePage() {
       </section>
 
       {/* Service Provider Cards Section */}
-      <section className="px-[15px] md:px-4 bg-white">
+      <section className="px-[15px] md:px-4 bg-gray-50 pb-20">
         <div className="container mx-auto">
           
           {loading ? (
@@ -386,7 +386,7 @@ export default function HomePage() {
               <Card key={provider.id} className="group hover:shadow-2xl transition-all duration-300 hover:-translate-y-1 bg-white border-0 shadow-lg overflow-hidden py-0 px-0">
                 <div className="flex flex-col">
                   {/* Image Section */}
-                  <div className="relative w-full h-64 overflow-hidden">
+                  <div className="relative w-full h-65 overflow-hidden">
                     {provider.business_images && typeof provider.business_images === 'string' ? (
                       <img
                         src={provider.business_images}
@@ -531,7 +531,7 @@ export default function HomePage() {
               </section>
 
       {/* How It Works Section */}
-      <section className="py-24 px-[15px] md:px-4 relative overflow-hidden">
+      <section className="py-24 px-[15px] md:px-4 relative overflow-hidden bg-gray-50">
         {/* Background Pattern */}
         <div className="absolute inset-0 opacity-5">
           <div className="absolute top-20 left-10 w-32 h-32 bg-gradient-to-r from-gray-800 to-teal-800 rounded-full blur-3xl"></div>
@@ -596,13 +596,13 @@ export default function HomePage() {
                   3
                 </div>
                 <div className="w-16 h-16 bg-gradient-to-r from-gray-800 to-teal-800 rounded-2xl flex items-center justify-center mx-auto mb-6 group-hover:scale-110 transition-transform duration-300">
-                  <Star className="w-8 h-8 text-white" />
+                  <Bell className="w-8 h-8 text-white" />
                 </div>
                 <h3 className="text-2xl font-heading font-bold text-gray-800 mb-4 text-center">
-                  Vlerëso
+                  Merr njoftime
                 </h3>
                 <p className="text-gray-600 leading-relaxed text-center flex-1">
-                  Merr shërbim cilësor dhe ndaj eksperiencën tënde për të ndihmuar të tjerët në komunitet.
+                Merr njoftime dhe rikujtime të menjëhershme për rezervimin tuaj, që të mos humbisni asnjë detaj dhe të jeni gjithmonë në kohë!
                 </p>
               </div>
             </div>

@@ -8,6 +8,7 @@ import { Header } from "@/components/header"
 import { Footer } from "@/components/footer"
 import Image from "next/image"
 import { useState, useEffect, useRef } from "react"
+import { ChevronLeft, ChevronRight } from "lucide-react"
 
 const faqData = [
   {
@@ -80,10 +81,36 @@ const services = [
 export default function SiFunksiononPage() {
   const [openFAQ, setOpenFAQ] = useState<number | null>(null)
   const [visibleCards, setVisibleCards] = useState<number[]>([])
+  const [currentSlide, setCurrentSlide] = useState(0) // Start from position 0 to center Slider1
   const cardRefs = useRef<(HTMLDivElement | null)[]>([])
 
   const toggleFAQ = (id: number) => {
     setOpenFAQ(openFAQ === id ? null : id)
+  }
+
+  // Slider images with 2 empty spaces on left and right
+  const sliderImages = [
+    '', // Empty first position
+    '', // Empty second position
+    '/Slider1.png',
+    '/Slider2.png',
+    '/Slider3.png',
+    '/Slider4.png',
+    '/Slider5.png',
+    '/Slider6.png',
+    '/Slider7.png',
+    '', // Empty second to last position
+    ''  // Empty last position
+  ]
+
+  const nextSlide = () => {
+    // Don't slide beyond the last image being visible
+    const maxSlide = sliderImages.length - 5 // 5 images visible at once
+    setCurrentSlide((prev) => Math.min(prev + 1, maxSlide))
+  }
+
+  const prevSlide = () => {
+    setCurrentSlide((prev) => Math.max(prev - 1, 0))
   }
 
   // Intersection Observer for scroll animations
@@ -212,6 +239,71 @@ export default function SiFunksiononPage() {
               ))}
             </div>
           </div>
+      </section>
+
+      {/* Image Slider Section */}
+      <section className="py-16 px-[15px] md:px-4">
+        <div className="container mx-auto">
+          <div className="relative">
+            {/* Slider Container */}
+            <div className="relative overflow-hidden rounded-2xl bg-white- " style={{ height: '85vh' }}>
+              <div 
+                className="flex transition-transform duration-500 ease-in-out"
+                style={{ transform: `translateX(-${currentSlide * (100 / 5)}%)` }}
+              >
+                {sliderImages.map((image, index) => {
+                  const isCenter = index === currentSlide + 2 // Center image is the 3rd of 5 visible
+                  const isVisible = index >= currentSlide && index < currentSlide + 5
+                  return (
+                    <div key={index} className="w-1/5 flex-shrink-0">
+                      <div 
+                        className="relative w-full transition-all duration-300" 
+                        style={{ 
+                          height: '85vh',
+                          transform: isCenter ? 'scale(1.08)' : 'scale(1)',
+                          opacity: isCenter ? 1 : (isVisible ? 0.5 : 1)
+                        }}
+                      >
+                        {image ? (
+                          <Image
+                            src={image}
+                            alt={`Slider ${index}`}
+                            fill
+                            className="object-contain"
+                            priority={index === 2}
+                          />
+                        ) : (
+                          <div className="w-full h-full bg-white flex items-center justify-center">
+                            
+                          </div>
+                        )}
+                      </div>
+                    </div>
+                  )
+                })}
+              </div>
+            </div>
+
+            {/* Navigation Arrows positioned below on the right */}
+            <div className="flex justify-end mt-6 space-x-3">
+              <button
+                onClick={prevSlide}
+                className="bg-gradient-to-r from-gray-800 to-teal-800 hover:from-gray-700 hover:to-teal-700 text-white rounded-full p-3 shadow-lg transition-all duration-200 hover:scale-110"
+                aria-label="Previous slide"
+              >
+                <ChevronLeft className="w-6 h-6" />
+              </button>
+              
+              <button
+                onClick={nextSlide}
+                className="bg-gradient-to-r from-gray-800 to-teal-800 hover:from-gray-700 hover:to-teal-700 text-white rounded-full p-3 shadow-lg transition-all duration-200 hover:scale-110"
+                aria-label="Next slide"
+              >
+                <ChevronRight className="w-6 h-6" />
+              </button>
+            </div>
+          </div>
+        </div>
       </section>
 
      
