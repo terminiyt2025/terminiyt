@@ -208,18 +208,15 @@ export default function RegisterBusinessPage() {
     loadCategories()
   }, [toast])
 
-  // Handle city selection and update map center
   const handleCityChange = (cityName: string) => {
     updateFormData("city", cityName)
     
-    // Update map center if city coordinates are available
     const coordinates = cityCoordinates[cityName]
     if (coordinates) {
       setMapCenter(coordinates)
     }
   }
 
-  // Real-time validation function
   const validateField = (fieldName: string, value: any) => {
     const errors = { ...validationErrors }
     

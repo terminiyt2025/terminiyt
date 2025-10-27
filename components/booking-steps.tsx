@@ -563,8 +563,10 @@ export function BookingSteps({ business }: BookingStepsProps) {
       })
 
       // Redirect to confirmation page
+      const serviceName = selectedService?.name || ''
+      const staffName = selectedStaff?.name || ''
       router.push(
-        `/rezervimi-u-konfirmua?business=${business.name}&date=${format(selectedDate!, "yyyy-MM-dd")}&time=${selectedTime}&bookingId=${result.id}`,
+        `/booking-confirmation?business=${encodeURIComponent(business.name)}&date=${format(selectedDate!, "yyyy-MM-dd")}&time=${encodeURIComponent(selectedTime)}&service=${encodeURIComponent(serviceName)}&staff=${encodeURIComponent(staffName)}&bookingId=${result.id}`,
       )
     } catch (error) {
       console.error('Booking error:', error)
@@ -632,7 +634,7 @@ export function BookingSteps({ business }: BookingStepsProps) {
 
             {/* Service Options - Only show if no service selected */}
             {!selectedService && (
-              <div className={`grid gap-2 ${
+              <div className={`grid gap-3 ${
                 business.services?.length === 1 
                   ? 'grid-cols-1 max-w-md mx-auto' 
                   : business.services?.length === 2 

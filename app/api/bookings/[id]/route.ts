@@ -4,6 +4,59 @@ import { sendEmail, emailTemplates } from '@/lib/email'
 import { format } from 'date-fns'
 import { sq } from 'date-fns/locale'
 
+export async function GET(
+  request: NextRequest,
+  { params }: { params: Promise<{ id: string }> }
+) {
+  try {
+    const { id } = await params
+    
+    const booking = await prisma.booking.findUnique({
+      where: {
+        id: parseInt(id)
+      },
+      select: {
+        id: true,
+        serviceName: true,
+        staffName: true,
+        appointmentDate: true,
+        appointmentTime: true,
+        customerName: true,
+        customerEmail: true,
+        customerPhone: true,
+        notes: true,
+        totalPrice: true,
+        serviceDuration: true,
+        status: true,
+        createdAt: true,
+        business: {
+          select: {
+            name: true,
+            phone: true,
+            staff: true,
+            slug: true
+          }
+        }
+      }
+    })
+
+    if (!booking) {
+      return NextResponse.json(
+        { error: 'Booking not found' },
+        { status: 404 }
+      )
+    }
+
+    return NextResponse.json(booking)
+  } catch (error) {
+    console.error('Error fetching booking:', error)
+    return NextResponse.json(
+      { error: 'Ndodhi një gabim gjatë gjetjes së rezervimit' },
+      { status: 500 }
+    )
+  }
+}
+
 export async function PATCH(
   request: NextRequest,
   { params }: { params: Promise<{ id: string }> }

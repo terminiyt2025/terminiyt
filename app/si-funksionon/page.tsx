@@ -211,7 +211,9 @@ export default function SiFunksiononPage() {
       <Header transparent={true} />
 
       {/* Hero Section */}
-      <section className="py-16 md:py-32 px-4 bg-gradient-to-r  from-gray-800 to-teal-800 text-white">
+      <section className="py-16 md:py-32 px-4 bg-[radial-gradient(at_top,theme(colors.indigo.950),theme(colors.teal.900),theme(colors.slate.950))]
+
+ text-white">
         <div className="container mx-auto text-center">
           <h1 className="text-2xl md:text-5xl font-heading font-bold mb-3 text-balance leading-tight">
           Platformë rezervimesh për<br className="hidden md:block" /> eksperienca të paharrueshme.          </h1>
