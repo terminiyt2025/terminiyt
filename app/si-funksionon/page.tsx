@@ -211,8 +211,7 @@ export default function SiFunksiononPage() {
       <Header transparent={true} />
 
       {/* Hero Section */}
-      <section className="py-16 md:py-32 px-4 bg-[radial-gradient(at_top,theme(colors.indigo.950),theme(colors.teal.900),theme(colors.slate.950))]
-
+      <section className="py-16 md:py-32 px-4 bg-[linear-gradient(to_right,#171717_0%,#134E4A_75%,#DA875B_75%,#DA875B_80%,#DFA65F_80%,#DFA65F_85%,#EBCA61_85%,#EBCA61_90%,#EDD66E_90%,#EDD66E_95%,#F0E277_95%,#F0E277_100%)]
  text-white">
         <div className="container mx-auto text-center">
           <h1 className="text-2xl md:text-5xl font-heading font-bold mb-3 text-balance leading-tight">

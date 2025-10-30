@@ -17,8 +17,8 @@ export async function POST(request: NextRequest) {
     const todayString = today.toISOString().split('T')[0] // "2025-10-10"
     
     // Calculate the time window for reminders (26-34 minutes from now) in LOCAL time
-    // Convert current UTC time to local time (UTC+2)
-    const localNow = new Date(now.getTime() + 2 * 60 * 60 * 1000) // Add 2 hours for UTC+2
+    // Convert current UTC time to local time (UTC+1)
+    const localNow = new Date(now.getTime() + 1 * 60 * 60 * 1000) // Add 1 hours for UTC+1
     const reminderWindowStart = new Date(localNow.getTime() + 26 * 60 * 1000) // 26 minutes from local now
     const reminderWindowEnd = new Date(localNow.getTime() + 34 * 60 * 1000)   // 34 minutes from local now
     
@@ -165,8 +165,8 @@ export async function GET() {
     const todayString = today.toISOString().split('T')[0] // "2025-10-10"
     
     // Calculate the time window for reminders (26-34 minutes from now) in LOCAL time
-    // Convert current UTC time to local time (UTC+2)
-    const localNow = new Date(now.getTime() + 2 * 60 * 60 * 1000) // Add 2 hours for UTC+2
+    // Convert current UTC time to local time (UTC+1)
+    const localNow = new Date(now.getTime() + 1 * 60 * 60 * 1000) // Add 1 hours for UTC+1
     const reminderWindowStart = new Date(localNow.getTime() + 26 * 60 * 1000) // 26 minutes from local now
     const reminderWindowEnd = new Date(localNow.getTime() + 34 * 60 * 1000)   // 34 minutes from local now
     
