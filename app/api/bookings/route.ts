@@ -180,10 +180,15 @@ export async function POST(request: NextRequest) {
         console.log('All emails sent successfully')
       } catch (emailError) {
         console.error('Email sending failed:', emailError)
-        // Don't fail the booking if email fails
+        console.error('Email error details:', JSON.stringify(emailError, null, 2))
+        // Don't fail the booking if email fails, but log the error for debugging
       }
     } else {
-      console.log('Email sending skipped - SMTP not configured')
+      console.log('Email sending skipped - SMTP configuration check:')
+      console.log('- SMTP_HOST:', process.env.SMTP_HOST ? 'configured' : 'missing')
+      console.log('- SMTP_USER:', process.env.SMTP_USER ? 'configured' : 'missing')
+      console.log('- SMTP_PASS:', process.env.SMTP_PASS ? 'configured' : 'missing')
+      console.log('- Business exists:', business ? 'yes' : 'no')
     }
 
     return NextResponse.json(booking)

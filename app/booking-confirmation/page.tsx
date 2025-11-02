@@ -42,6 +42,7 @@ export default function BookingConfirmation({ searchParams }: { searchParams: Pr
     
     const fetchBookingData = async () => {
       if (!params.bookingId) {
+        // If no bookingId, show URL params immediately
         setIsLoadingStatus(false)
         return
       }
@@ -56,9 +57,13 @@ export default function BookingConfirmation({ searchParams }: { searchParams: Pr
           setBookingStatus(booking.status)
         } else {
           console.error('Failed to fetch booking:', response.status, response.statusText)
+          // If fetch fails, still show URL params
+          setIsLoadingStatus(false)
         }
       } catch (error) {
         console.error('Error fetching booking data:', error)
+        // If error, still show URL params
+        setIsLoadingStatus(false)
       } finally {
         setIsLoadingStatus(false)
       }
@@ -89,13 +94,23 @@ export default function BookingConfirmation({ searchParams }: { searchParams: Pr
   const [isLoadingStatus, setIsLoadingStatus] = useState(true)
   const [bookingData, setBookingData] = useState<any>(null)
   
+  // Helper function to safely decode URI component
+  const safeDecode = (value: string | undefined | null) => {
+    if (!value || value === 'undefined' || value === 'null') return ''
+    try {
+      return decodeURIComponent(value)
+    } catch {
+      return value
+    }
+  }
+
   // Booking details from fetched data or URL params
-  const displayBusiness = bookingData?.business?.name || business
+  const displayBusiness = bookingData?.business?.name || safeDecode(business)
   const displayDate = bookingData?.appointmentDate || date
-  const displayTime = bookingData?.appointmentTime || time
-  const displayService = bookingData?.serviceName || service
-  const displayStaff = bookingData?.staffName || staff
-  const displayNotes = bookingData?.notes || notes
+  const displayTime = bookingData?.appointmentTime || safeDecode(time)
+  const displayService = bookingData?.serviceName || safeDecode(service)
+  const displayStaff = bookingData?.staffName || safeDecode(staff)
+  const displayNotes = bookingData?.notes || safeDecode(notes)
 
   useEffect(() => {
     // Show content immediately on mobile, animate on desktop
@@ -230,34 +245,40 @@ export default function BookingConfirmation({ searchParams }: { searchParams: Pr
               }`}>
                 <h3 className="text-xl font-bold text-gray-900 mb-4">Detajet e Rezervimit Tuaj</h3>
                 
-                {isLoadingStatus && !displayBusiness && !displayService && (
+                {isLoadingStatus && !displayBusiness && !displayService && !date && !time && (
                   <div className="text-center py-4">
                     <p className="text-gray-600 text-sm">Duke ngarkuar detajet e rezervimit...</p>
                   </div>
                 )}
                 
-                {displayBusiness && (
+                {(!displayBusiness && !displayService && !displayDate && !displayTime && !isLoadingStatus) && (
+                  <div className="text-center py-4">
+                    <p className="text-gray-500 text-sm">Nuk u gjetën detaje për këtë rezervim.</p>
+                  </div>
+                )}
+                
+                {displayBusiness && displayBusiness !== 'undefined' && (
                   <div className="flex items-center gap-3 py-1">
                     <Building className="h-5 w-5 text-teal-800" />
                     <span className="text-gray-900 font-medium">{displayBusiness}</span>
                   </div>
                 )}
                 
-                {displayService && (
+                {displayService && displayService !== 'undefined' && (
                   <div className="flex items-center gap-3 py-1">
                     <SwatchBook className="h-5 w-5 text-teal-800"/>
                     <span className="text-gray-900 font-medium">{displayService}</span>
                   </div>
                 )}
                 
-                {displayStaff && (
+                {displayStaff && displayStaff !== 'undefined' && displayStaff !== 'null' && (
                   <div className="flex items-center gap-3 py-1">
                     <User className="h-5 w-5 text-teal-800"/>
                     <span className="text-gray-900 font-medium">{displayStaff}</span>
                   </div>
                 )}
                 
-                {displayDate && (
+                {displayDate && displayDate !== 'undefined' && (
                   <div className="flex items-center gap-3 py-1">
                     <Calendar className="h-5 w-5 text-teal-800" />
                     <span className="font-medium">
@@ -265,7 +286,7 @@ export default function BookingConfirmation({ searchParams }: { searchParams: Pr
                     </span>
                   </div>
                 )}
-                {displayTime && (
+                {displayTime && displayTime !== 'undefined' && (
                   <div className="flex items-center gap-3 py-1">
                     <Clock className="h-5 w-5 text-teal-800" />
                     <span className="text-gray-900 font-medium">{displayTime}</span>
