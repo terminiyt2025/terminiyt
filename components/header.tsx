@@ -11,8 +11,9 @@ import {
   DropdownMenuSeparator, 
   DropdownMenuTrigger 
 } from "@/components/ui/dropdown-menu"
-import { User, LogOut, Settings, Home, Calendar, Menu } from "lucide-react"
+import { User, LogOut, Settings, Home, Calendar, Menu, Download } from "lucide-react"
 import { useAuth } from "@/hooks/use-auth"
+import { PWAInstallButton } from "@/components/pwa-install-button"
 import { useEffect, useState } from "react"
 import { useRouter } from "next/navigation"
 import { useToast } from "@/hooks/use-toast"
@@ -33,14 +34,48 @@ interface Admin {
   email: string
 }
 
+interface BeforeInstallPromptEvent extends Event {
+  prompt: () => Promise<void>
+  userChoice: Promise<{ outcome: 'accepted' | 'dismissed' }>
+}
+
 export function Header({ transparent = false, className = "" }: HeaderProps) {
   const { user, isAuthenticated, logout } = useAuth()
   const [isBusinessLoggedIn, setIsBusinessLoggedIn] = useState(false)
   const [isAdminLoggedIn, setIsAdminLoggedIn] = useState(false)
   const [business, setBusiness] = useState<Business | null>(null)
   const [admin, setAdmin] = useState<Admin | null>(null)
+  const [deferredPrompt, setDeferredPrompt] = useState<BeforeInstallPromptEvent | null>(null)
+  const [showInstallButton, setShowInstallButton] = useState(false)
   const { toast } = useToast()
   const router = useRouter()
+
+  // Check PWA install prompt
+  useEffect(() => {
+    // Check if app is already installed
+    if (window.matchMedia('(display-mode: standalone)').matches) {
+      setShowInstallButton(false)
+      return
+    }
+
+    // Listen for beforeinstallprompt event
+    const handler = (e: Event) => {
+      e.preventDefault()
+      setDeferredPrompt(e as BeforeInstallPromptEvent)
+      setShowInstallButton(true)
+    }
+
+    window.addEventListener('beforeinstallprompt', handler)
+
+    // Check if app is already installed
+    window.addEventListener('appinstalled', () => {
+      setShowInstallButton(false)
+    })
+
+    return () => {
+      window.removeEventListener('beforeinstallprompt', handler)
+    }
+  }, [])
 
   // Check authentication status
   useEffect(() => {
@@ -159,6 +194,26 @@ export function Header({ transparent = false, className = "" }: HeaderProps) {
     router.push('/')
   }
 
+  const handleInstallClick = async () => {
+    if (!deferredPrompt) {
+      // Fallback: show instructions for manual installation
+      alert('Për të instaluar aplikacionin:\n\nChrome/Edge: Klikoni ikonën e instalimit në shiritin e adresës\nSafari (iOS): Klikoni "Shpërnda" dhe pastaj "Shto në Ekranin Home"\nFirefox: Klikoni menunë dhe zgjidhni "Instalo"')
+      return
+    }
+
+    deferredPrompt.prompt()
+    const { outcome } = await deferredPrompt.userChoice
+
+    if (outcome === 'accepted') {
+      console.log('User accepted the install prompt')
+      setShowInstallButton(false)
+    } else {
+      console.log('User dismissed the install prompt')
+    }
+
+    setDeferredPrompt(null)
+  }
+
   return (
     <header 
       className={`top-0 z-50 w-full ${
@@ -228,6 +283,15 @@ export function Header({ transparent = false, className = "" }: HeaderProps) {
                         Faqja Kryesore
                       </Link>
                     </DropdownMenuItem>
+                    {showInstallButton && (
+                      <DropdownMenuItem 
+                        onClick={handleInstallClick}
+                        className="flex items-center hover:!bg-gray-100 hover:!text-black focus:!bg-gray-100 focus:!text-black"
+                      >
+                        <Download className="mr-2 h-4 w-4" />
+                        Instalo App
+                      </DropdownMenuItem>
+                    )}
                     <DropdownMenuSeparator />
                     <DropdownMenuItem 
                       onClick={handleAdminLogout}
@@ -281,6 +345,15 @@ export function Header({ transparent = false, className = "" }: HeaderProps) {
                         Faqja Kryesore
                       </Link>
                     </DropdownMenuItem>
+                    {showInstallButton && (
+                      <DropdownMenuItem 
+                        onClick={handleInstallClick}
+                        className="flex items-center hover:!bg-gray-50 hover:!text-black focus:!bg-gray-50 focus:!text-black"
+                      >
+                        <Download className="mr-2 h-4 w-4" />
+                        Instalo App
+                      </DropdownMenuItem>
+                    )}
                     <DropdownMenuSeparator />
                     <DropdownMenuItem 
                       onClick={handleBusinessLogout}
@@ -382,6 +455,15 @@ export function Header({ transparent = false, className = "" }: HeaderProps) {
                         Faqja Kryesore
                       </Link>
                     </DropdownMenuItem>
+                    {showInstallButton && (
+                      <DropdownMenuItem 
+                        onClick={handleInstallClick}
+                        className="flex items-center"
+                      >
+                        <Download className="mr-2 h-4 w-4" />
+                        Instalo App
+                      </DropdownMenuItem>
+                    )}
                     <DropdownMenuSeparator />
                     <DropdownMenuItem 
                       onClick={handleAdminLogout}
@@ -418,6 +500,15 @@ export function Header({ transparent = false, className = "" }: HeaderProps) {
                         Faqja Kryesore
                       </Link>
                     </DropdownMenuItem>
+                    {showInstallButton && (
+                      <DropdownMenuItem 
+                        onClick={handleInstallClick}
+                        className="flex items-center"
+                      >
+                        <Download className="mr-2 h-4 w-4" />
+                        Instalo App
+                      </DropdownMenuItem>
+                    )}
                     <DropdownMenuSeparator />
                     <DropdownMenuItem 
                       onClick={handleBusinessLogout}
@@ -462,10 +553,13 @@ export function Header({ transparent = false, className = "" }: HeaderProps) {
                         Si Funksionon
                       </Link>
                     </DropdownMenuItem>
+                    <div className="px-2 py-1">
+                      <PWAInstallButton />
+                    </div>
                     <DropdownMenuSeparator />
                     <DropdownMenuItem asChild>
                       <Link href="/identifikohu" className="flex items-center">
-                        Kycu
+                        Kyçu
                       </Link>
                     </DropdownMenuItem>
                     <DropdownMenuItem asChild>

@@ -76,7 +76,7 @@ export const emailTemplates = {
         <h4 style="font-size: 16px;">ℹ️ Informacione të Rëndësishme:</h4>
         <ul style="margin: 0;">
           <li style="margin: 8px 0;">Ju lutemi arrini 5-10 minuta para orës së caktuar</li>
-            <li style="margin: 8px 0;">Nëse dëshironi të bëni ndryshime apo ta anuloni këtë terminin, ju lutemi kontaktoni në numrin: ${bookingData.staffPhone}</li>
+            <li style="margin: 8px 0;">Nëse dëshironi të bëni ndryshime apo ta anuloni këtë terminin, ju lutemi klikoni këtu: <a href="https://terminiyt.com/booking-confirmation?business=${encodeURIComponent(bookingData.businessName)}&date=${bookingData.dateForUrl}&time=${encodeURIComponent(bookingData.time)}&service=${encodeURIComponent(bookingData.serviceName)}&staff=${encodeURIComponent(bookingData.staffName)}&bookingId=${bookingData.bookingId}" style="color: #0d9488; text-decoration: underline;">Shiko rezervimin tim</a></li>
         </ul>
         
         <div style="text-align: center; margin-top: 40px; padding-top: 20px; border-top: 1px solid #ccc;">
@@ -105,7 +105,7 @@ export const emailTemplates = {
       
       ℹ️ Informacione të Rëndësishme:
       • Ju lutemi arrini 5-10 minuta para orës së caktuar
-       • Nëse dëshironi ndryshime apo anulime, ju lutemi kontaktoni në numrin: ${bookingData.staffPhone}
+       • Nëse dëshironi ndryshime apo anulime, ju lutemi klikoni këtu: https://terminiyt.com/booking-confirmation?business=${encodeURIComponent(bookingData.businessName)}&date=${bookingData.dateForUrl}&time=${encodeURIComponent(bookingData.time)}&service=${encodeURIComponent(bookingData.serviceName)}&staff=${encodeURIComponent(bookingData.staffName)}&bookingId=${bookingData.bookingId}
       
       Faleminderit që zgjodhët TerminiYt.com!
       info@terminiyt.com | terminiyt.com
@@ -171,6 +171,71 @@ export const emailTemplates = {
       • Sigurohuni që jeni i disponueshëm në kohën e caktuar
       • Kontaktoni klientin nëse keni nevojë për ndonjë informacion shtesë
 
+      
+      Ky email u dërgua automatikisht nga sistemi i rezervimeve.
+      
+      info@terminiyt.com | terminiyt.com
+    `
+  }),
+
+  // Email sent to business when booking is cancelled
+  businessCancellationNotification: (bookingData: any) => ({
+    subject: `❌ Rezervim i Anuluar - ${bookingData.businessName}`,
+    html: `
+      <div style="font-family: 'Outfit', sans-serif; max-width: 600px; margin: 0 auto;">
+        
+        <p style="font-size: 16px; margin-bottom: 20px;">Përshëndetje,</p>
+        <p style="font-size: 16px; margin-bottom: 30px;">Një rezervim për <strong>${bookingData.businessName}</strong> është anuluar.</p>
+        
+        <h3 style="font-size: 18px; margin-bottom: 20px;">👤 Informacionet e Klientit:</h3>
+        <p style="margin: 10px 0;"><strong> Emri:</strong> ${bookingData.customerName}</p>
+        <p style="margin: 10px 0;"><strong> Email:</strong> ${bookingData.customerEmail}</p>
+        <p style="margin: 10px 0;"><strong> Telefon:</strong> ${bookingData.customerPhone}</p>
+        
+        <h3 style="font-size: 18px; margin: 30px 0 20px 0;">📅 Detajet e Rezervimit të Anuluar:</h3>
+        <p style="margin: 10px 0;"><strong> Shërbimi:</strong> ${bookingData.serviceName}</p>
+        <p style="margin: 10px 0;"><strong> Stafi:</strong> ${bookingData.staffName}</p>
+        <p style="margin: 10px 0;"><strong> Data:</strong> ${bookingData.date}</p>
+        <p style="margin: 10px 0;"><strong> Ora:</strong> ${bookingData.time}</p>
+        <p style="margin: 10px 0;"><strong> Kohëzgjatja:</strong> ${bookingData.duration} minuta</p>
+        ${bookingData.notes ? `<p style="margin: 10px 0;"><strong> Shënime:</strong> ${bookingData.notes}</p>` : ''}
+        
+        <h4 style="font-size: 16px;">📋 Çfarë duhet të bëni:</h4>
+        <ul style="margin: 0;">
+          <li style="margin: 8px 0;">Kontrolloni kalendarin tuaj në: <a href="https://terminiyt.com/rezervimet">terminiyt.com/rezervimet</a></li>
+          <li style="margin: 8px 0;">Ora është tani e lirë dhe e disponueshme për rezervime të reja</li>
+        </ul>
+        
+        <div style="text-align: center; margin-top: 40px; padding-top: 20px; border-top: 1px solid #ccc;">
+          <p style="font-size: 14px; margin: 10px 0;">Ky email u dërgua automatikisht nga sistemi i rezervimeve.</p>
+          <p style="font-size: 12px; margin-top: 20px;">
+            <a href="mailto:info@terminiyt.com">info@terminiyt.com</a> | 
+            <a href="https://terminiyt.com">terminiyt.com</a>
+          </p>
+        </div>
+      </div>
+    `,
+    text: `
+      Përshëndetje,
+      
+      Një rezervim për ${bookingData.businessName} është anuluar.
+      
+      👤 Informacionet e Klientit:
+      Emri: ${bookingData.customerName}
+      Email: ${bookingData.customerEmail}
+      Telefon: ${bookingData.customerPhone}
+      
+      📅 Detajet e Rezervimit të Anuluar:
+      Shërbimi: ${bookingData.serviceName}
+      Stafi: ${bookingData.staffName}
+      Data: ${bookingData.date}
+      Ora: ${bookingData.time}
+      Kohëzgjatja: ${bookingData.duration} minuta
+      ${bookingData.notes ? `Shënime: ${bookingData.notes}` : ''}
+      
+      📋 Çfarë duhet të bëni:
+      • Kontrolloni kalendarin tuaj në: terminiyt.com/rezervimet
+      • Ora është tani e lirë dhe e disponueshme për rezervime të reja
       
       Ky email u dërgua automatikisht nga sistemi i rezervimeve.
       

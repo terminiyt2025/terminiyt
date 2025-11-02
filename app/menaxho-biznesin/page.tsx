@@ -530,7 +530,7 @@ export default function BusinessPanel() {
 
   if (isLoading) {
     return (
-      <div className="min-h-screen bg-gradient-to-r from-gray-800 to-teal-800 flex items-center justify-center">
+      <div className="min-h-screen bg-custom-gradient  flex items-center justify-center">
         <div className="text-white text-xl">Duke ngarkuar...</div>
       </div>
     )
@@ -538,14 +538,14 @@ export default function BusinessPanel() {
 
   if (!isAuthenticated || !business) {
     return (
-      <div className="min-h-screen bg-gradient-to-r from-gray-800 to-teal-800 flex items-center justify-center">
+      <div className="min-h-screen bg-custom-gradient  flex items-center justify-center">
         <div className="text-white text-xl">Nuk jeni të autorizuar</div>
       </div>
     )
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-r from-gray-800 to-teal-800 relative overflow-hidden">
+    <div className="min-h-screen bg-custom-gradient  relative overflow-hidden">
       <BusinessHeader />
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 relative z-10 -mt-16 md:pt-24 pt-20">
 
@@ -979,7 +979,7 @@ export default function BusinessPanel() {
                           />
                           <label
                             htmlFor="business-image-upload"
-                            className="w-full py-2 rounded bg-gradient-to-r from-gray-800 to-teal-800 text-white hover:from-gray-700 hover:to-teal-700 text-xs cursor-pointer flex items-center justify-center transition-all duration-300"
+                            className="w-full py-2 rounded bg-custom-gradient text-white text-sm cursor-pointer flex items-center justify-center transition-all duration-300"
                           >
                                 {uploadingBusinessImage ? 'Duke ngarkuar...' : '+ Ngarko Imazh'}
                           </label>
@@ -1056,7 +1056,7 @@ export default function BusinessPanel() {
                           />
                           <label
                             htmlFor="logo-upload"
-                            className="w-full py-2 rounded bg-gradient-to-r from-gray-800 to-teal-800 text-white hover:from-gray-700 hover:to-teal-700 text-xs cursor-pointer flex items-center justify-center transition-all duration-300"
+                            className="w-full py-2 rounded bg-custom-gradient text-white text-sm cursor-pointer flex items-center justify-center transition-all duration-300"
                           >
                                 {uploadingLogo ? 'Duke ngarkuar...' : '+ Ngarko Logo'}
                           </label>
@@ -1261,7 +1261,7 @@ export default function BusinessPanel() {
                           }]
                           setEditData({...editData, services: newServices})
                         }}
-                        className="w-full py-2 rounded bg-gradient-to-r from-gray-800 to-teal-800 text-white hover:from-gray-700 hover:to-teal-700 text-xs transition-all duration-300"
+                        className="w-full py-2 rounded bg-custom-gradient text-white text-sm transition-all duration-300"
                       >
                         + Shto Shërbim
                       </button>
@@ -1424,8 +1424,7 @@ export default function BusinessPanel() {
                             )}
                         <div className="flex justify-between items-center">
                           <div className="text-xs text-gray-500 pt-1">
-                          Lista e shërbimeve: {member.services?.map((service: any) => typeof service === 'string' ? service : service.name).filter((name: any) => name && name.trim() !== '').join(', ') || 'Asnjë'}
-                          : {member.services?.map((service: any) => typeof service === 'string' ? service : service.name).filter((name: any) => name && name.trim() !== '').join(', ') || 'Asnjë'}
+                            Lista e shërbimeve: {member.services?.map((service: any) => typeof service === 'string' ? service : service.name).filter((name: any) => name && name.trim() !== '').join(', ') || 'Asnjë'}
                           </div>
                           {isEditing && (
                             <button
@@ -1493,7 +1492,7 @@ export default function BusinessPanel() {
                           const newStaff = [...(editData.staff || []), newStaffMember]
                           setEditData({...editData, staff: newStaff})
                             }}
-                        className="w-full py-2 rounded bg-gradient-to-r from-gray-800 to-teal-800 text-white hover:from-gray-700 hover:to-teal-700 text-xs transition-all duration-300"
+                        className="w-full py-2 rounded bg-custom-gradient text-white  text-sm transition-all duration-300"
                           >
                         + Shto Staf
                       </button>

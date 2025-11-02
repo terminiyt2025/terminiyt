@@ -4,7 +4,6 @@ import { Outfit } from "next/font/google"
 import { Suspense } from "react"
 import { Toaster } from "@/components/ui/toaster"
 import { PWARegister } from "@/components/pwa-register"
-import { PWAInstallPrompt } from "@/components/pwa-install-prompt"
 import "./globals.css"
 
 const outfit = Outfit({
@@ -60,7 +59,6 @@ export default function RootLayout({
           <PWARegister />
           <Suspense fallback={null}>{children}</Suspense>
           <Toaster />
-          <PWAInstallPrompt />
       </body>
     </html>
   )

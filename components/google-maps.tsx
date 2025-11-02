@@ -852,7 +852,7 @@ export function GoogleMaps({ businesses: propBusinesses, categories, selectedCat
       </div>
 
       {/* Map Container */}
-      <div className={`${selectedBusiness ? 'h-[40vh]' : 'h-[70vh]'} relative overflow-hidden ${selectedBusiness ? 'rounded-t-xl' : 'rounded-t-xl'} transition-all duration-300`}>
+      <div className={`${selectedBusiness ? 'h-[50vh]' : 'h-[70vh]'} relative overflow-hidden ${selectedBusiness ? 'rounded-t-xl' : 'rounded-t-xl'} transition-all duration-300`}>
         <div ref={mapRef} className="w-full h-full" style={{fontFamily: 'system-ui, -apple-system, sans-serif'}} />
           
         {/* Map Controls */}

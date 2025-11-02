@@ -106,6 +106,14 @@ export default function ReservationsPage() {
     }
   }, [selectedDate, selectedStaff, bookings, business])
 
+  // Refresh blocked slots when date or staff changes
+  useEffect(() => {
+    if (business && isAuthenticated) {
+      fetchBlockedSlots(business.id)
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [selectedDate, selectedStaff])
+
   const fetchBusinessData = async (businessId: number) => {
     try {
       console.log('Fetching business data for ID:', businessId)
@@ -338,9 +346,8 @@ export default function ReservationsPage() {
       timeSlots.push(timeString)
     }
 
-    // Filter out blocked time slots
-    const staffNameForFilter = selectedStaff && selectedStaff !== 'all' ? selectedStaff : undefined
-    return timeSlots.filter(timeSlot => !isTimeSlotBlocked(date, timeSlot, staffNameForFilter))
+    // Don't filter blocked slots - show them but disable selection
+    return timeSlots
   }
 
   // Helper function to get service duration in minutes
@@ -473,31 +480,73 @@ export default function ReservationsPage() {
                       String(date.getMonth() + 1).padStart(2, '0') + '-' + 
                       String(date.getDate()).padStart(2, '0')
     
-    return blockedSlots.some(slot => {
-      // Parse blocked slot date and convert to local date string
-      const slotDateObj = new Date(slot.date)
-      const slotDate = slotDateObj.getFullYear() + '-' + 
-                      String(slotDateObj.getMonth() + 1).padStart(2, '0') + '-' + 
-                      String(slotDateObj.getDate()).padStart(2, '0')
+    const result = blockedSlots.some(slot => {
+      // Handle different date formats - could be Date object, ISO string, or date string
+      let slotDate: string
+      if (typeof slot.date === 'string') {
+        // If it's already a string (YYYY-MM-DD format), use it directly
+        if (slot.date.match(/^\d{4}-\d{2}-\d{2}$/)) {
+          slotDate = slot.date
+        } else {
+          // Otherwise parse it as a date
+          const slotDateObj = new Date(slot.date)
+          slotDate = slotDateObj.getFullYear() + '-' + 
+                     String(slotDateObj.getMonth() + 1).padStart(2, '0') + '-' + 
+                     String(slotDateObj.getDate()).padStart(2, '0')
+        }
+      } else {
+        // If it's a Date object or other format, parse it
+        const slotDateObj = new Date(slot.date)
+        slotDate = slotDateObj.getFullYear() + '-' + 
+                   String(slotDateObj.getMonth() + 1).padStart(2, '0') + '-' + 
+                   String(slotDateObj.getDate()).padStart(2, '0')
+      }
       
       const staffMatch = !staffName || !slot.staffName || slot.staffName === staffName
       
       if (slotDate !== dateString || !staffMatch) return false
       
-      // Check for time overlap with blocked slot
+      // Check for exact time match or overlap
+      // For single slot blocking, check exact match first
+      if (slot.startTime === timeSlot) {
+        return true
+      }
+      
+      // Check for time overlap with blocked slot (for range blocks)
       const [blockedHour, blockedMin] = slot.startTime.split(':').map(Number)
       const blockedMinutes = blockedHour * 60 + blockedMin
+      
+      // Get end time (could be same as start for single slot, or different for range)
+      const [blockedEndHour, blockedEndMin] = (slot.endTime || slot.startTime).split(':').map(Number)
+      const blockedEndMinutes = blockedEndHour * 60 + blockedEndMin
       
       const [timeSlotHour, timeSlotMin] = timeSlot.split(':').map(Number)
       const timeSlotStartMinutes = timeSlotHour * 60 + timeSlotMin
       const timeSlotEndMinutes = timeSlotStartMinutes + 15 // 15-minute slot duration
       
-      // Check if the service would overlap with blocked time
-      // Overlap occurs if: service start < blocked end AND service end > blocked start
-      // Since blocked slot is 15 minutes, blocked end = blocked start + 15
-      const blockedEndMinutes = blockedMinutes + 15
+      // Check if the time slot overlaps with blocked time
       return timeSlotStartMinutes < blockedEndMinutes && timeSlotEndMinutes > blockedMinutes
     })
+    
+    // Debug logging
+    if (timeSlot === '01:00' || blockedSlots.length > 0) {
+      console.log('isTimeSlotBlocked check:', {
+        dateString,
+        timeSlot,
+        staffName,
+        blockedSlotsCount: blockedSlots.length,
+        blockedSlots: blockedSlots.map(s => ({
+          id: s.id,
+          date: s.date,
+          startTime: s.startTime,
+          endTime: s.endTime,
+          staffName: s.staffName
+        })),
+        result
+      })
+    }
+    
+    return result
   }
 
   // Check if a time slot is in break time
@@ -544,7 +593,29 @@ export default function ReservationsPage() {
       return
     }
 
+    // Filter out already blocked slots
+    const staffNameForCheck = staffName || (selectedStaff && selectedStaff !== 'all' ? selectedStaff : undefined)
+    const alreadyBlockedSlots = selectedTimeSlots.filter(slot => 
+      isTimeSlotBlocked(selectedDate, slot, staffNameForCheck)
+    )
+    
+    if (alreadyBlockedSlots.length > 0) {
+      toast({
+        title: "Gabim",
+        description: `Këto orare janë tashmë të bllokuara: ${alreadyBlockedSlots.join(', ')}`,
+        variant: "destructive"
+      })
+      // Remove already blocked slots from selection
+      setSelectedTimeSlots(prev => prev.filter(slot => !alreadyBlockedSlots.includes(slot)))
+      return
+    }
+
     try {
+      // Format date as YYYY-MM-DD using local time to avoid timezone issues
+      const dateString = selectedDate.getFullYear() + '-' + 
+                        String(selectedDate.getMonth() + 1).padStart(2, '0') + '-' + 
+                        String(selectedDate.getDate()).padStart(2, '0')
+      
       const promises = selectedTimeSlots.map(timeSlot => 
         fetch('/api/blocked-slots', {
           method: 'POST',
@@ -554,7 +625,7 @@ export default function ReservationsPage() {
           body: JSON.stringify({
             businessId: business.id,
             staffName: staffName || null,
-            date: selectedDate.toISOString().split('T')[0],
+            date: dateString,
             startTime: timeSlot,
             endTime: timeSlot, // Same start and end time for single slot
             reason: 'Bllokuar nga biznesi'
@@ -571,6 +642,7 @@ export default function ReservationsPage() {
       
       setShowBlockModal(false)
       setSelectedTimeSlots([])
+      // Refresh blocked slots immediately
       await fetchBlockedSlots(business.id)
     } catch (error) {
       console.error('Error blocking time slots:', error)
@@ -703,7 +775,17 @@ export default function ReservationsPage() {
     const isBlocked = isTimeSlotBlocked(selectedDate, timeSlot, staffNameForCheck)
     const isInBreakTime = isTimeSlotInBreakTime(timeSlot, staffNameForCheck)
     
-    if (hasBooking || isBlocked || isInBreakTime) return
+    if (hasBooking || isBlocked || isInBreakTime) {
+      // Show a toast message if trying to select a blocked slot
+      if (isBlocked) {
+        toast({
+          title: "Ora është e bllokuar",
+          description: `Ora ${timeSlot} është tashmë e bllokuar dhe nuk mund të zgjidhet.`,
+          variant: "destructive"
+        })
+      }
+      return
+    }
 
     const isSelected = selectedTimeSlots.includes(timeSlot)
     if (isSelected) {
@@ -769,7 +851,7 @@ export default function ReservationsPage() {
 
   if (isLoading) {
     return (
-      <div className="min-h-screen bg-gradient-to-r from-gray-800 to-teal-800 flex items-center justify-center">
+      <div className="min-h-screen bg-custom-gradient  flex items-center justify-center">
         <div className="text-white text-xl">Duke ngarkuar...</div>
       </div>
     )
@@ -777,14 +859,14 @@ export default function ReservationsPage() {
 
   if (!isAuthenticated || !business) {
     return (
-      <div className="min-h-screen bg-gradient-to-r from-gray-800 to-teal-800 flex items-center justify-center">
+      <div className="min-h-screen bg-custom-gradient  flex items-center justify-center">
         <div className="text-white text-xl">Nuk jeni të autorizuar</div>
       </div>
     )
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-r from-gray-800 to-teal-800 relative overflow-hidden">
+    <div className="min-h-screen bg-custom-gradient  relative overflow-hidden">
       <BusinessHeader />
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 relative z-10 -mt-16 pt-24">
         
@@ -982,7 +1064,7 @@ export default function ReservationsPage() {
                              isDisabled
                                ? 'text-gray-300 cursor-not-allowed'
                                : isSelected
-                               ? 'bg-gradient-to-r from-gray-800 to-teal-800 text-white'
+                               ? 'bg-custom-gradient  text-white'
                                : isToday
                                ? 'bg-teal-100 text-teal-800'
                                : 'hover:bg-gray-100'
@@ -1040,10 +1122,26 @@ export default function ReservationsPage() {
                 {/* Time Slots Grid */}
                 <div className="grid grid-cols-3 gap-2 max-h-64 overflow-y-auto">
                   {generateTimeSlots(selectedDate, 30).map((timeSlot) => {
-                    const hasBooking = hasBookingAtTime(selectedDate, timeSlot, selectedStaff === 'all' ? undefined : selectedStaff)
-                    const isBlocked = isTimeSlotBlocked(selectedDate, timeSlot, selectedStaff === 'all' ? undefined : selectedStaff)
-                    const isInBreakTime = isTimeSlotInBreakTime(timeSlot, selectedStaff === 'all' ? undefined : selectedStaff)
+                    const staffNameForCheck = selectedStaff === 'all' ? undefined : selectedStaff
+                    const hasBooking = hasBookingAtTime(selectedDate, timeSlot, staffNameForCheck)
+                    const isBlocked = isTimeSlotBlocked(selectedDate, timeSlot, staffNameForCheck)
+                    const isInBreakTime = isTimeSlotInBreakTime(timeSlot, staffNameForCheck)
                     const isSelected = selectedTimeSlots.includes(timeSlot)
+                    
+                    // Debug logging for blocked slots
+                    if (isBlocked) {
+                      console.log('🔴 Blocked slot detected:', {
+                        timeSlot,
+                        date: selectedDate.toISOString().split('T')[0],
+                        staffName: staffNameForCheck,
+                        blockedSlotsArray: blockedSlots.filter(s => {
+                          const slotDateStr = typeof s.date === 'string' && s.date.match(/^\d{4}-\d{2}-\d{2}$/) 
+                            ? s.date 
+                            : new Date(s.date).toISOString().split('T')[0]
+                          return slotDateStr === selectedDate.toISOString().split('T')[0]
+                        })
+                      })
+                    }
                     
                     // Debug logging for 13:00 specifically
                     if (timeSlot === '13:00') {
@@ -1118,24 +1216,37 @@ export default function ReservationsPage() {
                             handleTimeSlotClick(timeSlot)
                           }
                         }}
-                        onDoubleClick={() => handleTimeSlotDoubleClick(timeSlot)}
+                        onDoubleClick={(e) => {
+                          // Prevent double-click selection on blocked/booked/past/break time slots
+                          if (hasBooking || isBlocked || isInBreakTime || isPastTime) {
+                            e.preventDefault()
+                            return
+                          }
+                          handleTimeSlotDoubleClick(timeSlot)
+                        }}
+                        disabled={isPastTime}
                         className={`p-2 sm:p-3 text-xs sm:text-sm rounded-md transition-colors ${
                           isBlocked
-                            ? 'bg-red-100 text-red-600 border border-red-200 cursor-pointer hover:bg-red-200'
+                            ? 'bg-orange-100 text-orange-600 border border-orange-200 cursor-pointer hover:bg-orange-200'
                             : isInBreakTime
                             ? 'bg-orange-100 text-orange-600 border border-orange-200 cursor-pointer hover:bg-orange-200'
                             : hasBooking
                             ? 'bg-teal-100 text-teal-600 border border-teal-200 cursor-pointer hover:bg-teal-200'
                             : isPastTime
-                            ? 'bg-gray-100 text-gray-400 border border-gray-200 cursor-pointer hover:bg-gray-200'
+                            ? 'bg-gray-100 text-gray-400 border border-gray-200 cursor-not-allowed opacity-75'
                             : isSelected
-                            ? 'bg-gradient-to-r from-gray-800 to-teal-800 text-white'
+                            ? 'bg-custom-gradient text-white'
                             : 'bg-white text-gray-700 border border-gray-200 hover:bg-gray-50'
                         }`}
                       >
                         <div className="font-medium">{timeSlot}</div>
                         {hasAdditionalText && isExpanded && (
                           <>
+                            {isBlocked && (
+                              <div className="text-xs mt-1 text-orange-600 font-medium leading-tight">
+                                Bllokuar nga biznesi
+                              </div>
+                            )}
                             {isInBreakTime && (
                               <div className="text-xs mt-1 text-orange-600 font-medium leading-tight">
                                 Koha e pauzës
@@ -1148,11 +1259,6 @@ export default function ReservationsPage() {
                                 <div className="text-teal-600">
                                   {booking.appointmentTime}-{getEndTime(booking.appointmentTime, booking.serviceDuration || getServiceDuration(booking.serviceName))}
                                 </div>
-                              </div>
-                            )}
-                            {isBlocked && (
-                              <div className="text-xs mt-1 text-red-600 leading-tight">
-                                I bllokuar
                               </div>
                             )}
                             {isPastTime && (
@@ -1352,15 +1458,27 @@ export default function ReservationsPage() {
               </CardTitle>
               <div className="flex items-center gap-1 w-1/5 justify-end flex-shrink-0">
                 {blockedSlots.filter(slot => {
-                  const slotDate = new Date(slot.date).toISOString().split('T')[0]
-                  const dateString = selectedDate.toISOString().split('T')[0]
+                  // Format dates using local time to avoid timezone issues
+                  const slotDateObj = new Date(slot.date)
+                  const slotDate = slotDateObj.getFullYear() + '-' + 
+                                  String(slotDateObj.getMonth() + 1).padStart(2, '0') + '-' + 
+                                  String(slotDateObj.getDate()).padStart(2, '0')
+                  const dateString = selectedDate.getFullYear() + '-' + 
+                                    String(selectedDate.getMonth() + 1).padStart(2, '0') + '-' + 
+                                    String(selectedDate.getDate()).padStart(2, '0')
                   const staffMatch = selectedStaff === 'all' || !slot.staffName || slot.staffName === selectedStaff
                   return slotDate === dateString && staffMatch
                 }).length > 0 && (
                   <div className="flex items-center justify-center w-6 h-6 bg-gradient-to-r from-gray-800 to-teal-800 text-white text-xs font-bold rounded-full">
                     {blockedSlots.filter(slot => {
-                      const slotDate = new Date(slot.date).toISOString().split('T')[0]
-                      const dateString = selectedDate.toISOString().split('T')[0]
+                      // Format dates using local time to avoid timezone issues
+                      const slotDateObj = new Date(slot.date)
+                      const slotDate = slotDateObj.getFullYear() + '-' + 
+                                      String(slotDateObj.getMonth() + 1).padStart(2, '0') + '-' + 
+                                      String(slotDateObj.getDate()).padStart(2, '0')
+                      const dateString = selectedDate.getFullYear() + '-' + 
+                                        String(selectedDate.getMonth() + 1).padStart(2, '0') + '-' + 
+                                        String(selectedDate.getDate()).padStart(2, '0')
                       const staffMatch = selectedStaff === 'all' || !slot.staffName || slot.staffName === selectedStaff
                       return slotDate === dateString && staffMatch
                     }).length}
@@ -1382,8 +1500,14 @@ export default function ReservationsPage() {
               <div className="space-y-2">
                 <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 2xl:grid-cols-7 gap-2">
                   {blockedSlots.filter(slot => {
-                    const slotDate = new Date(slot.date).toISOString().split('T')[0]
-                    const dateString = selectedDate.toISOString().split('T')[0]
+                    // Format dates using local time to avoid timezone issues
+                    const slotDateObj = new Date(slot.date)
+                    const slotDate = slotDateObj.getFullYear() + '-' + 
+                                    String(slotDateObj.getMonth() + 1).padStart(2, '0') + '-' + 
+                                    String(slotDateObj.getDate()).padStart(2, '0')
+                    const dateString = selectedDate.getFullYear() + '-' + 
+                                      String(selectedDate.getMonth() + 1).padStart(2, '0') + '-' + 
+                                      String(selectedDate.getDate()).padStart(2, '0')
                     const staffMatch = selectedStaff === 'all' || !slot.staffName || slot.staffName === selectedStaff
                     return slotDate === dateString && staffMatch
                   }).sort((a, b) => {
@@ -1475,7 +1599,7 @@ export default function ReservationsPage() {
              <div className="flex items-center gap-2 mb-6 p-3 bg-red-50 border border-red-200 rounded-lg">
                <div className="text-red-600 text-lg font-bold">!</div>
                <p className="text-red-700 text-xs font-medium">
-                 Në rast të anulimit, një email njoftues do të shkojë te klienti.
+                 Në rast të anulimit, një email njoftues do të shkojë te klienti dhe në emailën e biznesit!
                </p>
              </div>
              <div className="flex gap-3 justify-center">

@@ -584,7 +584,7 @@ export default function HomePage() {
                   Rezervo Menjëherë
                 </h3>
                 <p className="text-gray-600 leading-relaxed text-center flex-1">
-                  Shiko oraret e disponueshme dhe rezervo takime direkt përmes platformës sonë.
+                  Shiko oraret e disponueshme dhe rezervo termine direkt përmes platformës sonë ne 4 hapa të thjeshtë.
                 </p>
               </div>
             </div>
@@ -599,7 +599,7 @@ export default function HomePage() {
                   <Bell className="w-8 h-8 text-white" />
                 </div>
                 <h3 className="text-2xl font-heading font-bold text-gray-800 mb-4 text-center">
-                  Merr njoftime
+                  Merr Njoftime
                 </h3>
                 <p className="text-gray-600 leading-relaxed text-center flex-1">
                 Merr njoftime dhe rikujtime të menjëhershme për rezervimin tuaj, që të mos humbisni asnjë detaj dhe të jeni gjithmonë në kohë!

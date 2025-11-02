@@ -34,7 +34,8 @@ export async function GET(
             name: true,
             phone: true,
             staff: true,
-            slug: true
+            slug: true,
+            accountEmail: true
           }
         }
       }
@@ -111,7 +112,8 @@ export async function PATCH(
             name: true,
             phone: true,
             staff: true,
-            slug: true
+            slug: true,
+            accountEmail: true
           }
         }
       }
@@ -141,18 +143,41 @@ export async function PATCH(
           staffPhone: staffMember?.phone || updatedBooking.business.phone
         }
 
-        // Send cancellation email
-        const emailResult = await sendEmail({
+        // Send cancellation email to customer
+        const customerEmailResult = await sendEmail({
           to: updatedBooking.customerEmail,
           subject: emailTemplates.bookingCancellation(emailData).subject,
           html: emailTemplates.bookingCancellation(emailData).html,
           text: emailTemplates.bookingCancellation(emailData).text
         })
 
-        if (emailResult.success) {
-          console.log(`Cancellation email sent successfully for booking ${updatedBooking.id}`)
+        if (customerEmailResult.success) {
+          console.log(`Cancellation email sent successfully to customer for booking ${updatedBooking.id}`)
         } else {
-          console.error(`Failed to send cancellation email for booking ${updatedBooking.id}:`, emailResult.error)
+          console.error(`Failed to send cancellation email to customer for booking ${updatedBooking.id}:`, customerEmailResult.error)
+        }
+
+        // Send cancellation notification email to business
+        if (updatedBooking.business.accountEmail) {
+          const businessEmailData = {
+            ...emailData,
+            customerPhone: updatedBooking.customerPhone
+          }
+          
+          const businessEmailResult = await sendEmail({
+            to: updatedBooking.business.accountEmail,
+            subject: emailTemplates.businessCancellationNotification(businessEmailData).subject,
+            html: emailTemplates.businessCancellationNotification(businessEmailData).html,
+            text: emailTemplates.businessCancellationNotification(businessEmailData).text
+          })
+
+          if (businessEmailResult.success) {
+            console.log(`Cancellation notification email sent successfully to business for booking ${updatedBooking.id}`)
+          } else {
+            console.error(`Failed to send cancellation notification email to business for booking ${updatedBooking.id}:`, businessEmailResult.error)
+          }
+        } else {
+          console.log(`Business account_email not found, skipping business notification email for booking ${updatedBooking.id}`)
         }
       } catch (error) {
         console.error(`Error sending cancellation email for booking ${updatedBooking.id}:`, error)

@@ -28,9 +28,9 @@ export default function BookingConfirmation({ searchParams }: { searchParams: Pr
     searchParams.then(setParams)
   }, [searchParams])
 
-  // Fetch booking status when params are available
+  // Fetch booking data when bookingId is available
   useEffect(() => {
-    const fetchBookingStatus = async () => {
+    const fetchBookingData = async () => {
       if (!params.bookingId) {
         setIsLoadingStatus(false)
         return
@@ -40,16 +40,17 @@ export default function BookingConfirmation({ searchParams }: { searchParams: Pr
         const response = await fetch(`/api/bookings/${params.bookingId}`)
         if (response.ok) {
           const booking = await response.json()
+          setBookingData(booking)
           setBookingStatus(booking.status)
         }
       } catch (error) {
-        console.error('Error fetching booking status:', error)
+        console.error('Error fetching booking data:', error)
       } finally {
         setIsLoadingStatus(false)
       }
     }
     
-    fetchBookingStatus()
+    fetchBookingData()
   }, [params.bookingId])
   
   const business = params.business
@@ -72,6 +73,15 @@ export default function BookingConfirmation({ searchParams }: { searchParams: Pr
   const [cancelling, setCancelling] = useState(false)
   const [bookingStatus, setBookingStatus] = useState<string | null>(null)
   const [isLoadingStatus, setIsLoadingStatus] = useState(true)
+  const [bookingData, setBookingData] = useState<any>(null)
+  
+  // Booking details from fetched data or URL params
+  const displayBusiness = bookingData?.business?.name || business
+  const displayDate = bookingData?.appointmentDate || date
+  const displayTime = bookingData?.appointmentTime || time
+  const displayService = bookingData?.serviceName || service
+  const displayStaff = bookingData?.staffName || staff
+  const displayNotes = bookingData?.notes || notes
 
   useEffect(() => {
     // Sequential animation timing
@@ -157,76 +167,80 @@ export default function BookingConfirmation({ searchParams }: { searchParams: Pr
             </CardHeader>
             <CardContent className="space-y-6 px-3 md:px-6">
               {/* Booking Details - Expanded */}
-              <div className={`space-y-4 transition-all duration-700 ease-out ${
-                showDetailsCard ? 'opacity-100 translate-y-0 scale-100' : 'opacity-0 translate-y-8 scale-95'
-              }`}>
-                <h3 className="text-xl font-bold text-gray-900 mb-4">Detajet e Rezervimit Tuaj</h3>
-                
-                {business && (
-                  <div className="flex items-center gap-3 py-1">
-                   
-                    <Building className="h-5 w-5 text-teal-800" />
-          
-                    <span className="text-gray-900 font-medium"> {business}</span>
-                  </div>
-                )}
-                
-                {service && (
-                  <div className="flex items-center gap-3 py-1">
-                    <SwatchBook  className="h-5 w-5 text-teal-800"/>
-                    <span className="text-gray-900 font-medium"> {service}</span>
-                  </div>
-                )}
-                
-                {staff && (
-                  <div className="flex items-center gap-3 py-1">
-                 <User className="h-5 w-5 text-teal-800"/>
-                    <span className="text-gray-900 font-medium"> {staff}</span>
-                  </div>
-                )}
-                
-                {date && (
-                  <div className="flex items-center gap-3 py-1">
-                    <Calendar className="h-5 w-5 text-teal-800" />
-                    <span className="font-medium ">
-                      {formatDate(date)}
-                    </span>
-                  </div>
-                )}
-                {time && (
-                  <div className="flex items-center gap-3 py-1">
-                    <Clock className="h-5 w-5 text-teal-800" />
-                    <span className="text-gray-900 font-medium">{time}</span>
-                  </div>
-                )}
-                
-                {notes && (
-                  <div className="py-3 border-t border-gray-200 pt-4">
-                    <div className="flex items-start gap-2 mb-2">
-                      <svg className="w-5 h-5 text-purple-600 mt-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
-                      </svg>
-                      <span className="text-sm text-gray-500 font-medium">Shënime:</span>
+              {isLoadingStatus ? (
+                <div className="text-center py-8">
+                  <p className="text-gray-600">Duke ngarkuar detajet e rezervimit...</p>
+                </div>
+              ) : (
+                <div className={`space-y-4 transition-all duration-700 ease-out ${
+                  showDetailsCard ? 'opacity-100 translate-y-0 scale-100' : 'opacity-0 translate-y-8 scale-95'
+                }`}>
+                  <h3 className="text-xl font-bold text-gray-900 mb-4">Detajet e Rezervimit Tuaj</h3>
+                  
+                  {displayBusiness && (
+                    <div className="flex items-center gap-3 py-1">
+                      <Building className="h-5 w-5 text-teal-800" />
+                      <span className="text-gray-900 font-medium">{displayBusiness}</span>
                     </div>
-                    <p className="text-gray-900 font-medium italic pl-7">{notes}</p>
+                  )}
+                  
+                  {displayService && (
+                    <div className="flex items-center gap-3 py-1">
+                      <SwatchBook className="h-5 w-5 text-teal-800"/>
+                      <span className="text-gray-900 font-medium">{displayService}</span>
+                    </div>
+                  )}
+                  
+                  {displayStaff && (
+                    <div className="flex items-center gap-3 py-1">
+                      <User className="h-5 w-5 text-teal-800"/>
+                      <span className="text-gray-900 font-medium">{displayStaff}</span>
+                    </div>
+                  )}
+                  
+                  {displayDate && (
+                    <div className="flex items-center gap-3 py-1">
+                      <Calendar className="h-5 w-5 text-teal-800" />
+                      <span className="font-medium">
+                        {formatDate(displayDate)}
+                      </span>
+                    </div>
+                  )}
+                  {displayTime && (
+                    <div className="flex items-center gap-3 py-1">
+                      <Clock className="h-5 w-5 text-teal-800" />
+                      <span className="text-gray-900 font-medium">{displayTime}</span>
+                    </div>
+                  )}
+                  
+                  {displayNotes && (
+                    <div className="py-3 border-t border-gray-200 pt-4">
+                      <div className="flex items-start gap-2 mb-2">
+                        <svg className="w-5 h-5 text-purple-600 mt-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
+                        </svg>
+                        <span className="text-sm text-gray-500 font-medium">Shënime:</span>
+                      </div>
+                      <p className="text-gray-900 font-medium italic pl-7">{displayNotes}</p>
+                    </div>
+                  )}
+                </div>
+              )}
+              
+              <div className="mt-6 bg-blue-50 border border-blue-200 rounded-lg p-6">
+                <h4 className="font-bold text-gray-900 mb-4">Çfarë duhet të dini?</h4>
+                <div className="space-y-3">
+                  <div className="flex items-start gap-3">
+                    <Mail className="h-5 w-5 text-blue-700 mt-0.5 flex-shrink-0" />
+                    <p className="text-sm text-gray-700">
+                      Ju do të pranoni një email konfirmimi me të gjitha detajet e rezervimit.
+                    </p>
                   </div>
-                )}
-                
-                <div className="mt-6 bg-blue-50 border border-blue-200 rounded-lg p-6">
-                  <h4 className="font-bold text-gray-900 mb-4">Çfarë duhet të dini?</h4>
-                  <div className="space-y-3">
-                    <div className="flex items-start gap-3">
-                      <Mail className="h-5 w-5 text-blue-700 mt-0.5 flex-shrink-0" />
-                      <p className="text-sm text-gray-700">
-                        Ju do të pranoni një email konfirmimi me të gjitha detajet e rezervimit.
-                      </p>
-                    </div>
-                    <div className="flex items-start gap-3">
-                      <Clock className="h-5 w-5 text-blue-700 mt-0.5 flex-shrink-0" />
-                      <p className="text-sm text-gray-700">
-                        Ju lutem arrini para orarit të caktuar!
-                      </p>
-                    </div>
+                  <div className="flex items-start gap-3">
+                    <Clock className="h-5 w-5 text-blue-700 mt-0.5 flex-shrink-0" />
+                    <p className="text-sm text-gray-700">
+                      Ju lutem arrini para orarit të caktuar!
+                    </p>
                   </div>
                 </div>
               </div>
@@ -238,12 +252,14 @@ export default function BookingConfirmation({ searchParams }: { searchParams: Pr
                 <Button asChild className="w-full md:w-auto bg-custom-gradient text-white px-8 py-3">
                   <Link href="/">Kthehu në Faqen Kryesore</Link>
                 </Button>
-                <Button 
-                  className="w-full md:w-auto bg-gradient-to-r from-red-600 to-red-800 hover:from-red-700 hover:to-red-900 text-white px-8 py-3"
-                  onClick={() => setShowCancelDialog(true)}
-                >
-                  Anulo Rezervimin
-                </Button>
+                {bookingId && (
+                  <Button 
+                    className="w-full md:w-auto bg-gradient-to-r from-red-600 to-red-800 hover:from-red-700 hover:to-red-900 text-white px-8 py-3"
+                    onClick={() => setShowCancelDialog(true)}
+                  >
+                    Anulo Rezervimin
+                  </Button>
+                )}
               </div>
             </CardContent>
           </Card>

@@ -126,19 +126,26 @@ export async function POST(request: NextRequest) {
           staffPhone = selectedStaff?.phone || null
         }
 
+        // Format date for display and URL
+        const appointmentDate = new Date(body.appointmentDate)
+        const dateForDisplay = format(appointmentDate, "EEEE, d MMMM", { locale: sq })
+        const dateForUrl = format(appointmentDate, "yyyy-MM-dd")
+        
         const emailData = {
           businessName: business.name,
           customerName: body.customerName,
           customerEmail: body.customerEmail,
           customerPhone: body.customerPhone,
           serviceName: body.serviceName,
-          date: format(new Date(body.appointmentDate), "EEEE, d MMMM", { locale: sq }),
+          date: dateForDisplay,
+          dateForUrl: dateForUrl,
           time: body.appointmentTime,
           price: body.totalPrice ? parseFloat(body.totalPrice.toString()) : 0,
           staffName: body.staffName || 'Nuk është caktuar',
           staffPhone: staffPhone || business.phone,
           duration: body.serviceDuration || 30,
-          notes: body.notes
+          notes: body.notes,
+          bookingId: booking.id
         }
 
         // 1. Send confirmation email to customer
