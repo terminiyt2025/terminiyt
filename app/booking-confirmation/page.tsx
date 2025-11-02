@@ -38,34 +38,38 @@ export default function BookingConfirmation({ searchParams }: { searchParams: Pr
 
   // Fetch booking data when bookingId is available
   useEffect(() => {
-    if (!paramsLoaded) return
+    if (!paramsLoaded) {
+      // Don't set loading to false until params are loaded
+      return
+    }
+    
+    // Immediately show URL params (don't wait for API fetch)
+    // This ensures details from URL are visible right away
+    setIsLoadingStatus(false)
     
     const fetchBookingData = async () => {
+      // If no bookingId, no API call needed
       if (!params.bookingId) {
-        // If no bookingId, show URL params immediately
-        setIsLoadingStatus(false)
         return
       }
       
       try {
-        setIsLoadingStatus(true)
+        // Fetch in background - don't show loading, we already have URL params
         const response = await fetch(`/api/bookings/${params.bookingId}`)
         if (response.ok) {
           const booking = await response.json()
           console.log('Fetched booking data:', booking)
           setBookingData(booking)
           setBookingStatus(booking.status)
+          // Update loading status after successful fetch
+          setIsLoadingStatus(false)
         } else {
           console.error('Failed to fetch booking:', response.status, response.statusText)
-          // If fetch fails, still show URL params
-          setIsLoadingStatus(false)
+          // Keep showing URL params even if API fails
         }
       } catch (error) {
         console.error('Error fetching booking data:', error)
-        // If error, still show URL params
-        setIsLoadingStatus(false)
-      } finally {
-        setIsLoadingStatus(false)
+        // Keep showing URL params even if API fails
       }
     }
     
@@ -245,51 +249,59 @@ export default function BookingConfirmation({ searchParams }: { searchParams: Pr
               }`}>
                 <h3 className="text-xl font-bold text-gray-900 mb-4">Detajet e Rezervimit Tuaj</h3>
                 
-                {isLoadingStatus && !displayBusiness && !displayService && !date && !time && (
+                {/* Show loading only if params are not loaded yet */}
+                {!paramsLoaded && (
                   <div className="text-center py-4">
                     <p className="text-gray-600 text-sm">Duke ngarkuar detajet e rezervimit...</p>
                   </div>
                 )}
                 
-                {(!displayBusiness && !displayService && !displayDate && !displayTime && !isLoadingStatus) && (
+                {/* Show details if we have them from URL params or API */}
+                {paramsLoaded && (
+                  <>
+                    {displayBusiness && displayBusiness !== 'undefined' && displayBusiness.trim() !== '' && (
+                      <div className="flex items-center gap-3 py-1">
+                        <Building className="h-5 w-5 text-teal-800" />
+                        <span className="text-gray-900 font-medium">{displayBusiness}</span>
+                      </div>
+                    )}
+                    
+                    {displayService && displayService !== 'undefined' && displayService.trim() !== '' && (
+                      <div className="flex items-center gap-3 py-1">
+                        <SwatchBook className="h-5 w-5 text-teal-800"/>
+                        <span className="text-gray-900 font-medium">{displayService}</span>
+                      </div>
+                    )}
+                    
+                    {displayStaff && displayStaff !== 'undefined' && displayStaff !== 'null' && displayStaff.trim() !== '' && (
+                      <div className="flex items-center gap-3 py-1">
+                        <User className="h-5 w-5 text-teal-800"/>
+                        <span className="text-gray-900 font-medium">{displayStaff}</span>
+                      </div>
+                    )}
+                    
+                    {displayDate && displayDate !== 'undefined' && (
+                      <div className="flex items-center gap-3 py-1">
+                        <Calendar className="h-5 w-5 text-teal-800" />
+                        <span className="font-medium">
+                          {formatDate(displayDate)}
+                        </span>
+                      </div>
+                    )}
+                    
+                    {displayTime && displayTime !== 'undefined' && displayTime.trim() !== '' && (
+                      <div className="flex items-center gap-3 py-1">
+                        <Clock className="h-5 w-5 text-teal-800" />
+                        <span className="text-gray-900 font-medium">{displayTime}</span>
+                      </div>
+                    )}
+                  </>
+                )}
+                
+                {/* Show "no details" only if params are loaded, not loading, and we truly have no data */}
+                {paramsLoaded && !isLoadingStatus && !displayBusiness && !displayService && !displayDate && !displayTime && (
                   <div className="text-center py-4">
                     <p className="text-gray-500 text-sm">Nuk u gjetën detaje për këtë rezervim.</p>
-                  </div>
-                )}
-                
-                {displayBusiness && displayBusiness !== 'undefined' && (
-                  <div className="flex items-center gap-3 py-1">
-                    <Building className="h-5 w-5 text-teal-800" />
-                    <span className="text-gray-900 font-medium">{displayBusiness}</span>
-                  </div>
-                )}
-                
-                {displayService && displayService !== 'undefined' && (
-                  <div className="flex items-center gap-3 py-1">
-                    <SwatchBook className="h-5 w-5 text-teal-800"/>
-                    <span className="text-gray-900 font-medium">{displayService}</span>
-                  </div>
-                )}
-                
-                {displayStaff && displayStaff !== 'undefined' && displayStaff !== 'null' && (
-                  <div className="flex items-center gap-3 py-1">
-                    <User className="h-5 w-5 text-teal-800"/>
-                    <span className="text-gray-900 font-medium">{displayStaff}</span>
-                  </div>
-                )}
-                
-                {displayDate && displayDate !== 'undefined' && (
-                  <div className="flex items-center gap-3 py-1">
-                    <Calendar className="h-5 w-5 text-teal-800" />
-                    <span className="font-medium">
-                      {formatDate(displayDate)}
-                    </span>
-                  </div>
-                )}
-                {displayTime && displayTime !== 'undefined' && (
-                  <div className="flex items-center gap-3 py-1">
-                    <Clock className="h-5 w-5 text-teal-800" />
-                    <span className="text-gray-900 font-medium">{displayTime}</span>
                   </div>
                 )}
                 
@@ -331,7 +343,7 @@ export default function BookingConfirmation({ searchParams }: { searchParams: Pr
                 <Button asChild className="w-full md:w-auto bg-custom-gradient text-white px-8 py-3">
                   <Link href="/">Kthehu në Faqen Kryesore</Link>
                 </Button>
-                {(params.bookingId || bookingId) && bookingStatus !== 'CANCELLED' && (
+                {paramsLoaded && (params.bookingId || bookingId) && bookingStatus !== 'CANCELLED' && (
                   <Button 
                     className="w-full md:w-auto bg-gradient-to-r from-red-600 to-red-800 hover:from-red-700 hover:to-red-900 text-white px-8 py-3"
                     onClick={() => {
