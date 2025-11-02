@@ -16,57 +16,6 @@ export const getBookingsByBusinessId = (businessId: string) => db.getBookingsByB
 export const getBusinessHours = (businessId: string) => db.getBusinessHours(businessId)
 
 // Mock data for development and testing (fallback)
-export const mockCategories: Category[] = [
-  {
-    id: "1",
-    name: "Parukari",
-    slug: "parukari",
-    icon: "Scissors",
-    created_at: new Date().toISOString(),
-  },
-  {
-    id: "2",
-    name: "Salone Bukurie",
-    slug: "salone-bukurie",
-    icon: "Sparkles",
-    created_at: new Date().toISOString(),
-  },
-  {
-    id: "3",
-    name: "Shërbime Mjekësore",
-    slug: "sherbime-mjekesore",
-    icon: "Stethoscope",
-    created_at: new Date().toISOString(),
-  },
-  {
-    id: "4",
-    name: "Restorant",
-    slug: "restorant",
-    icon: "Utensils",
-    created_at: new Date().toISOString(),
-  },
-  {
-    id: "5",
-    name: "Fitness",
-    slug: "fitness",
-    icon: "Dumbbell",
-    created_at: new Date().toISOString(),
-  },
-  {
-    id: "6",
-    name: "Auto Servis",
-    slug: "auto-servis",
-    icon: "Wrench",
-    created_at: new Date().toISOString(),
-  },
-  {
-    id: "7",
-    name: "Hotel",
-    slug: "hotel",
-    icon: "Building",
-    created_at: new Date().toISOString(),
-  },
-]
 
 export const mockBusinesses: Business[] = [
   {

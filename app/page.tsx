@@ -217,7 +217,7 @@ export default function HomePage() {
           
           {/* Full Width Map - Dynamic Height */}
           <div className="w-full flex justify-center">
-            <div className="map-container" style={{ width: '1536px', maxWidth: '100%'}}>
+            <div className="map-container" style={{ width: '1350px', maxWidth: '100%'}}>
               <GoogleMapsWrapper
                 businesses={businesses}
                 categories={categories}
@@ -440,24 +440,24 @@ export default function HomePage() {
                       </div>
 
                       {/* Contact Info - Compact */}
-                      <div className="py-3 px-4 bg-gray-50 rounded-lg flex-1">
+                      <div className="py-2  rounded-lg flex-1">
                         <div className="space-y-3">
                           <div className="flex items-center gap-3">
-                            <MapPin className="w-4 h-4 text-gray-600 flex-shrink-0" />
-                            <span className="text-slate-600 text-sm md:text-xs truncate">
+                            <MapPin className="w-5 h-5 text-gray-600 flex-shrink-0" />
+                            <span className="text-slate-600 text-sm  truncate">
                               {provider.address || "Address not provided"} - {provider.city}
                             </span>
                           </div>
                           <div className="flex items-center gap-3">
                             <Phone className="w-4 h-4 text-gray-600 flex-shrink-0" />
-                            <span className="text-slate-600 text-sm md:text-xs no-underline" style={{ textDecoration: 'none' }}>
+                            <span className="text-slate-600 text-sm  no-underline" style={{ textDecoration: 'none' }}>
                               {provider.phone || "Phone not provided"}
                             </span>
                           </div>
                           {provider.displayDistance && (
                             <div className="flex items-center gap-3">
-                              <Navigation className="w-4 h-4 text-gray-600 flex-shrink-0" />
-                              <span className="text-slate-600 text-sm md:text-xs">{provider.displayDistance}</span>
+                              <Navigation className="w-5 h-5 text-gray-600 flex-shrink-0" />
+                              <span className="text-slate-600 text-sm ">{provider.displayDistance}</span>
                               {provider.calculatedDistance && (
                                 <Badge variant="outline" className="text-sm md:text-xs bg-teal-800/40 backdrop-blur-sm text-transparent bg-clip-text bg-gradient-to-br from-gray-800 to-teal-800 border-gradient-to-br border-from-gray-800 border-to-teal-800">
                                   GPS
@@ -469,7 +469,7 @@ export default function HomePage() {
                       </div>
 
                       {/* Action Buttons */}
-                      <div className="space-y-3 pt-4 border-t border-slate-100">
+                      <div className="space-y-3 pt-2 border-slate-100">
                         <Button 
                           size="lg" 
                           className="w-full bg-custom-gradient text-white font-semibold py-3"
@@ -531,7 +531,7 @@ export default function HomePage() {
               </section>
 
       {/* How It Works Section */}
-      <section className="py-24 px-[15px] md:px-4 relative overflow-hidden bg-gray-50">
+      <section className="py-12 px-[15px] md:px-4 relative overflow-hidden bg-gray-50">
         {/* Background Pattern */}
         <div className="absolute inset-0 opacity-5">
           <div className="absolute top-20 left-10 w-32 h-32 bg-custom-gradient rounded-full blur-3xl"></div>
@@ -544,11 +544,11 @@ export default function HomePage() {
               <span className="w-2 h-2 bg-white rounded-full animate-pulse"></span>
               Si Funksionon
             </div>
-            <h2 className="text-5xl md:text-6xl font-heading font-bold bg-gradient-to-r from-gray-800 to-teal-800 bg-clip-text text-transparent mb-6">
+            <h2 className="text-5xl md:text-6xl font-heading font-bold bg-gradient-to-r from-gray-800 to-teal-800 bg-clip-text text-transparent mb-3">
               TerminiYt.com
             </h2>
             <p className="text-xl text-gray-600 max-w-3xl mx-auto leading-relaxed">
-              Gjetja dhe rezervimi i shërbimeve lokale nuk ka qenë kurrë më e lehtë
+              Gjetja dhe rezervimi i shërbimeve lokale nuk ka qenë kurrë më e lehtë.
             </p>
           </div>
 
@@ -696,7 +696,7 @@ export default function HomePage() {
                             {/* Staff badges for this service */}
                             {selectedBusiness.staff && selectedBusiness.staff.length > 0 && (
                               <div className="flex flex-wrap gap-2">
-                                <span className="text-sm">Këtë shërbim e ofron:</span> {selectedBusiness.staff
+                                <span className="text-sm">Ky shërbim ofrohet nga:</span> {selectedBusiness.staff
                                   .filter((staffMember: any) => {
                                     // First check if staff member is active
                                     if (staffMember.isActive === false) {
@@ -719,7 +719,7 @@ export default function HomePage() {
                                     return false
                                   })
                                   .map((staffMember: any, staffIndex: number) => (
-                                    <span key={staffIndex} className="bg-custom-gradient text-white text-xs px-2 py-1 rounded-full">
+                                    <span key={staffIndex} className="bg-custom-gradient text-white text-sm px-2 py-0.5 rounded-full">
                                       {staffMember.name || 'Staff Member'}
                                     </span>
                                   ))}

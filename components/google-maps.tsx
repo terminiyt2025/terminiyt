@@ -852,7 +852,7 @@ export function GoogleMaps({ businesses: propBusinesses, categories, selectedCat
       </div>
 
       {/* Map Container */}
-      <div className={`${selectedBusiness ? 'h-[50vh]' : 'h-[70vh]'} relative overflow-hidden ${selectedBusiness ? 'rounded-t-xl' : 'rounded-t-xl'} transition-all duration-300`}>
+      <div className={`${selectedBusiness ? 'h-[45vh]' : 'h-[60vh]'} relative overflow-hidden ${selectedBusiness ? 'rounded-t-xl' : 'rounded-t-xl'} transition-all duration-300`}>
         <div ref={mapRef} className="w-full h-full" style={{fontFamily: 'system-ui, -apple-system, sans-serif'}} />
           
         {/* Map Controls */}
@@ -888,14 +888,14 @@ export function GoogleMaps({ businesses: propBusinesses, categories, selectedCat
 
       {/* Selected Business Info */}
       {selectedBusiness && (
-        <Card className="mt-4 animate-in slide-in-from-bottom-4 duration-300">
+        <Card className=" animate-in slide-in-from-bottom-4 duration-300">
           <CardContent className="p-3">
             {/* Business Info - All in One Row on Desktop */}
             <div className="flex items-start justify-between mb-6">
               <div className="flex-1 grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
                 {/* Business Basic Info */}
                 <div>
-                  <h3 className="font-bold text-xl text-gray-900 mb-2">{selectedBusiness.name}</h3>
+                  <h3 className="font-bold text-xl text-gray-900 mb-0">{selectedBusiness.name}</h3>
                   <div className="flex items-center gap-2 mb-2">
                     <span className="bg-custom-gradientt bg-clip-text text-transparent font-medium">{(selectedBusiness as any).category_name || 'Unknown Category'}</span>
                   </div>

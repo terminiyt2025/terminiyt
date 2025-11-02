@@ -311,3 +311,14 @@ video::-webkit-media-controls-enclosure {
     #871c85 200%       /* 6urple-900 */
   );
 }
+
+/* Hide Google Maps attribution and terms text */
+.gm-style-cc,
+.gm-style-cc div,
+a[href*="terms"],
+a[href*="shkurtoret"],
+a[href*="kushtet"],
+.gm-style a[href*="terms"],
+.gm-style-cc a {
+  display: none !important;
+}

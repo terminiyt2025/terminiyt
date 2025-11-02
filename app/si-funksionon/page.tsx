@@ -13,13 +13,13 @@ import { ChevronLeft, ChevronRight } from "lucide-react"
 const faqData = [
   {
     id: 1,
-    answer: "Regjistrimi është shumë i thjeshtë! Klikoni në 'Regjistrohu si Biznes' dhe plotësoni formularin me informacionet e biznesit tuaj. Pas regjistrimit dhe verifikimit nga ana jonë, biznesi juaj do të shfaqet në hartë dhe klientët do të mund të rezervojnë shërbimet tuaja.",
+    answer: "Regjistrimi është shumë i thjeshtë! Klikoni në 'Regjistrohu si Biznes' dhe plotësoni formularin me informacionet e biznesit tuaj. Pas regjistrimit, të dhënat verifikohen nga stafi ynë që zakonisht nuk zgjat më shumë se një ditë pune, pas verifikimit të suksesshëm biznesi juaj do të shfaqet në hartë dhe klientët do të mund të rezervojnë shërbimet tuaja.",
     question: "Si mund të regjistrohem si ofrues shërbimesh?",
   },
   {
     id: 2,
     question: "A është falas përdorimi i platformës?",
-    answer: "Po, regjistrimi dhe përdorimi bazë i platformës është falas për 30 ditë. Ne ofrojmë edhe plane premium me karakteristika shtesë për bizneset që duan të maksimizojnë praninë e tyre online."
+    answer: "Po, ju mund të përdorni platformën falas për 30 ditë dhe të njiheni me të gjitha mundësitë që ajo ofron. Pas periudhës së provës, ju mund të vazhdoni me një plan premium me çmim shumë të volitshëm për të përfituar të gjitha funksionet dhe mbështetje të dedikuar 24/7."
   },
   {
     id: 3,
@@ -311,7 +311,7 @@ export default function SiFunksiononPage() {
             {/* Left Side - Steps */}
             <div>
               <h1 className="text-4xl md:text-5xl lg:text-6xl font-heading font-bold mb-8 text-balance">
-                <span className="bg-custom-gradientt bg-clip-text text-transparent">
+                <span className="bg-gradient-to-r from-gray-800 to-teal-800 bg-clip-text text-transparent">
                   Si funksionon?
                 </span>
               </h1>
@@ -416,7 +416,7 @@ export default function SiFunksiononPage() {
           {/* Slider Title */}
           <div className="text-center mb-12">
             <h1 className="text-4xl md:text-5xl lg:text-6xl font-heading font-bold text-balance">
-              <span className="bg-custom-gradientt bg-clip-text text-transparent">
+              <span className="bg-gradient-to-r from-gray-800 to-teal-800 bg-clip-text text-transparent">
                 Si funksionon procesi i rezervimit?
               </span>
             </h1>
@@ -505,7 +505,7 @@ export default function SiFunksiononPage() {
         <div className="container mx-auto">
           <div className="text-left md:text-center mb-12">
             <h1 className="text-4xl md:text-5xl lg:text-6xl font-heading font-bold md:mb-6 mb-0 text-balance">
-            <span className="bg-custom-gradientt bg-clip-text text-transparent"> Pse ta përdorni TerminiYt.com?</span>
+            <span className="bg-gradient-to-r from-gray-800 to-teal-800 bg-clip-text text-transparent"> Pse ta përdorni TerminiYt.com?</span>
             </h1>
             
           </div>
@@ -714,15 +714,16 @@ export default function SiFunksiononPage() {
       </section>
 
       {/* Q&A Section */}
-      <section className="py-20 px-4 bg-gray-50">
+      <section className="py-10 px-4 bg-gray-50">
         <div className="container mx-auto">
           <div className="text-left md:text-center mb-10">
             <h2 className="text-4xl md:text-5xl font-heading font-bold text-gray-800 mb-3">
             <span className="bg-custom-gradientt bg-clip-text text-transparent">Pyetje të Shpeshta</span>
             </h2>
-            <p className="text-sm md:text-xl text-gray-600 max-w-3xl mx-auto">
-              Gjeni përgjigjet për pyetjet më të shpeshta rreth platformës sonë
-            </p>
+            <h3 className="text-xl md:text-2xl lg:text-3xl font-heading font-bold md:mb-6 mb-0 text-balance">
+            <span className="bg-teal-950 bg-clip-text text-transparent">  Gjeni përgjigjet për pyetjet më të shpeshta rreth platformës sonë</span>
+            </h3>
+
           </div>
 
           <div className="max-w-4xl mx-auto">
