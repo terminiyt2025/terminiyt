@@ -5,64 +5,39 @@ import { CheckCircle, Calendar, Clock, Mail, Building, User, SwatchBook } from "
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { useState, useEffect } from "react"
+import { useSearchParams } from "next/navigation"
 
-interface BookingConfirmationProps {
-  searchParams: {
-    business?: string
-    date?: string
-    time?: string
-    service?: string
-    staff?: string
-    phone?: string
-    notes?: string
-    serviceName?: string
-    staffName?: string
-    bookingId?: string
-  }
-}
-
-export default function BookingConfirmation({ searchParams }: { searchParams: Promise<BookingConfirmationProps['searchParams']> }) {
-  const [params, setParams] = useState<BookingConfirmationProps['searchParams']>({})
-  const [paramsLoaded, setParamsLoaded] = useState(false)
+export default function BookingConfirmation() {
+  const searchParams = useSearchParams()
   
-  useEffect(() => {
-    searchParams.then((resolvedParams) => {
-      console.log('Resolved searchParams:', resolvedParams)
-      setParams(resolvedParams)
-      setParamsLoaded(true)
-    }).catch((error) => {
-      console.error('Error resolving searchParams:', error)
-      setParamsLoaded(true) // Set to true anyway so we can try to show URL params
-    })
-  }, [searchParams])
+  // Get all params from URL
+  const business = searchParams.get('business') || ''
+  const date = searchParams.get('date') || ''
+  const time = searchParams.get('time') || ''
+  const service = searchParams.get('service') || ''
+  const staff = searchParams.get('staff') || ''
+  const notes = searchParams.get('notes') || ''
+  const bookingId = searchParams.get('bookingId') || ''
 
   // Fetch booking data when bookingId is available
   useEffect(() => {
-    if (!paramsLoaded) {
-      // Don't set loading to false until params are loaded
-      return
-    }
-    
     // Immediately show URL params (don't wait for API fetch)
-    // This ensures details from URL are visible right away
     setIsLoadingStatus(false)
     
     const fetchBookingData = async () => {
       // If no bookingId, no API call needed
-      if (!params.bookingId) {
+      if (!bookingId) {
         return
       }
       
       try {
         // Fetch in background - don't show loading, we already have URL params
-        const response = await fetch(`/api/bookings/${params.bookingId}`)
+        const response = await fetch(`/api/bookings/${bookingId}`)
         if (response.ok) {
           const booking = await response.json()
           console.log('Fetched booking data:', booking)
           setBookingData(booking)
           setBookingStatus(booking.status)
-          // Update loading status after successful fetch
-          setIsLoadingStatus(false)
         } else {
           console.error('Failed to fetch booking:', response.status, response.statusText)
           // Keep showing URL params even if API fails
@@ -74,16 +49,7 @@ export default function BookingConfirmation({ searchParams }: { searchParams: Pr
     }
     
     fetchBookingData()
-  }, [params.bookingId, paramsLoaded])
-  
-  const business = params.business
-  const date = params.date
-  const time = params.time
-  const service = params.service
-  const staff = params.staff
-  const phone = params.phone
-  const notes = params.notes
-  const bookingId = params.bookingId
+  }, [bookingId])
   
   // Animation states
   const [showIcon, setShowIcon] = useState(false)
@@ -99,7 +65,7 @@ export default function BookingConfirmation({ searchParams }: { searchParams: Pr
   const [bookingData, setBookingData] = useState<any>(null)
   
   // Helper function to safely decode URI component
-  const safeDecode = (value: string | undefined | null) => {
+  const safeDecode = (value: string) => {
     if (!value || value === 'undefined' || value === 'null') return ''
     try {
       return decodeURIComponent(value)
@@ -115,6 +81,24 @@ export default function BookingConfirmation({ searchParams }: { searchParams: Pr
   const displayService = bookingData?.serviceName || safeDecode(service)
   const displayStaff = bookingData?.staffName || safeDecode(staff)
   const displayNotes = bookingData?.notes || safeDecode(notes)
+  
+  // Debug logging
+  useEffect(() => {
+    console.log('=== BOOKING CONFIRMATION DEBUG ===')
+    console.log('URL Params:', { business, date, time, service, staff, bookingId, notes })
+    console.log('Decoded values:', {
+      displayBusiness,
+      displayDate,
+      displayTime,
+      displayService,
+      displayStaff,
+      displayNotes
+    })
+    console.log('Booking Data:', bookingData)
+    console.log('Booking Status:', bookingStatus)
+    console.log('Is Loading:', isLoadingStatus)
+    console.log('Has Booking ID for cancel:', bookingId)
+  }, [business, date, time, service, staff, bookingId, notes, displayBusiness, displayDate, displayTime, displayService, displayStaff, displayNotes, bookingData, bookingStatus, isLoadingStatus])
 
   useEffect(() => {
     // Show content immediately on mobile, animate on desktop
@@ -151,20 +135,6 @@ export default function BookingConfirmation({ searchParams }: { searchParams: Pr
     }
   }, [])
   
-  // Debug logging
-  useEffect(() => {
-    console.log('Current state:', {
-      paramsLoaded,
-      bookingId: params.bookingId || bookingId,
-      displayBusiness,
-      displayDate,
-      displayTime,
-      displayService,
-      displayStaff,
-      bookingData: bookingData ? 'loaded' : 'not loaded',
-      isLoadingStatus
-    })
-  }, [paramsLoaded, params.bookingId, bookingId, displayBusiness, displayDate, displayTime, displayService, displayStaff, bookingData, isLoadingStatus])
 
   // Format date consistently for both server and client
   const formatDate = (dateInput: string | Date) => {
@@ -249,61 +219,53 @@ export default function BookingConfirmation({ searchParams }: { searchParams: Pr
               }`}>
                 <h3 className="text-xl font-bold text-gray-900 mb-4">Detajet e Rezervimit Tuaj</h3>
                 
-                {/* Show loading only if params are not loaded yet */}
-                {!paramsLoaded && (
-                  <div className="text-center py-4">
-                    <p className="text-gray-600 text-sm">Duke ngarkuar detajet e rezervimit...</p>
-                  </div>
-                )}
-                
-                {/* Show details if we have them from URL params or API */}
-                {paramsLoaded && (
-                  <>
-                    {displayBusiness && displayBusiness !== 'undefined' && displayBusiness.trim() !== '' && (
-                      <div className="flex items-center gap-3 py-1">
-                        <Building className="h-5 w-5 text-teal-800" />
-                        <span className="text-gray-900 font-medium">{displayBusiness}</span>
-                      </div>
-                    )}
-                    
-                    {displayService && displayService !== 'undefined' && displayService.trim() !== '' && (
-                      <div className="flex items-center gap-3 py-1">
-                        <SwatchBook className="h-5 w-5 text-teal-800"/>
-                        <span className="text-gray-900 font-medium">{displayService}</span>
-                      </div>
-                    )}
-                    
-                    {displayStaff && displayStaff !== 'undefined' && displayStaff !== 'null' && displayStaff.trim() !== '' && (
-                      <div className="flex items-center gap-3 py-1">
-                        <User className="h-5 w-5 text-teal-800"/>
-                        <span className="text-gray-900 font-medium">{displayStaff}</span>
-                      </div>
-                    )}
-                    
-                    {displayDate && displayDate !== 'undefined' && (
-                      <div className="flex items-center gap-3 py-1">
-                        <Calendar className="h-5 w-5 text-teal-800" />
-                        <span className="font-medium">
-                          {formatDate(displayDate)}
-                        </span>
-                      </div>
-                    )}
-                    
-                    {displayTime && displayTime !== 'undefined' && displayTime.trim() !== '' && (
-                      <div className="flex items-center gap-3 py-1">
-                        <Clock className="h-5 w-5 text-teal-800" />
-                        <span className="text-gray-900 font-medium">{displayTime}</span>
-                      </div>
-                    )}
-                  </>
-                )}
-                
-                {/* Show "no details" only if params are loaded, not loading, and we truly have no data */}
-                {paramsLoaded && !isLoadingStatus && !displayBusiness && !displayService && !displayDate && !displayTime && (
-                  <div className="text-center py-4">
-                    <p className="text-gray-500 text-sm">Nuk u gjetën detaje për këtë rezervim.</p>
-                  </div>
-                )}
+                {/* Show details from URL params or API */}
+                <>
+                  {displayBusiness && displayBusiness.trim() !== '' && (
+                    <div className="flex items-center gap-3 py-1">
+                      <Building className="h-5 w-5 text-teal-800" />
+                      <span className="text-gray-900 font-medium">{displayBusiness}</span>
+                    </div>
+                  )}
+                  
+                  {displayService && displayService.trim() !== '' && (
+                    <div className="flex items-center gap-3 py-1">
+                      <SwatchBook className="h-5 w-5 text-teal-800"/>
+                      <span className="text-gray-900 font-medium">{displayService}</span>
+                    </div>
+                  )}
+                  
+                  {displayStaff && displayStaff.trim() !== '' && displayStaff !== 'null' && (
+                    <div className="flex items-center gap-3 py-1">
+                      <User className="h-5 w-5 text-teal-800"/>
+                      <span className="text-gray-900 font-medium">{displayStaff}</span>
+                    </div>
+                  )}
+                  
+                  {displayDate && displayDate.trim() !== '' && (
+                    <div className="flex items-center gap-3 py-1">
+                      <Calendar className="h-5 w-5 text-teal-800" />
+                      <span className="font-medium">
+                        {formatDate(displayDate)}
+                      </span>
+                    </div>
+                  )}
+                  
+                  {displayTime && displayTime.trim() !== '' && (
+                    <div className="flex items-center gap-3 py-1">
+                      <Clock className="h-5 w-5 text-teal-800" />
+                      <span className="text-gray-900 font-medium">{displayTime}</span>
+                    </div>
+                  )}
+                  
+                  {/* Show "no details" message only if we truly have no data */}
+                  {!displayBusiness && !displayService && !displayDate && !displayTime && !isLoadingStatus && (
+                    <div className="text-center py-4">
+                      <p className="text-gray-500 text-sm">Nuk u gjetën detaje për këtë rezervim.</p>
+                      <p className="text-gray-400 text-xs mt-2">URL params: business={business || 'none'}, date={date || 'none'}, time={time || 'none'}</p>
+                    </div>
+                  )}
+                </>
                 
                 {displayNotes && (
                   <div className="py-3 border-t border-gray-200 pt-4">
@@ -343,11 +305,11 @@ export default function BookingConfirmation({ searchParams }: { searchParams: Pr
                 <Button asChild className="w-full md:w-auto bg-custom-gradient text-white px-8 py-3">
                   <Link href="/">Kthehu në Faqen Kryesore</Link>
                 </Button>
-                {paramsLoaded && (params.bookingId || bookingId) && bookingStatus !== 'CANCELLED' && (
+                {bookingId && bookingId.trim() !== '' && bookingStatus !== 'CANCELLED' && (
                   <Button 
                     className="w-full md:w-auto bg-gradient-to-r from-red-600 to-red-800 hover:from-red-700 hover:to-red-900 text-white px-8 py-3"
                     onClick={() => {
-                      console.log('Cancel button clicked, bookingId:', params.bookingId || bookingId)
+                      console.log('Cancel button clicked, bookingId:', bookingId)
                       setShowCancelDialog(true)
                     }}
                   >
@@ -387,9 +349,10 @@ export default function BookingConfirmation({ searchParams }: { searchParams: Pr
                 </Button>
                 <Button
                   onClick={async () => {
-                    const idToCancel = params.bookingId || bookingId || bookingData?.id
+                    const idToCancel = bookingId || bookingData?.id
                     if (!idToCancel) {
                       alert('Booking ID is missing')
+                      console.error('No booking ID available for cancellation')
                       return
                     }
                     
