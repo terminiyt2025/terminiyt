@@ -200,7 +200,7 @@ export default function HomePage() {
       <Header transparent={true} />
 
       {/* Interactive Map Section - Full Width - First After Navbar */}
-      <section className="w-full bg-gradient-to-r  from-gray-800 to-teal-800 text-white py-10 pt-18 md:pt-24 map-section">
+      <section className="w-full bg-custom-gradient text-white pt-18 md:pt-24 py-8 map-section">
         <div className="w-full">
           {/* Map Title and Slogan */}
           <div className="text-center mb-3 md:mb-2">
@@ -217,7 +217,7 @@ export default function HomePage() {
           
           {/* Full Width Map - Dynamic Height */}
           <div className="w-full flex justify-center">
-            <div className="map-container" style={{ width: '1536px', maxWidth: '100%' }}>
+            <div className="map-container" style={{ width: '1536px', maxWidth: '100%'}}>
               <GoogleMapsWrapper
                 businesses={businesses}
                 categories={categories}
@@ -400,7 +400,7 @@ export default function HomePage() {
                         className="w-full h-full object-contain group-hover:scale-105 transition-transform duration-300"
                       />
                     ) : (
-                      <div className="w-full h-full bg-gradient-to-br from-gray-800 to-teal-800 flex items-center justify-center">
+                      <div className="w-full h-full bg-custom-gradient flex items-center justify-center">
                         <div className="text-white text-center">
                           <div className="w-16 h-16 bg-white/20 rounded-full flex items-center justify-center mx-auto mb-2">
                             <span className="text-2xl font-bold">{provider.name.charAt(0)}</span>
@@ -472,7 +472,7 @@ export default function HomePage() {
                       <div className="space-y-3 pt-4 border-t border-slate-100">
                         <Button 
                           size="lg" 
-                          className="w-full bg-gradient-to-r from-gray-800 to-teal-800 hover:from-gray-700 hover:to-teal-700 text-white font-semibold py-3"
+                          className="w-full bg-custom-gradient text-white font-semibold py-3"
                           asChild
                         >
                           <Link href={`/${(provider as any).slug}`}>
@@ -534,13 +534,13 @@ export default function HomePage() {
       <section className="py-24 px-[15px] md:px-4 relative overflow-hidden bg-gray-50">
         {/* Background Pattern */}
         <div className="absolute inset-0 opacity-5">
-          <div className="absolute top-20 left-10 w-32 h-32 bg-gradient-to-r from-gray-800 to-teal-800 rounded-full blur-3xl"></div>
-          <div className="absolute bottom-20 right-10 w-40 h-40 bg-gradient-to-r from-teal-800 to-gray-800 rounded-full blur-3xl"></div>
+          <div className="absolute top-20 left-10 w-32 h-32 bg-custom-gradient rounded-full blur-3xl"></div>
+          <div className="absolute bottom-20 right-10 w-40 h-40 bg-custom-gradient rounded-full blur-3xl"></div>
         </div>
         
         <div className="container mx-auto relative z-10">
           <div className="text-center mb-20">
-            <div className="inline-flex items-center gap-2 bg-gradient-to-r from-gray-800 to-teal-800 text-white px-6 py-2 rounded-full text-sm font-medium mb-6">
+            <div className="inline-flex items-center gap-2 bg-gradient-to-r from-gray-800 to-teal-800  text-white px-6 py-2 rounded-full text-sm font-medium mb-6">
               <span className="w-2 h-2 bg-white rounded-full animate-pulse"></span>
               Si Funksionon
             </div>
@@ -559,7 +559,7 @@ export default function HomePage() {
                 <div className="absolute -top-4 -left-4 w-8 h-8 bg-gradient-to-r from-gray-800 to-teal-800 rounded-full flex items-center justify-center text-white font-bold text-sm">
                   1
                 </div>
-                <div className="w-16 h-16 bg-gradient-to-r from-gray-800 to-teal-800 rounded-2xl flex items-center justify-center mx-auto mb-6 group-hover:scale-110 transition-transform duration-300">
+                <div className="w-16 h-16 bg-gradient-to-r from-gray-800 to-teal-800  rounded-2xl flex items-center justify-center mx-auto mb-6 group-hover:scale-110 transition-transform duration-300">
                   <Search className="w-8 h-8 text-white" />
                 </div>
                 <h3 className="text-2xl font-heading font-bold text-gray-800 mb-4 text-center">
@@ -577,7 +577,7 @@ export default function HomePage() {
                 <div className="absolute -top-4 -left-4 w-8 h-8 bg-gradient-to-r from-gray-800 to-teal-800 rounded-full flex items-center justify-center text-white font-bold text-sm">
                   2
                 </div>
-                <div className="w-16 h-16 bg-gradient-to-r from-gray-800 to-teal-800 rounded-2xl flex items-center justify-center mx-auto mb-6 group-hover:scale-110 transition-transform duration-300">
+                <div className="w-16 h-16 bg-gradient-to-r from-gray-800 to-teal-800   rounded-2xl flex items-center justify-center mx-auto mb-6 group-hover:scale-110 transition-transform duration-300">
                   <Calendar className="w-8 h-8 text-white" />
                 </div>
                 <h3 className="text-2xl font-heading font-bold text-gray-800 mb-4 text-center">
@@ -595,7 +595,7 @@ export default function HomePage() {
                 <div className="absolute -top-4 -left-4 w-8 h-8 bg-gradient-to-r from-gray-800 to-teal-800 rounded-full flex items-center justify-center text-white font-bold text-sm">
                   3
                 </div>
-                <div className="w-16 h-16 bg-gradient-to-r from-gray-800 to-teal-800 rounded-2xl flex items-center justify-center mx-auto mb-6 group-hover:scale-110 transition-transform duration-300">
+                <div className="w-16 h-16 bg-gradient-to-r from-gray-800 to-teal-800   rounded-2xl flex items-center justify-center mx-auto mb-6 group-hover:scale-110 transition-transform duration-300">
                   <Bell className="w-8 h-8 text-white" />
                 </div>
                 <h3 className="text-2xl font-heading font-bold text-gray-800 mb-4 text-center">
@@ -639,7 +639,7 @@ export default function HomePage() {
                   {/* Staff Section */}
                   <div>
                     <h3 className="text-lg font-semibold text-gray-900 mb-4 flex items-center gap-2">
-                      <div className="w-6 h-6 bg-gradient-to-br from-gray-800 to-teal-800 rounded-full flex items-center justify-center">
+                      <div className="w-6 h-6 bg-custom-gradient rounded-full flex items-center justify-center">
                         <User className="w-4 h-4 text-white" />
                       </div>
                       Anëtarët e stafit:
@@ -666,7 +666,7 @@ export default function HomePage() {
                   {/* Services Section */}
                   <div>
                     <h3 className="text-lg font-semibold text-gray-900 mb-4 flex items-center gap-2">
-                      <div className="w-6 h-6 bg-gradient-to-br from-gray-800 to-teal-800 rounded-full flex items-center justify-center">
+                      <div className="w-6 h-6 bg-custom-gradient rounded-full flex items-center justify-center">
                         <Star className="w-4 h-4 text-white" />
                       </div>
                       Shërbimet e biznesit:
@@ -719,7 +719,7 @@ export default function HomePage() {
                                     return false
                                   })
                                   .map((staffMember: any, staffIndex: number) => (
-                                    <span key={staffIndex} className="bg-gradient-to-br from-gray-800 to-teal-800 text-white text-xs px-2 py-1 rounded-full">
+                                    <span key={staffIndex} className="bg-custom-gradient text-white text-xs px-2 py-1 rounded-full">
                                       {staffMember.name || 'Staff Member'}
                                     </span>
                                   ))}

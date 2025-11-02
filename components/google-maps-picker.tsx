@@ -449,7 +449,7 @@ export function GoogleMapsPicker({
         />
         <Button 
           size="sm" 
-          className="absolute right-1 top-1/2 transform -translate-y-1/2 h-8 bg-gradient-to-r from-gray-800 to-teal-800"
+          className="absolute right-1 top-1/2 transform -translate-y-1/2 h-8 bg-custom-gradient"
           onClick={handleSearch}
         >
           Kërko

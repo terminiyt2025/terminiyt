@@ -10,7 +10,7 @@ const GoogleMapsPicker = dynamic(() => import("./google-maps-picker").then(mod =
   loading: () => (
     <Card className="h-80">
       <CardContent className="h-full flex items-center justify-center">
-        <div className="text-center space-y-4">
+        <div className="text-center space-y-10">
           <MapPin className="w-16 h-16 text-emerald-600 mx-auto" />
           <div>
             <h3 className="text-xl font-semibold mb-2">Loading Map Picker...</h3>

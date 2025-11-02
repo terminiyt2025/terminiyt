@@ -683,7 +683,7 @@ export function GoogleMaps({ businesses: propBusinesses, categories, selectedCat
       <Card className="h-96">
         <CardContent className="h-full flex items-center justify-center">
           <div className="text-center space-y-4">
-            <MapPin className="w-16 h-16 mx-auto text-teal-600" />
+            <MapPin className="w-16 h-16 mx-auto bg-custom-gradientt" />
             <div>
               <h3 className="text-xl font-semibold mb-2">
                 {error === "Location access denied by user" ? "Vendndodhja e Kërkuar" : "Duke ngarkuar Google Maps"}
@@ -711,7 +711,7 @@ export function GoogleMaps({ businesses: propBusinesses, categories, selectedCat
                   }
                 }} 
                 disabled={loading}
-                className="bg-gradient-to-br from-gray-800 to-teal-800 hover:from-gray-700 hover:to-teal-700 text-white"
+                className="bg-custom-gradient  text-white"
               >
                 {loading ? (
                   <>
@@ -852,7 +852,7 @@ export function GoogleMaps({ businesses: propBusinesses, categories, selectedCat
       </div>
 
       {/* Map Container */}
-      <div className={`${selectedBusiness ? 'h-[50vh]' : 'h-[70vh]'} relative overflow-hidden rounded-xl transition-all duration-300`}>
+      <div className={`${selectedBusiness ? 'h-[40vh]' : 'h-[70vh]'} relative overflow-hidden ${selectedBusiness ? 'rounded-t-xl' : 'rounded-t-xl'} transition-all duration-300`}>
         <div ref={mapRef} className="w-full h-full" style={{fontFamily: 'system-ui, -apple-system, sans-serif'}} />
           
         {/* Map Controls */}
@@ -878,7 +878,7 @@ export function GoogleMaps({ businesses: propBusinesses, categories, selectedCat
         {/* Location Info */}
         <div className="absolute bottom-4 left-4">
           <Badge variant="secondary" className="bg-white/90 backdrop-blur-sm text-gray-900 border border-gray-300">
-            <MapPin className="w-3 h-3 mr-1 text-teal-600" />
+            <MapPin className="w-3 h-3 mr-1 bg-custom-gradientt" />
             <span className="text-gray-900 font-medium">{latitude.toFixed(4)}, {longitude.toFixed(4)}</span>
           </Badge>
         </div>
@@ -897,7 +897,7 @@ export function GoogleMaps({ businesses: propBusinesses, categories, selectedCat
                 <div>
                   <h3 className="font-bold text-xl text-gray-900 mb-2">{selectedBusiness.name}</h3>
                   <div className="flex items-center gap-2 mb-2">
-                    <span className="bg-gradient-to-br from-gray-800 to-teal-800 bg-clip-text text-transparent font-medium">{(selectedBusiness as any).category_name || 'Unknown Category'}</span>
+                    <span className="bg-custom-gradientt bg-clip-text text-transparent font-medium">{(selectedBusiness as any).category_name || 'Unknown Category'}</span>
                   </div>
                   <div className="flex items-center gap-2 mb-3">
                     <MapPin className="w-5 h-5 text-teal-900" />
@@ -995,7 +995,7 @@ export function GoogleMaps({ businesses: propBusinesses, categories, selectedCat
               <Button 
                 variant="outline" 
                 size="sm"
-                className="border-gray-300 text-gray-600 hover:bg-gradient-to-br hover:from-gray-800 hover:to-teal-800 hover:text-white hover:border-transparent ml-4"
+                className="border-gray-300 text-gray-600 hover:bg-gradient-to-r hover:from-gray-800 hover:via-teal-800 hover:to-purple-900 hover:via-60% hover:to-140% hover:text-white hover:border-transparent ml-4"
                 onClick={() => setSelectedBusiness(null)}
               >
                 Mbyll
@@ -1005,7 +1005,7 @@ export function GoogleMaps({ businesses: propBusinesses, categories, selectedCat
             {/* Action Buttons */}
             <div className="flex justify-center items-center mt-6">
               <Button 
-                className="bg-gradient-to-br from-gray-800 to-teal-800 hover:from-gray-700 hover:to-teal-700 px-6"
+                className="bg-custom-gradient px-6"
                 onClick={() => window.open(`/${(selectedBusiness as any).slug}`, '_blank')}
               >
                 Rezervo termin te ky biznes

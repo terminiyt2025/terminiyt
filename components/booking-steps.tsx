@@ -670,7 +670,7 @@ export function BookingSteps({ business }: BookingStepsProps) {
                             </div>
                             {service.price && service.price > 0 && (
                               <div className="ml-3 text-right">
-                                <div className="bg-gradient-to-r from-gray-800 to-teal-800 px-2 py-1 rounded-md">
+                                <div className="bg-custom-gradient px-2 py-1 rounded-md">
                                   <span className="text-md md:text-lg font-bold text-white">{service.price}€</span>
                                 </div>
                               </div>
@@ -680,7 +680,7 @@ export function BookingSteps({ business }: BookingStepsProps) {
                           {/* Service Details */}
                           {service.duration && (
                             <div className="flex items-center">
-                              <div className="flex items-center gap-1 text-teal-600">
+                              <div className="flex items-center gap-1 text-teal-800">
                                 <Clock className="w-4 h-4" />
                                 <span className="text-sm font-medium">{service.duration}</span>
                               </div>
@@ -753,7 +753,7 @@ export function BookingSteps({ business }: BookingStepsProps) {
                           <CardContent className="py-3">
                             <div className="space-y-1">
                               <div className="flex items-center gap-3">
-                                <div className="w-10 h-10 bg-gradient-to-r from-gray-800 to-teal-800 rounded-full flex items-center justify-center">
+                                <div className="w-10 h-10 bg-custom-gradient rounded-full flex items-center justify-center">
                                   <User className="w-5 h-5 text-white" />
                                 </div>
                                 <div className="flex-1">
@@ -798,7 +798,7 @@ export function BookingSteps({ business }: BookingStepsProps) {
                         selected={selectedDate}
                         onSelect={handleDateSelect}
                         disabled={isDateDisabled}
-                        className="scale-95 sm:scale-100 md:scale-95 origin-center [&_.rdp-caption]:!text-lg sm:[&_.rdp-caption]:!text-xl [&_.rdp-caption]:!font-bold [&_.rdp-caption]:!text-gray-800 [&_.rdp-caption]:!mb-3 sm:[&_.rdp-caption]:!mb-4 [&_.rdp-nav_button]:!w-8 [&_.rdp-nav_button]:!h-8 sm:[&_.rdp-nav_button]:!w-10 sm:[&_.rdp-nav_button]:!h-10 [&_.rdp-nav_button]:!text-base sm:[&_.rdp-nav_button]:!text-lg [&_.rdp-nav_button]:!font-bold [&_.rdp-weekday]:!text-sm sm:[&_.rdp-weekday]:!text-base [&_.rdp-weekday]:!font-semibold [&_.rdp-weekday]:!text-gray-600 [&_.rdp-weekday]:!py-1 sm:[&_.rdp-weekday]:!py-2 [&_.rdp-day]:!w-8 [&_.rdp-day]:!h-8 sm:[&_.rdp-day]:!w-10 sm:[&_.rdp-day]:!h-10 md:[&_.rdp-day]:!w-12 md:[&_.rdp-day]:!h-12 [&_.rdp-day]:!text-sm sm:[&_.rdp-day]:!text-base [&_.rdp-day]:!font-medium [&_.rdp-day]:!rounded-lg [&_.rdp-day]:!transition-all [&_.rdp-day]:!duration-200 [&_[data-selected-single=true]]:!bg-gradient-to-r [&_[data-selected-single=true]]:!from-gray-800 [&_[data-selected-single=true]]:!to-teal-800 [&_[data-selected-single=true]]:!text-white [&_[data-selected-single=true]]:!border-0 [&_[data-selected-single=true]]:!rounded-lg [&_[data-selected-single=true]]:!shadow-lg [&_[data-selected-single=true]]:!scale-105 [&_td.rdp-today]:!bg-gradient-to-r [&_td.rdp-today]:!from-gray-600 [&_td.rdp-today]:!to-gray-700 [&_td.rdp-today]:!text-white [&_td.rdp-today]:!border-0 [&_td.rdp-today]:!rounded-lg [&_td.rdp-today]:!shadow-md [&_td.rdp-today[data-selected-single=true]]:!bg-gradient-to-r [&_td.rdp-today[data-selected-single=true]]:!from-gray-800 [&_td.rdp-today[data-selected-single=true]]:!to-teal-800 [&_td.rdp-today[data-selected-single=true]]:!text-white [&_td.rdp-today[data-selected-single=true]]:!border-0 [&_td.rdp-today[data-selected-single=true]]:!rounded-lg [&_td.rdp-today[data-selected-single=true]]:!shadow-lg [&_td.rdp-today[data-selected-single=true]]:!scale-105 [&_.rdp-day]:hover:!bg-gradient-to-r [&_.rdp-day]:hover:!from-gray-700 [&_.rdp-day]:hover:!to-teal-700 [&_.rdp-day]:hover:!text-white [&_.rdp-day]:hover:!rounded-lg [&_.rdp-day]:hover:!shadow-md [&_.rdp-day]:hover:!scale-105 [&_.rdp-button_previous]:!bg-transparent [&_.rdp-button_previous]:hover:!bg-transparent [&_.rdp-button_previous]:hover:!bg-gradient-to-r [&_.rdp-button_previous]:hover:!from-gray-600 [&_.rdp-button_previous]:hover:!to-gray-700 [&_.rdp-button_previous]:hover:!text-white [&_.rdp-button_previous]:hover:!rounded-lg [&_.rdp-button_previous]:hover:!shadow-lg [&_.rdp-button_previous]:hover:!border-0 [&_.rdp-button_next]:!bg-transparent [&_.rdp-button_next]:hover:!bg-transparent [&_.rdp-button_next]:hover:!bg-gradient-to-r [&_.rdp-button_next]:hover:!from-gray-600 [&_.rdp-button_next]:hover:!to-gray-700 [&_.rdp-button_next]:hover:!text-white [&_.rdp-button_next]:hover:!rounded-lg [&_.rdp-button_next]:hover:!shadow-lg [&_.rdp-button_next]:hover:!border-0"
+                        className="scale-95 sm:scale-100 md:scale-95 origin-center [&_.rdp-caption]:!text-lg sm:[&_.rdp-caption]:!text-xl [&_.rdp-caption]:!font-bold [&_.rdp-caption]:!text-gray-800 [&_.rdp-caption]:!mb-3 sm:[&_.rdp-caption]:!mb-4 [&_.rdp-nav_button]:!w-8 [&_.rdp-nav_button]:!h-8 sm:[&_.rdp-nav_button]:!w-10 sm:[&_.rdp-nav_button]:!h-10 [&_.rdp-nav_button]:!text-base sm:[&_.rdp-nav_button]:!text-lg [&_.rdp-nav_button]:!font-bold [&_.rdp-weekday]:!text-sm sm:[&_.rdp-weekday]:!text-base [&_.rdp-weekday]:!font-semibold [&_.rdp-weekday]:!text-gray-600 [&_.rdp-weekday]:!py-1 sm:[&_.rdp-weekday]:!py-2 [&_.rdp-day]:!w-8 [&_.rdp-day]:!h-8 sm:[&_.rdp-day]:!w-10 sm:[&_.rdp-day]:!h-10 md:[&_.rdp-day]:!w-12 md:[&_.rdp-day]:!h-12 [&_.rdp-day]:!text-sm sm:[&_.rdp-day]:!text-base [&_.rdp-day]:!font-medium [&_.rdp-day]:!rounded-lg [&_.rdp-day]:!transition-all [&_.rdp-day]:!duration-200 [&_[data-selected-single=true]]:!bg-gradient-to-r [&_[data-selected-single=true]]:!from-gray-800 [&_[data-selected-single=true]]:!to-teal-800 [&_[data-selected-single=true]]:!text-white [&_[data-selected-single=true]]:!border-0 [&_[data-selected-single=true]]:!rounded-lg [&_[data-selected-single=true]]:!shadow-lg [&_[data-selected-single=true]]:!scale-105 [&_td.rdp-today]:!bg-gradient-to-r [&_td.rdp-today]:!from-gray-600 [&_td.rdp-today]:!to-gray-700 [&_td.rdp-today]:!text-white [&_td.rdp-today]:!border-0 [&_td.rdp-today]:!rounded-lg [&_td.rdp-today]:!shadow-md [&_td.rdp-today[data-selected-single=true]]:!bg-gradient-to-r [&_td.rdp-today[data-selected-single=true]]:!from-gray-800 [&_td.rdp-today[data-selected-single=true]]:!to-teal-800 [&_td.rdp-today[data-selected-single=true]]:!text-white [&_td.rdp-today[data-selected-single=true]]:!border-0 [&_td.rdp-today[data-selected-single=true]]:!rounded-lg [&_td.rdp-today[data-selected-single=true]]:!shadow-lg [&_td.rdp-today[data-selected-single=true]]:!scale-105 [&_.rdp-day]:hover:!bg-gradient-to-r [&_.rdp-day]:hover:!from-gray-800 [&_.rdp-day]:hover:!via-teal-800 [&_.rdp-day]:hover:!to-purple-800/60 [&_.rdp-day]:hover:!text-white [&_.rdp-day]:hover:!rounded-lg [&_.rdp-day]:hover:!shadow-md [&_.rdp-day]:hover:!scale-105 [&_.rdp-button_previous]:!bg-transparent [&_.rdp-button_previous]:hover:!bg-transparent [&_.rdp-button_previous]:hover:!bg-gradient-to-r [&_.rdp-button_previous]:hover:!from-gray-600 [&_.rdp-button_previous]:hover:!to-gray-700 [&_.rdp-button_previous]:hover:!text-white [&_.rdp-button_previous]:hover:!rounded-lg [&_.rdp-button_previous]:hover:!shadow-lg [&_.rdp-button_previous]:hover:!border-0 [&_.rdp-button_next]:!bg-transparent [&_.rdp-button_next]:hover:!bg-transparent [&_.rdp-button_next]:hover:!bg-gradient-to-r [&_.rdp-button_next]:hover:!from-gray-600 [&_.rdp-button_next]:hover:!to-gray-700 [&_.rdp-button_next]:hover:!text-white [&_.rdp-button_next]:hover:!rounded-lg [&_.rdp-button_next]:hover:!shadow-lg [&_.rdp-button_next]:hover:!border-0"
                         locale={sq}
                       />
                     </div>
@@ -824,7 +824,7 @@ export function BookingSteps({ business }: BookingStepsProps) {
                         variant={selectedTime === time ? "default" : "outline"}
                         className={`justify-center text-sm py-3 ${
                           selectedTime === time 
-                            ? "bg-gradient-to-r from-gray-800 to-teal-800 hover:from-gray-700 hover:to-teal-700 text-white" 
+                            ? "bg-custom-gradient text-white" 
                             : "hover:bg-gray-50 hover:text-black"
                         }`}
                         onClick={() => handleTimeSelect(time)}
@@ -968,7 +968,7 @@ export function BookingSteps({ business }: BookingStepsProps) {
 
                 <Button 
                   type="submit" 
-                  className="w-full bg-gradient-to-r from-gray-800 to-teal-800 hover:from-gray-700 hover:to-teal-700" 
+                  className="w-full bg-custom-gradient" 
                   disabled={isSubmitting}
                 >
                   {isSubmitting ? "Duke përpunuar..." : "Konfirmo Rezervimin"}
@@ -992,7 +992,7 @@ export function BookingSteps({ business }: BookingStepsProps) {
             <div
               className={`w-6 h-6 rounded-full flex items-center justify-center text-xs font-medium ${
                 step <= currentStep
-                  ? "bg-gradient-to-r from-gray-800 to-teal-800 text-white"
+                  ? "bg-custom-gradient text-white"
                   : "bg-gray-200 text-gray-600"
               }`}
             >
@@ -1001,7 +1001,7 @@ export function BookingSteps({ business }: BookingStepsProps) {
             {step < 3 && (
               <div
                 className={`w-12 h-1 mx-2 ${
-                  step < currentStep ? "bg-gradient-to-r from-gray-800 to-teal-800" : "bg-gray-200"
+                  step < currentStep ? "bg-custom-gradient" : "bg-gray-200"
                 }`}
               />
             )}
@@ -1058,7 +1058,7 @@ export function BookingSteps({ business }: BookingStepsProps) {
               (currentStep === 1 && selectedService && business.staff && business.staff.length > 1 && !selectedStaff) ||
               (currentStep === 2 && (!selectedDate || !selectedTime))
             }
-            className="bg-gradient-to-r from-gray-800 to-teal-800 hover:from-gray-700 hover:to-teal-700 text-white"
+            className="bg-custom-gradient  text-white"
           >
             Vazhdo
             <ArrowRight className="w-4 h-4 ml-2" />

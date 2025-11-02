@@ -295,3 +295,19 @@ video::-webkit-media-controls-enclosure {
     margin-right: 100px !important;
   }
 }
+.bg-custom-gradientb {
+  background: linear-gradient(
+    to bottom,
+    #171717 0%,       /* neutral-900 */
+    rgba(19, 78, 74, 0.9) 60%,  /* teal-950/90 */
+    #581c87 140%       /* purple-900 */
+  );
+}
+.bg-custom-gradient {
+  background: linear-gradient(
+    to right,
+    #202020 0%,       /* neutral-900 */
+    rgba(19, 78, 74, 0.9) 40%,  /* teal-950/90 */
+    #871c85 200%       /* 6urple-900 */
+  );
+}

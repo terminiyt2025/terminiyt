@@ -114,7 +114,14 @@
   --color-sidebar-ring: var(--sidebar-ring);
 }
 
-
+.bg-custom-gradient {
+  background: linear-gradient(
+    to right,
+    #171717 0%,       /* neutral-900 */
+    rgba(19, 78, 74, 0.9) 60%,  /* teal-950/90 */
+    #581c87 100%       /* purple-900 */
+  );
+}
 @layer base {
   * {
     @apply border-border outline-ring/50;
@@ -124,4 +131,5 @@
   body {
     @apply bg-background text-foreground;
   }
+  
 }

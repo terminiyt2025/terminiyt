@@ -96,7 +96,7 @@ export default function BusinessPage() {
 
   if (loading) {
     return (
-      <div className="min-h-screen bg-gradient-to-br from-gray-800 to-teal-800 flex items-center justify-center">
+      <div className="min-h-screen bg-custom-gradient flex items-center justify-center">
         <div className="text-center">
           <div className="w-12 h-12 border-4 border-white/30 border-t-white rounded-full animate-spin mx-auto mb-4"></div>
           <p className="text-white text-lg font-medium">Po ngarkohet...</p>
@@ -107,7 +107,7 @@ export default function BusinessPage() {
 
   if (error || !business) {
     return (
-      <div className="min-h-screen bg-gradient-to-br from-gray-800 to-teal-800">
+      <div className="min-h-screen bg-custom-gradient">
         <Header transparent={true} />
         <div className="container mx-auto px-4 py-32">
           <div className="text-center">
@@ -173,7 +173,7 @@ export default function BusinessPage() {
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-gray-800 to-teal-800">
+    <div className="min-h-screen bg-custom-gradient">
       <Header transparent={true} />
       
      

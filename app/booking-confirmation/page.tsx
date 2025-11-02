@@ -109,7 +109,7 @@ export default function BookingConfirmation({ searchParams }: { searchParams: Pr
   // Show cancelled message if booking is cancelled
   if (bookingStatus === 'CANCELLED') {
     return (
-      <div className="min-h-screen bg-gradient-to-r from-gray-800 to-teal-800">
+      <div className="min-h-screen bg-custom-gradient">
         <div className="container px-4 py-8 md:py-16">
           <div className="max-w-2xl mx-auto">
             <Card className="border-gray-200 shadow-xl bg-white">
@@ -137,7 +137,7 @@ export default function BookingConfirmation({ searchParams }: { searchParams: Pr
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-r from-gray-800 to-teal-800  ">
+    <div className="min-h-screen bg-custom-gradient ">
       <div className="container px-4 py-8 md:py-16">
         <div className="max-w-2xl mx-auto">
           <Card className="border-gray-200 shadow-xl bg-white">
@@ -235,7 +235,7 @@ export default function BookingConfirmation({ searchParams }: { searchParams: Pr
               <div className={`flex flex-col md:flex-row gap-3 justify-center transition-all duration-700 ease-out ${
                 showButton ? 'opacity-100 translate-y-0 scale-100' : 'opacity-0 translate-y-8 scale-95'
               }`}>
-                <Button asChild className="w-full md:w-auto bg-gradient-to-r from-gray-800 to-teal-800 hover:from-gray-700 hover:to-teal-700 text-white px-8 py-3">
+                <Button asChild className="w-full md:w-auto bg-custom-gradient text-white px-8 py-3">
                   <Link href="/">Kthehu në Faqen Kryesore</Link>
                 </Button>
                 <Button 

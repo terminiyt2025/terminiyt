@@ -8,48 +8,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table"
 import { Search, Calendar, Clock, User, Building2, DollarSign } from "lucide-react"
 
-// Mock booking data
-const mockBookings = [
-  {
-    id: "1",
-    businessName: "Elite Barbershop",
-    serviceName: "Classic Haircut",
-    customerName: "John Doe",
-    customerEmail: "john@example.com",
-    customerPhone: "+1 (555) 123-4567",
-    date: "2024-01-15",
-    time: "14:00",
-    status: "confirmed",
-    price: 35,
-    createdAt: "2024-01-10T10:00:00Z",
-  },
-  {
-    id: "2",
-    businessName: "Glow Beauty Salon",
-    serviceName: "Hair Cut & Style",
-    customerName: "Jane Smith",
-    customerEmail: "jane@example.com",
-    customerPhone: "+1 (555) 987-6543",
-    date: "2024-01-18",
-    time: "10:00",
-    status: "pending",
-    price: 65,
-    createdAt: "2024-01-12T15:30:00Z",
-  },
-  {
-    id: "3",
-    businessName: "HealthFirst Medical Center",
-    serviceName: "General Consultation",
-    customerName: "Mike Johnson",
-    customerEmail: "mike@example.com",
-    customerPhone: "+1 (555) 456-7890",
-    date: "2024-01-20",
-    time: "09:30",
-    status: "completed",
-    price: 120,
-    createdAt: "2024-01-08T12:15:00Z",
-  },
-]
+
 
 const getStatusBadge = (status: string) => {
   switch (status) {

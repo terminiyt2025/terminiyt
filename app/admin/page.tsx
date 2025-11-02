@@ -1261,7 +1261,7 @@ export default function AdminDashboard() {
 
   if (isLoading) {
   return (
-      <div className="min-h-screen bg-gradient-to-br from-gray-800 to-teal-800">
+      <div className="min-h-screen bg-custom-gradient">
         <Header transparent={true} />
         <div className="container mx-auto px-4 py-32">
           <div className="flex items-center justify-center py-32">
@@ -1276,7 +1276,7 @@ export default function AdminDashboard() {
 }
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-gray-800 to-teal-800">
+    <div className="min-h-screen bg-custom-gradient">
       <Header transparent={true} />
 
         <div className="container mx-auto px-4 md:py-24 py-16">
@@ -1794,7 +1794,7 @@ export default function AdminDashboard() {
                       setCategoryFormData({ name: '', icon: '' })
                       setShowCategoryForm(true)
                     }}
-                    className="bg-gradient-to-r from-gray-800 to-teal-800 hover:from-gray-700 hover:to-teal-700 text-white"
+                    className="bg-custom-gradient text-white"
                   >
                     + Shto Kategori
                   </Button>
@@ -1961,7 +1961,7 @@ export default function AdminDashboard() {
                 </div>
                 <Button
                   onClick={() => router.push('/regjistro-biznesin')}
-                  className="bg-gradient-to-r from-gray-800 to-teal-800 hover:from-gray-700 hover:to-teal-700 text-white px-4 py-6 font-medium shadow-md transition-all duration-300 flex items-center gap-2"
+                  className="bg-custom-gradient text-white px-4 py-6 font-medium shadow-md transition-all duration-300 flex items-center gap-2"
                 >
                   <Plus className="w-4 h-4" />
                   Shto Biznes
@@ -2548,7 +2548,7 @@ export default function AdminDashboard() {
                                           />
                                           <label
                                             htmlFor="business-image-upload"
-                                            className="w-full py-2 bg-gradient-to-r from-gray-800 to-teal-800 hover:from-gray-700 hover:to-teal-700 text-white text-xs cursor-pointer flex items-center justify-center rounded font-medium shadow-md transition-all duration-300"
+                                            className="w-full py-2 bg-custom-gradient text-white text-xs cursor-pointer flex items-center justify-center rounded font-medium shadow-md transition-all duration-300"
                                           >
                                             {uploadingImage ? (
                                               <div className="flex items-center">
@@ -2609,7 +2609,7 @@ export default function AdminDashboard() {
                                           />
                                           <label
                                             htmlFor="logo-upload"
-                                            className="w-full py-2 bg-gradient-to-r from-gray-800 to-teal-800 hover:from-gray-700 hover:to-teal-700 text-white text-xs cursor-pointer flex items-center justify-center rounded font-medium shadow-md transition-all duration-300"
+                                            className="w-full py-2 bg-custom-gradient hover:from-gray-700 hover:to-teal-700 text-white text-xs cursor-pointer flex items-center justify-center rounded font-medium shadow-md transition-all duration-300"
                                           >
                                             {uploadingLogo ? (
                                               <div className="flex items-center">
@@ -2772,7 +2772,7 @@ export default function AdminDashboard() {
                                           }]
                                           setEditFormData({...editFormData, services: newServices})
                                         }}
-                                        className="w-full py-2 bg-gradient-to-r from-gray-800 to-teal-800 hover:from-gray-700 hover:to-teal-700 text-white text-xs rounded font-medium shadow-md transition-all duration-300"
+                                        className="w-full py-2 bg-custom-gradient hover:from-gray-700 hover:to-teal-700 text-white text-xs rounded font-medium shadow-md transition-all duration-300"
                                       >
                                         + Shto Shërbim
                                       </button>
@@ -2936,7 +2936,7 @@ export default function AdminDashboard() {
                                           const newStaff = [...(editFormData.staff || []), newStaffMember]
                                           setEditFormData({...editFormData, staff: newStaff})
                                         }}
-                                        className="w-full py-2 bg-gradient-to-r from-gray-800 to-teal-800 hover:from-gray-700 hover:to-teal-700 text-white text-xs rounded font-medium shadow-md transition-all duration-300"
+                                        className="w-full py-2 bg-custom-gradient hover:from-gray-700 hover:to-teal-700 text-white text-xs rounded font-medium shadow-md transition-all duration-300"
                                       >
                                         + Shto Staf
                                       </button>
@@ -3180,7 +3180,7 @@ export default function AdminDashboard() {
                                                   newStaff[index].breakTimes.push({ startTime: '', endTime: '' })
                                                   setEditFormData({...editFormData, staff: newStaff})
                                                 }}
-                                                            className="bg-gradient-to-r from-gray-800 to-teal-800 hover:from-gray-700 hover:to-teal-700 text-white p-1 rounded text-xs"
+                                                            className="bg-custom-gradient text-white p-1 rounded text-xs"
                                                 title="Shto Pushim"
                                               >
                                                             <svg className="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">

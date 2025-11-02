@@ -8,7 +8,7 @@ import { ArrowLeft, UserPlus, Building2 } from "lucide-react"
 
 export default function LoginPage() {
   return (
-    <div className="min-h-screen bg-gradient-to-r from-gray-800 to-teal-800 relative overflow-hidden">
+    <div className="min-h-screen bg-custom-gradient relative overflow-hidden">
       {/* Background Pattern */}
       <div className="absolute inset-0 opacity-10">
         <div className="absolute top-20 left-10 w-32 h-32 bg-white rounded-full blur-3xl"></div>

@@ -211,7 +211,7 @@ export default function SiFunksiononPage() {
       <Header transparent={true} />
 
       {/* Hero Section */}
-      <section className="py-16 md:py-32 px-4 bg-[linear-gradient(to_right,#171717_0%,#134E4A_75%,#DA875B_75%,#DA875B_80%,#DFA65F_80%,#DFA65F_85%,#EBCA61_85%,#EBCA61_90%,#EDD66E_90%,#EDD66E_95%,#F0E277_95%,#F0E277_100%)]
+      <section className="py-16 md:py-32 px-4 bg-custom-gradient
  text-white">
         <div className="container mx-auto text-center">
           <h1 className="text-2xl md:text-5xl font-heading font-bold mb-3 text-balance leading-tight">
@@ -311,7 +311,7 @@ export default function SiFunksiononPage() {
             {/* Left Side - Steps */}
             <div>
               <h1 className="text-4xl md:text-5xl lg:text-6xl font-heading font-bold mb-8 text-balance">
-                <span className="bg-gradient-to-r from-gray-800 to-teal-800 bg-clip-text text-transparent">
+                <span className="bg-custom-gradientt bg-clip-text text-transparent">
                   Si funksionon?
                 </span>
               </h1>
@@ -416,7 +416,7 @@ export default function SiFunksiononPage() {
           {/* Slider Title */}
           <div className="text-center mb-12">
             <h1 className="text-4xl md:text-5xl lg:text-6xl font-heading font-bold text-balance">
-              <span className="bg-gradient-to-r from-gray-800 to-teal-800 bg-clip-text text-transparent">
+              <span className="bg-custom-gradientt bg-clip-text text-transparent">
                 Si funksionon procesi i rezervimit?
               </span>
             </h1>
@@ -431,7 +431,6 @@ export default function SiFunksiononPage() {
               >
                 {getDisplayImages().map((item, index) => {
                   const screenInfo = getScreenInfo()
-                  // Center calculation: Mobile: no center (1 image), MD: center is index 1, LG+: center is index 2
                   const centerOffset = screenInfo.isMobile ? 0 : (screenInfo.isMd ? 1 : 2)
                   const isCenter = screenInfo.isMobile ? true : (index === currentSlide + centerOffset)
                   const visibleImages = screenInfo.isMobile ? 1 : (screenInfo.isMd ? 3 : 5)
@@ -482,7 +481,7 @@ export default function SiFunksiononPage() {
             <div className="flex justify-end mt-6 space-x-3">
               <button
                 onClick={prevSlide}
-                className="bg-gradient-to-r from-gray-800 to-teal-800 hover:from-gray-700 hover:to-teal-700 text-white rounded-full p-3 shadow-lg transition-all duration-200 hover:scale-110"
+                className="bg-custom-gradient hover:from-gray-700 hover:to-teal-700 text-white rounded-full p-3 shadow-lg transition-all duration-200 hover:scale-110"
                 aria-label="Previous slide"
               >
                 <ChevronLeft className="w-6 h-6" />
@@ -490,7 +489,7 @@ export default function SiFunksiononPage() {
               
               <button
                 onClick={nextSlide}
-                className="bg-gradient-to-r from-gray-800 to-teal-800 hover:from-gray-700 hover:to-teal-700 text-white rounded-full p-3 shadow-lg transition-all duration-200 hover:scale-110"
+                className="bg-custom-gradient hover:from-gray-700 hover:to-teal-700 text-white rounded-full p-3 shadow-lg transition-all duration-200 hover:scale-110"
                 aria-label="Next slide"
               >
                 <ChevronRight className="w-6 h-6" />
@@ -506,7 +505,7 @@ export default function SiFunksiononPage() {
         <div className="container mx-auto">
           <div className="text-left md:text-center mb-12">
             <h1 className="text-4xl md:text-5xl lg:text-6xl font-heading font-bold md:mb-6 mb-0 text-balance">
-            <span className="bg-gradient-to-r from-gray-800 to-teal-800 bg-clip-text text-transparent"> Pse ta përdorni TerminiYt.com?</span>
+            <span className="bg-custom-gradientt bg-clip-text text-transparent"> Pse ta përdorni TerminiYt.com?</span>
             </h1>
             
           </div>
@@ -690,7 +689,7 @@ export default function SiFunksiononPage() {
       </section>
 
       {/* CTA Section */}
-      <section className="py-20 px-4 bg-gradient-to-r  from-gray-800 to-teal-800 text-white">
+      <section className="py-20 px-4 bg-custom-gradient text-white">
         <div className="container mx-auto text-left md:text-center">
           <h2 className="text-3xl md:text-5xl font-heading font-bold mb-3 text-balance">
             Gati për të Filluar?
@@ -705,7 +704,7 @@ export default function SiFunksiononPage() {
             <Button
               size="lg"
               variant="outline"
-              className="bg-white border-white text-teal-800 text-lg hover:bg-white hover:text-teal-800"
+              className="bg-white border-white text-zinc-800 text-lg hover:bg-white hover:text-zinc-800"
               asChild
             >
               <Link href="/regjistro-biznesin">Listo Biznesin Tënd</Link>
@@ -719,7 +718,7 @@ export default function SiFunksiononPage() {
         <div className="container mx-auto">
           <div className="text-left md:text-center mb-10">
             <h2 className="text-4xl md:text-5xl font-heading font-bold text-gray-800 mb-3">
-            <span className="bg-gradient-to-r from-gray-800 to-teal-800 bg-clip-text text-transparent">Pyetje të Shpeshta</span>
+            <span className="bg-custom-gradientt bg-clip-text text-transparent">Pyetje të Shpeshta</span>
             </h2>
             <p className="text-sm md:text-xl text-gray-600 max-w-3xl mx-auto">
               Gjeni përgjigjet për pyetjet më të shpeshta rreth platformës sonë
@@ -761,7 +760,7 @@ export default function SiFunksiononPage() {
 
             {/* Contact CTA */}
             <div className="text-center mt-12">
-              <div className="bg-gradient-to-r from-gray-800 to-teal-800 rounded-2xl p-8 text-white">
+              <div className="bg-custom-gradient rounded-2xl p-8 text-white">
                 <h3 className="text-lg md:text-2xl font-semibold mb-4">
                   Nuk gjetët përgjigjen që kërkoni?
                 </h3>
@@ -782,7 +781,7 @@ export default function SiFunksiononPage() {
                   <Button 
                     size="lg" 
                     variant="outline" 
-                    className="bg-white border-white text-teal-800 text-lg hover:bg-white hover:text-teal-800"
+                    className="bg-white border-white text-zinc-800 text-lg hover:bg-white hover:text-zinc-800"
                     asChild
                   >
                     <Link href="tel:+38344123456">

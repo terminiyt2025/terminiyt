@@ -237,7 +237,7 @@ export function LoginForm() {
           </label>
         </div>
 
-        <Button type="submit" className="w-full bg-gradient-to-r from-gray-800 to-teal-800 hover:from-gray-700 hover:to-teal-700 text-white font-semibold py-3 md:py-4 text-base md:text-lg" disabled={isLoading}>
+        <Button type="submit" className="w-full bg-custom-gradient text-white font-semibold py-3 md:py-4 text-base md:text-lg" disabled={isLoading}>
           {isLoading ? "Duke u identifikuar..." : "Hyr në Llogari"}
         </Button>
       </form>

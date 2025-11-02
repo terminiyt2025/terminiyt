@@ -24,7 +24,7 @@ export function Footer() {
       {/* HR Line above footer */}
       <hr className="border-gray-500" />
       
-      <footer className="bg-gradient-to-r from-gray-800 to-teal-800 text-white">
+      <footer className="bg-custom-gradient text-white">
         <div className="container mx-auto px-4 py-12">
           {/* Main Footer Content */}
           <div className="flex flex-col md:flex-row justify-between items-center gap-8 mb-8">

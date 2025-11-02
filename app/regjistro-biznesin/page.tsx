@@ -798,7 +798,7 @@ export default function RegisterBusinessPage() {
   ]
 
   return (
-    <div className="min-h-screen bg-gradient-to-r from-gray-800 to-teal-800 relative overflow-hidden">
+    <div className="min-h-screen bg-custom-gradient relative overflow-hidden">
 
       <Header transparent={true} />
 
@@ -1301,7 +1301,7 @@ export default function RegisterBusinessPage() {
                         <Button
                           type="button"
                           onClick={addService}
-                          className="w-full bg-gradient-to-r from-gray-800 to-teal-800 hover:from-gray-700 hover:to-teal-700 text-white border-0 py-3 md:py-5"
+                          className="w-full bg-custom-gradient text-white border-0 py-3 md:py-5"
                         >
                           <Plus className="w-4 h-4 mr-2" />
                           Shtoni Shërbim tjetër
@@ -1418,7 +1418,7 @@ export default function RegisterBusinessPage() {
                         <Button
                           type="button"
                           onClick={addTeamMember}
-                          className="w-full bg-gradient-to-r from-gray-800 to-teal-800 hover:from-gray-700 hover:to-teal-700 text-white border-0 py-3 md:py-5"
+                          className="w-full bg-custom-gradient text-white border-0 py-3 md:py-5"
                         >
                           <Plus className="w-4 h-4 mr-2" />
                           Shto Anëtar të Ri në Ekip
@@ -1500,7 +1500,7 @@ export default function RegisterBusinessPage() {
                               <Button 
                                 type="button"
                                 onClick={() => document.getElementById('logo-upload')?.click()}
-                                className="bg-gradient-to-r from-gray-800 to-teal-800 hover:from-gray-700 hover:to-teal-700 text-white"
+                                className="bg-custom-gradient text-white"
                               >
                                 <Upload className="w-4 h-4 mr-2" />
                                 {formData.logo ? 'Ndrysho Logon' : 'Ngarko Logo'}
@@ -1585,7 +1585,7 @@ export default function RegisterBusinessPage() {
                               <Button 
                                 type="button"
                                 onClick={() => document.getElementById('business-images-upload')?.click()}
-                                className="bg-gradient-to-r from-gray-800 to-teal-800 hover:from-gray-700 hover:to-teal-700 text-white"
+                                className="bg-custom-gradient hover:to-teal-700 text-white"
                               >
                                 <Upload className="w-4 h-4 mr-2" />
                                 Ngarko Imazhe
@@ -1617,7 +1617,7 @@ export default function RegisterBusinessPage() {
                   <Button
                     type="button"
                     onClick={nextStep}
-                    className="px-4 md:px-8 py-3 md:py-3 md:py-5 text-lg bg-gradient-to-r from-gray-800 to-teal-800 hover:from-gray-700 hover:to-teal-700 text-white"
+                    className="px-4 md:px-8 py-3 md:py-3 md:py-5 text-lg bg-custom-gradient text-white"
                   >
                     Vazhdo
                     <ArrowLeft className="w-4 h-4 ml-2 rotate-180" />
@@ -1627,7 +1627,7 @@ export default function RegisterBusinessPage() {
                     type="button"
                     onClick={handleSubmit}
                     disabled={isSubmitting}
-                    className="px-4 md:px-8 py-3 md:py-3 md:py-5 text-lg bg-gradient-to-r from-gray-800 to-teal-800 hover:from-gray-700 hover:to-teal-700 text-white shadow-lg hover:shadow-xl transition-all duration-200"
+                    className="px-4 md:px-8 py-3 md:py-3 md:py-5 text-lg bg-custom-gradient text-white shadow-lg hover:shadow-xl transition-all duration-200"
                   >
                     {isSubmitting ? (
                       <>

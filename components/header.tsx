@@ -340,7 +340,7 @@ export function Header({ transparent = false, className = "" }: HeaderProps) {
                 </Button>
                 <Button 
                   asChild
-                  className={transparent ? "bg-white border-white text-teal-800 text-lg hover:bg-white hover:text-teal-800" : ""}
+                  className={transparent ? "bg-white border-white text-zinc-800 text-lg hover:bg-white hover:text-teal-800" : ""}
                 >
                   <Link href="/regjistro-biznesin">Regjistrohu si Biznes</Link>
                 </Button>

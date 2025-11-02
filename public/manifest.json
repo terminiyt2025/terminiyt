@@ -1,0 +1,36 @@
+{
+  "name": "TerminiYt.com - Rezervo Shërbimet Lokale",
+  "short_name": "TerminiYt",
+  "description": "Rezervo shërbimet tuaja lokale në Kosovë",
+  "start_url": "/",
+  "display": "standalone",
+  "background_color": "#ffffff",
+  "theme_color": "#0d9488",
+  "orientation": "portrait-primary",
+  "scope": "/",
+  "icons": [
+    {
+      "src": "/fav-icon.png",
+      "sizes": "192x192",
+      "type": "image/png",
+      "purpose": "any maskable"
+    },
+    {
+      "src": "/fav-icon.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "any maskable"
+    }
+  ],
+  "categories": ["business", "productivity"],
+  "shortcuts": [
+    {
+      "name": "Rezervo",
+      "short_name": "Rezervo",
+      "description": "Krijo rezervim të ri",
+      "url": "/",
+      "icons": [{ "src": "/fav-icon.png", "sizes": "96x96" }]
+    }
+  ]
+}
+

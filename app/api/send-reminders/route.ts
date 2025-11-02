@@ -8,11 +8,9 @@ const prisma = new PrismaClient()
 
 export async function POST(request: NextRequest) {
   try {
-    // Get current time
     const now = new Date()
     
-    // Find bookings that start in 30 minutes (today only)
-    // Query by date string to match database format
+
     const today = new Date()
     const todayString = today.toISOString().split('T')[0] // "2025-10-10"
     
