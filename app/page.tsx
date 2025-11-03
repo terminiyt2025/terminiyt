@@ -217,7 +217,7 @@ export default function HomePage() {
           
           {/* Full Width Map - Dynamic Height */}
           <div className="w-full flex justify-center">
-            <div className="map-container" style={{ width: '1350px', maxWidth: '100%'}}>
+            <div className="map-container" style={{ width: '1340px', maxWidth: '100%'}}>
               <GoogleMapsWrapper
                 businesses={businesses}
                 categories={categories}

@@ -122,7 +122,8 @@ export default function SiFunksiononPage() {
     '/Slider-4.png',
     '/Slider-5.png',
     '/Slider-6.png',
-    '/Slider-7.png'
+    '/Slider-7.png',
+    '/Slider-8.png'
   ]
 
   // Slider descriptions
@@ -133,7 +134,8 @@ export default function SiFunksiononPage() {
     'Zgjidhni datën',
     'Zgjidhni orën',
     'Plotësoni të dhënat tuaja personale',
-    'Konfirmimi i rezervimit tuaj'
+    'Konfirmimi i rezervimit tuaj',
+    'Pranimi i njoftimit për rezervimin tuaj'
   ]
 
   // Get the actual images to display based on screen size
