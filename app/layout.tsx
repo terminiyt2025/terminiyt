@@ -17,7 +17,6 @@ export const metadata: Metadata = {
   description: "Rezervo shërbimet tuaja lokale në Kosovë",
   generator: "v0.app",
   manifest: "/manifest.json",
-  themeColor: "#0d9488",
   icons: {
     icon: "/fav-icon.png",
     shortcut: "/fav-icon.png",
@@ -46,6 +45,7 @@ export const viewport = {
   initialScale: 1,
   maximumScale: 5,
   userScalable: true,
+  themeColor: "0f323a",
 }
 
 export default function RootLayout({

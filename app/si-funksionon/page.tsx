@@ -566,7 +566,7 @@ export default function SiFunksiononPage() {
                             />
                             {/* Gradient overlay with text - only show when scaled (center) */}
                             {isCenter && (
-                              <div className="absolute bottom-0 left-0 right-0 h-24 bg-gradient-to-t from-white via-white/70 to-transparent flex items-center">
+                              <div className="absolute bottom-0 left-0 right-0 h-36 md:h-24 bg-gradient-to-t from-white via-white/90 to-transparent flex items-center">
                                 <div className="p-2 w-full">
                                   <p className="text-gray-800 font-medium text-base text-center leading-relaxed">
                                     {item.description}

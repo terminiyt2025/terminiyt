@@ -268,6 +268,8 @@ video::-webkit-media-controls-enclosure {
   .map-container {
     margin-left: 50px !important;
     margin-right: 50px !important;
+    width: 1340px !important;
+    max-width: 100% !important;
   }
 }
 
@@ -293,6 +295,8 @@ video::-webkit-media-controls-enclosure {
   .map-container {
     margin-left: 100px !important;
     margin-right: 100px !important;
+    width: 1340px !important;
+    max-width: 100% !important;
   }
 }
 .bg-custom-gradientb {
