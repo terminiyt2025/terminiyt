@@ -85,6 +85,11 @@ export default function SiFunksiononPage() {
   const [isMdScreen, setIsMdScreen] = useState(false)
   const [isClient, setIsClient] = useState(false)
   const cardRefs = useRef<(HTMLDivElement | null)[]>([])
+  const sliderRef = useRef<HTMLDivElement>(null)
+  const [isDragging, setIsDragging] = useState(false)
+  const [startX, setStartX] = useState(0)
+  const [scrollLeft, setScrollLeft] = useState(0)
+  const [hasMoved, setHasMoved] = useState(false)
 
   const toggleFAQ = (id: number) => {
     setOpenFAQ(openFAQ === id ? null : id)
@@ -175,6 +180,86 @@ export default function SiFunksiononPage() {
 
   const prevSlide = () => {
     setCurrentSlide((prev) => Math.max(prev - 1, 0))
+  }
+
+  // Drag handlers - move one slide at a time
+  const handleMouseDown = (e: React.MouseEvent<HTMLDivElement>) => {
+    if (!sliderRef.current) return
+    setIsDragging(true)
+    setStartX(e.pageX - sliderRef.current.offsetLeft)
+    setScrollLeft(currentSlide)
+    setHasMoved(false)
+  }
+
+  const handleMouseMove = (e: React.MouseEvent<HTMLDivElement>) => {
+    if (!isDragging || !sliderRef.current || hasMoved) return
+    e.preventDefault()
+    const x = e.pageX - sliderRef.current.offsetLeft
+    const dragDistance = x - startX
+    const threshold = 50 // Minimum drag distance to trigger slide change
+    
+    if (Math.abs(dragDistance) > threshold) {
+      const screenInfo = getScreenInfo()
+      const visibleImages = screenInfo.isMobile ? 1 : (screenInfo.isMd ? 3 : 5)
+      const displayImages = getDisplayImages()
+      const maxSlide = Math.max(0, displayImages.length - visibleImages)
+      
+      if (dragDistance > 0) {
+        // Dragging right - go to previous slide
+        setCurrentSlide((prev) => Math.max(prev - 1, 0))
+      } else {
+        // Dragging left - go to next slide
+        setCurrentSlide((prev) => Math.min(prev + 1, maxSlide))
+      }
+      setHasMoved(true)
+    }
+  }
+
+  const handleMouseUp = () => {
+    setIsDragging(false)
+    setHasMoved(false)
+  }
+
+  const handleMouseLeave = () => {
+    setIsDragging(false)
+    setHasMoved(false)
+  }
+
+  // Touch handlers - move one slide at a time
+  const handleTouchStart = (e: React.TouchEvent<HTMLDivElement>) => {
+    if (!sliderRef.current) return
+    setIsDragging(true)
+    setStartX(e.touches[0].pageX - sliderRef.current.offsetLeft)
+    setScrollLeft(currentSlide)
+    setHasMoved(false)
+  }
+
+  const handleTouchMove = (e: React.TouchEvent<HTMLDivElement>) => {
+    if (!isDragging || !sliderRef.current || hasMoved) return
+    const x = e.touches[0].pageX - sliderRef.current.offsetLeft
+    const dragDistance = x - startX
+    const threshold = 50 // Minimum drag distance to trigger slide change
+    
+    if (Math.abs(dragDistance) > threshold) {
+      const screenInfo = getScreenInfo()
+      const visibleImages = screenInfo.isMobile ? 1 : (screenInfo.isMd ? 3 : 5)
+      const displayImages = getDisplayImages()
+      const maxSlide = Math.max(0, displayImages.length - visibleImages)
+      
+      if (dragDistance > 0) {
+        // Dragging right - go to previous slide
+        setCurrentSlide((prev) => Math.max(prev - 1, 0))
+      } else {
+        // Dragging left - go to next slide
+        setCurrentSlide((prev) => Math.min(prev + 1, maxSlide))
+      }
+      setHasMoved(true)
+    }
+  }
+
+  const handleTouchEnd = () => {
+    setIsDragging(false)
+    setHasMoved(false)
   }
 
   // Intersection Observer for scroll animations
@@ -397,13 +482,22 @@ export default function SiFunksiononPage() {
             </div>
 
               {/* Right Side - Image */}
-            <div className="relative">
-              <div className="relative w-full h-96 md:h-[500px] lg:h-[600px] rounded-2xl overflow-hidden ">
+            <div className="relative pt-8 md:pt-0">
+              <div className="relative w-full h-96 md:h-[500px] lg:h-[600px] rounded-2xl overflow-visible pt-8 md:pt-0">
+                {/* Mobile Image */}
+                <Image
+                  src="/mergedimagesmob.png"
+                  alt="Si funksionon platforma"
+                  fill
+                  className="object-contain md:hidden scale-108 "
+                  priority
+                />
+                {/* Desktop Image */}
                 <Image
                   src="/mergeimages.png"
                   alt="Si funksionon platforma"
                   fill
-                  className="object-contain"
+                  className="object-contain hidden md:block"
                   priority
                 />
               </div>
@@ -426,10 +520,24 @@ export default function SiFunksiononPage() {
           
           <div className="relative">
             {/* Slider Container */}
-            <div className="relative overflow-hidden rounded-2xl bg-white- " style={{ height: '85vh' }}>
+            <div 
+              ref={sliderRef}
+              className="relative overflow-hidden rounded-2xl bg-white- cursor-grab active:cursor-grabbing select-none"
+              style={{ height: '85vh' }}
+              onMouseDown={handleMouseDown}
+              onMouseMove={handleMouseMove}
+              onMouseUp={handleMouseUp}
+              onMouseLeave={handleMouseLeave}
+              onTouchStart={handleTouchStart}
+              onTouchMove={handleTouchMove}
+              onTouchEnd={handleTouchEnd}
+            >
               <div 
                 className="flex transition-transform duration-500 ease-in-out"
-                style={{ transform: `translateX(-${currentSlide * (100 / (getScreenInfo().isMobile ? 1 : (getScreenInfo().isMd ? 3 : 5)))}%)` }}
+                style={{ 
+                  transform: `translateX(-${currentSlide * (100 / (getScreenInfo().isMobile ? 1 : (getScreenInfo().isMd ? 3 : 5)))}%)`,
+                  transition: isDragging ? 'none' : 'transform 0.5s ease-in-out'
+                }}
               >
                 {getDisplayImages().map((item, index) => {
                   const screenInfo = getScreenInfo()
@@ -458,8 +566,8 @@ export default function SiFunksiononPage() {
                             />
                             {/* Gradient overlay with text - only show when scaled (center) */}
                             {isCenter && (
-                              <div className="absolute bottom-0 left-0 right-0 h-48 bg-gradient-to-t from-white via-white/95 to-transparent flex items-center">
-                                <div className="p-6 w-full">
+                              <div className="absolute bottom-0 left-0 right-0 h-24 bg-gradient-to-t from-white via-white/70 to-transparent flex items-center">
+                                <div className="p-2 w-full">
                                   <p className="text-gray-800 font-medium text-base text-center leading-relaxed">
                                     {item.description}
                                   </p>
