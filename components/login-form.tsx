@@ -118,7 +118,8 @@ export function LoginForm() {
         // Store business auth data
         const authData = {
           businessId: business.id,
-          email: business.account_email
+          email: business.account_email,
+          role: 'BUSINESS_OWNER'
         }
         localStorage.setItem('businessAuth', JSON.stringify(authData))
         
@@ -135,8 +136,46 @@ export function LoginForm() {
         return
       }
 
-      // Both logins failed
-      const error = await businessResponse.json()
+      // If business login failed, try staff login
+      const staffResponse = await fetch('/api/staff/login', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          email: data.email,
+          password: data.password
+        })
+      })
+
+      if (staffResponse.ok) {
+        const { staff, business } = await staffResponse.json()
+        
+        // Store staff auth data
+        const authData = {
+          staffName: staff.name,
+          staffEmail: staff.email,
+          businessId: business.id,
+          businessName: business.name,
+          role: staff.role || 'STAFF'
+        }
+        localStorage.setItem('staffAuth', JSON.stringify(authData))
+        
+        // Trigger custom event to update header
+        window.dispatchEvent(new Event('staffLogin'))
+
+        toast({
+          title: "Mirë se vini!",
+          description: `Jeni identifikuar si ${staff.name}`,
+        })
+
+        // Redirect to reservations page
+        router.push("/rezervimet")
+        return
+      }
+
+      // All logins failed
+      const error = await businessResponse.json().catch(() => ({ error: "Emaili ose Fjalëkalimi i gabuar!" }))
       setLoginError(error.error || "Emaili ose Fjalëkalimi i gabuar!")
       toast({
         title: "Identifikimi dështoi",

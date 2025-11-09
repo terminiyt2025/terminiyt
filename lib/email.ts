@@ -76,7 +76,7 @@ export const emailTemplates = {
         <h4 style="font-size: 16px;">ℹ️ Informacione të Rëndësishme:</h4>
         <ul style="margin: 0;">
           <li style="margin: 8px 0;">Ju lutemi arrini 5-10 minuta para orës së caktuar</li>
-          <li style="margin: 8px 0;">Nëse dëshironi ta anulini terminin, ju lutemi klikoni këtu: <a href="https://terminiyt.com/booking-confirmation?business=${encodeURIComponent(bookingData.businessName)}&date=${bookingData.dateForUrl}&time=${encodeURIComponent(bookingData.time)}&service=${encodeURIComponent(bookingData.serviceName)}&staff=${encodeURIComponent(bookingData.staffName)}&bookingId=${bookingData.bookingId}" style="color: #0d9488; text-decoration: underline;">REZERVIMI JUAJ</a></li>
+          <li style="margin: 8px 0;">Nëse dëshironi ta anuloni terminin, ju lutemi klikoni këtu: <a href="https://terminiyt.com/booking-confirmation?business=${encodeURIComponent(bookingData.businessName)}&date=${bookingData.dateForUrl}&time=${encodeURIComponent(bookingData.time)}&service=${encodeURIComponent(bookingData.serviceName)}&staff=${encodeURIComponent(bookingData.staffName)}&bookingId=${bookingData.bookingId}" style="color: #0d9488; text-decoration: underline;">REZERVIMI JUAJ</a></li>
         </ul>
         
         <div style="text-align: center; margin-top: 40px; padding-top: 20px; border-top: 1px solid #ccc;">
@@ -105,7 +105,7 @@ export const emailTemplates = {
       
       ℹ️ Informacione të Rëndësishme:
       • Ju lutemi arrini 5-10 minuta para orës së caktuar
-      • Nëse dëshironi ta anulini terminin, ju lutemi klikoni këtu:  https://terminiyt.com/booking-confirmation?business=${encodeURIComponent(bookingData.businessName)}&date=${bookingData.dateForUrl}&time=${encodeURIComponent(bookingData.time)}&service=${encodeURIComponent(bookingData.serviceName)}&staff=${encodeURIComponent(bookingData.staffName)}&bookingId=${bookingData.bookingId}
+      • Nëse dëshironi ta anuloni terminin, ju lutemi klikoni këtu:  https://terminiyt.com/booking-confirmation?business=${encodeURIComponent(bookingData.businessName)}&date=${bookingData.dateForUrl}&time=${encodeURIComponent(bookingData.time)}&service=${encodeURIComponent(bookingData.serviceName)}&staff=${encodeURIComponent(bookingData.staffName)}&bookingId=${bookingData.bookingId}
       
       Faleminderit që zgjodhët TerminiYt.com!
       info@terminiyt.com | terminiyt.com

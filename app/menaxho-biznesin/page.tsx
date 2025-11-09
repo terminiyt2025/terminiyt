@@ -82,6 +82,9 @@ export default function BusinessPanel() {
   const [showStaffHoursSection, setShowStaffHoursSection] = useState(false)
   const [expandedStaffHours, setExpandedStaffHours] = useState<number | null>(null)
   const [showImageSection, setShowImageSection] = useState(false)
+  const [staffPasswords, setStaffPasswords] = useState<{ [key: number]: string }>({})
+  const [staffPasswordConfirms, setStaffPasswordConfirms] = useState<{ [key: number]: string }>({})
+  const [selectedStaffForPassword, setSelectedStaffForPassword] = useState<number | null>(null)
   const { toast } = useToast()
   const router = useRouter()
 
@@ -282,6 +285,9 @@ export default function BusinessPanel() {
       new_password: '',
       confirm_password: ''
     })
+    setStaffPasswords({})
+    setStaffPasswordConfirms({})
+    setSelectedStaffForPassword(null)
     setShowPasswordFields(false)
     setIsEditing(false)
     setValidationErrors({})
@@ -433,8 +439,66 @@ export default function BusinessPanel() {
         }
       }
 
+      // Validate staff passwords
+      for (let index = 0; index < (editData.staff || []).length; index++) {
+        const member = editData.staff[index]
+        const newPassword = staffPasswords[index]
+        const confirmPassword = staffPasswordConfirms[index]
+        
+        // If password is not set and staff doesn't have a password, require it
+        if (!member.password && (!newPassword || newPassword.trim() === '')) {
+          toast({
+            title: "Gabim!",
+            description: `Stafi "${member.name || member.email}" duhet të ketë një fjalëkalim. Ju lutem vendosni fjalëkalimin.`,
+            variant: "destructive",
+          })
+          return
+        }
+        
+        // If password is provided, check if it matches confirmation and length
+        if (newPassword && newPassword.trim() !== '') {
+          // Check minimum length
+          if (newPassword.length < 8) {
+            toast({
+              title: "Gabim!",
+              description: `Fjalëkalimi për stafin "${member.name || member.email}" duhet të jetë të paktën 8 karaktere.`,
+              variant: "destructive",
+            })
+            return
+          }
+          
+          // Check if passwords match
+          if (newPassword !== confirmPassword) {
+            toast({
+              title: "Gabim!",
+              description: `Fjalëkalimet për stafin "${member.name || member.email}" nuk përputhen.`,
+              variant: "destructive",
+            })
+            return
+          }
+        }
+      }
+
+      // Prepare staff passwords to send (plain text - will be hashed on server)
+      const updatedStaff = (editData.staff || []).map((member: any, index: number) => {
+        const newPassword = staffPasswords[index]
+        
+        // If password field is filled, include it (will be hashed on server)
+        if (newPassword && newPassword.trim() !== '') {
+          return {
+            ...member,
+            password: newPassword.trim() // Send plain text, server will hash it
+          }
+        }
+        
+        // If password field is empty but staff already has a password, keep it
+        // If staff doesn't have a password, leave it as null
+        return member
+      })
+
       const updateData = {
         ...editData,
+        staff: updatedStaff,
         ...(passwordData.new_password && passwordData.new_password === passwordData.confirm_password ? {
           current_password: passwordData.current_password,
           new_password: passwordData.new_password
@@ -459,6 +523,9 @@ export default function BusinessPanel() {
           new_password: '',
           confirm_password: ''
         })
+        setStaffPasswords({})
+        setStaffPasswordConfirms({})
+        setSelectedStaffForPassword(null)
         setShowPasswordFields(false)
         setShowImageUploads(false)
           
@@ -547,7 +614,7 @@ export default function BusinessPanel() {
   return (
     <div className="min-h-screen bg-custom-gradient  relative overflow-hidden">
       <BusinessHeader />
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 relative z-10 -mt-16 md:pt-24 pt-20">
+      <div className="container mx-auto px-[15px] md:px-4 py-8 relative z-10 -mt-16 md:pt-16 pt-20">
 
         {/* Header */}
         <div className="mb-4">
@@ -556,28 +623,27 @@ export default function BusinessPanel() {
               variant="outline"
               size="sm"
               onClick={() => router.push('/rezervimet')}
-              className="text-black border-white hover:bg-white hover:text-gray-800"
+              className="text-black border-white hover:bg-white hover:text-gray-800 mt-2"
             >
               SHIKO REZERVIMET
               <ArrowLeft className="w-4 h-4 ml-2 rotate-180" />
             </Button>
           </div>
-          <div>
-            <h1 className="text-2xl sm:text-3xl font-bold text-white">Menaxho Biznesin</h1>
-            <p className="text-gray-200">Menaxhoni të dhënat e biznesit tuaj</p>
-          </div>
+        
         </div>
 
 
         {/* Business Data Edit Form - Admin Panel Style */}
-        <div className="w-full mt-6">
+        <div className="w-full mt-1">
           <Card className="bg-white border-gray-200 shadow-lg">
-            <CardHeader className="pb-4 px-3 sm:px-6">
+            <CardHeader className=" px-3 sm:px-6">
               <div className="flex justify-between items-center">
                 <div>
                   <CardTitle className="text-2xl font-bold bg-gradient-to-r from-gray-800 to-teal-800 bg-clip-text text-transparent flex items-center">
-                    {business?.name || 'Menaxhoni të dhënat e biznesit tuaj'}
+                    {business?.name || 'Biznesi juaj!'}
+                    
                   </CardTitle>
+                  <p className="text-gray-400">Menaxhoni të dhënat e biznesit tuaj</p>
                 </div>
                 <div className="flex space-x-2">
                   {!isEditing && (
@@ -891,7 +957,7 @@ export default function BusinessPanel() {
 {/* Image Section */}
                       <div>
                 <div 
-                  className="flex items-center justify-between cursor-pointer p-3 bg-gray-50 rounded-lg hover:bg-gray-100 transition-colors"
+                  className="flex items-center justify-between cursor-pointer p-3 bg-white shadow-sm rounded-lg hover:bg-gray-50 transition-colors"
                   onClick={() => setShowImageSection(!showImageSection)}
                 >
                   <h4 className="font-semibold bg-gradient-to-r from-gray-800 to-teal-800 bg-clip-text text-transparent">Imazhi i Biznesit & Logo</h4>
@@ -906,45 +972,31 @@ export default function BusinessPanel() {
                   <div className="mt-3 p-4 bg-white border border-gray-200 rounded-lg">
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                   {/* Business Images - 50% */}
-                  <div className="border border-gray-200 rounded-lg p-3 bg-gray-50/20">
-                    <label className="block text-xs font-medium text-gray-600 mb-2">Imazhi i Biznesit</label>
-                    <div className="space-y-2">
+                  <div className="border border-gray-200 rounded-lg p-4 bg-white shadow-sm">
+                    <label className="block text-xs font-medium text-gray-600 mb-3">Imazhi i Biznesit</label>
+                    <div className="space-y-3">
                       {((isEditing ? editData.business_images : business?.business_images) ? [isEditing ? editData.business_images : business?.business_images] : []).map((image: string, index: number) => (
-                        <div key={index} className="flex items-center space-x-2">
+                        <div key={index} className="relative group">
                           <img 
                             src={image} 
                             alt={`Business image ${index + 1}`}
-                            className="w-16 h-16 object-cover border border-gray-200 rounded cursor-pointer hover:opacity-80"
+                            className="w-full h-48 object-cover border border-gray-200 rounded-lg cursor-pointer hover:opacity-90 transition-opacity"
                             onClick={() => setSelectedImage(image)}
-                          />
-                          <div className="flex-1 flex items-center space-x-2 min-w-0">
-                            <input
-                              type="url"
-                              value={image}
-                                    onChange={(e) => {
-                                if (isEditing) {
-                                  setEditData({...editData, business_images: e.target.value})
-                                }
-                              }}
-                              disabled={!isEditing}
-                              className="flex-1 px-2 py-1 border border-gray-300 rounded text-xs min-w-0"
-                              placeholder="https://..."
                             />
                             {isEditing && (
                               <button
                                 onClick={() => {
                                   setEditData({...editData, business_images: ''})
                                 }}
-                                className="bg-gradient-to-r from-red-500 to-red-700 hover:from-red-600 hover:to-red-800 text-white p-1 rounded transition-all duration-300 flex-shrink-0"
+                              className="absolute top-2 right-2 bg-gradient-to-r from-red-500 to-red-700 hover:from-red-600 hover:to-red-800 text-white p-2 rounded transition-all duration-300 opacity-0 group-hover:opacity-100"
                               >
                                 <Trash2 className="w-4 h-4" />
                               </button>
                             )}
-                                </div>
                               </div>
                       ))}
                       {isEditing && (
-                        <div className="space-y-2">
+                        <div>
                           <input
                             type="file"
                             accept="image/*"
@@ -985,43 +1037,44 @@ export default function BusinessPanel() {
                           </label>
                             </div>
                           )}
+                      {!isEditing && !(isEditing ? editData.business_images : business?.business_images) && (
+                        <div className="w-full h-48 border-2 border-dashed border-gray-300 rounded-lg flex items-center justify-center text-gray-400 text-sm">
+                          Nuk ka imazh
+                        </div>
+                      )}
                         </div>
                     </div>
 
                   {/* Logo - 50% */}
-                  <div className="border border-gray-200 rounded-lg p-3 bg-gray-50/20">
-                    <label className="block text-xs font-medium text-gray-600 mb-2">Logo</label>
-                    <div className="space-y-2">
-                      {(isEditing ? editData.logo : business?.logo) && (
-                        <div className="flex items-center space-x-2">
+                  <div className="border border-gray-200 rounded-lg p-4 bg-white shadow-sm">
+                    <label className="block text-xs font-medium text-gray-600 mb-3">Logo</label>
+                    <div className="space-y-3">
+                      {(isEditing ? editData.logo : business?.logo) ? (
+                        <div className="relative group">
                           <img 
                             src={isEditing ? editData.logo : business?.logo} 
                             alt="Logo preview"
-                            className="w-16 h-16 object-contain border border-gray-200 rounded-lg cursor-pointer hover:opacity-80"
+                            className="w-full h-48 object-contain border border-gray-200 rounded-lg cursor-pointer hover:opacity-90 transition-opacity bg-gray-50"
                             onClick={() => setSelectedImage(isEditing ? editData.logo : business?.logo || null)}
-                          />
-                          <div className="flex-1 flex items-center space-x-2 min-w-0">
-                            <input
-                              type="url"
-                              value={isEditing ? (editData.logo || '') : (business?.logo || '')}
-                              onChange={(e) => setEditData({...editData, logo: e.target.value})}
-                              disabled={!isEditing}
-                              className="flex-1 px-2 py-1 border border-gray-300 rounded text-xs min-w-0"
-                              placeholder="https://..."
                             />
                             {isEditing && (
                               <button
                                 onClick={() => setEditData({...editData, logo: ''})}
-                                className="bg-gradient-to-r from-red-500 to-red-700 hover:from-red-600 hover:to-red-800 text-white p-1 rounded transition-all duration-300 flex-shrink-0"
+                              className="absolute top-2 right-2 bg-gradient-to-r from-red-500 to-red-700 hover:from-red-600 hover:to-red-800 text-white p-2 rounded transition-all duration-300 opacity-0 group-hover:opacity-100"
                               >
                                 <Trash2 className="w-4 h-4" />
                               </button>
                             )}
                           </div>
+                      ) : (
+                        !isEditing && (
+                          <div className="w-full h-48 border-2 border-dashed border-gray-300 rounded-lg flex items-center justify-center text-gray-400 text-sm">
+                            Nuk ka logo
                                 </div>
+                        )
                       )}
                       {isEditing && (
-                        <div className="space-y-2">
+                        <div>
                           <input
                             type="file"
                             accept="image/*"
@@ -1062,15 +1115,6 @@ export default function BusinessPanel() {
                           </label>
                             </div>
                       )}
-                      {!isEditing && !business?.logo && (
-                        <input
-                          type="url"
-                          value=""
-                          disabled={true}
-                          className="w-full px-2 py-1 border border-gray-300 rounded text-xs"
-                          placeholder="Ose shkruani URL-në direkt..."
-                        />
-                      )}
                     </div>
                   </div>
                       </div>
@@ -1087,7 +1131,7 @@ export default function BusinessPanel() {
                 <div className="bg-white rounded ">
                   <div className="space-y-3">
                     {(isEditing ? (editData.services || []) : (business?.services || [])).map((service: any, index: number) => (
-                      <div key={service.id || index} className="border border-gray-200 rounded-lg p-3 bg-gray-50/50">
+                      <div key={service.id || index} className="border border-gray-200 rounded-lg p-3 bg-white shadow-sm">
                         {isEditing ? (
                           <>
                             {/* Name, Price, and Duration in one line */}
@@ -1135,7 +1179,7 @@ export default function BusinessPanel() {
                                 }}
                                 disabled={!isEditing}
                             placeholder="Emri i shërbimit"
-                              className={`px-2 py-1 border rounded text-xs w-full ${validationErrors[`service_${index}_name`] ? 'border-red-500' : 'border-gray-300'}`}
+                              className={`px-2 py-1 border rounded text-xs w-full bg-white ${validationErrors[`service_${index}_name`] ? 'border-red-500' : 'border-gray-300'}`}
                           />
                             {validationErrors[`service_${index}_name`] && (
                               <p className="text-red-500 text-xs mt-1">{validationErrors[`service_${index}_name`]}</p>
@@ -1155,7 +1199,7 @@ export default function BusinessPanel() {
                               }}
                               disabled={!isEditing}
                               placeholder="Çmimi"
-                              className="px-2 py-1 pr-6 border border-gray-300 rounded text-xs w-full"
+                              className="px-2 py-1 pr-6 border border-gray-300 rounded text-xs w-full bg-white"
                             />
                             <span className="absolute right-2 top-1/2 transform -translate-y-1/2 text-xs text-gray-500 pointer-events-none">€</span>
                           </div>
@@ -1178,7 +1222,7 @@ export default function BusinessPanel() {
                                   }
                                 }}
                                 disabled={!isEditing}
-                              className={`px-2 py-1 border rounded text-xs w-full ${validationErrors[`service_${index}_duration`] ? 'border-red-500' : 'border-gray-300'}`}
+                              className={`px-2 py-1 border rounded text-xs w-full bg-white ${validationErrors[`service_${index}_duration`] ? 'border-red-500' : 'border-gray-300'}`}
                           >
                             <option value="15 min">15 min</option>
                             <option value="30 min">30 min</option>
@@ -1218,11 +1262,11 @@ export default function BusinessPanel() {
                           }}
                           disabled={!isEditing}
                           placeholder="Përshkrimi i shërbimit"
-                          className="w-full px-2 py-1 border border-gray-300 rounded text-xs h-12 resize-none mb-2"
+                          className="w-full px-2 py-1 border border-gray-300 rounded text-xs h-12 resize-none mb-1 bg-white"
                         />
                         {/* Delete button */}
                           {isEditing && (
-                          <div className="flex justify-end mt-2">
+                          <div className="flex justify-end ">
                             <button
                                 onClick={() => {
                                 setServiceToDelete({ service, index })
@@ -1275,11 +1319,11 @@ export default function BusinessPanel() {
                 <div className="bg-white rounded ">
                   <div className="space-y-3">
                     {(isEditing ? (editData.staff || []) : (business?.staff || [])).map((member: any, index: number) => (
-                      <div key={index} className="border border-gray-200 rounded-lg p-3 bg-gray-50/50">
+                      <div key={index} className="border border-gray-200 rounded-lg p-3 bg-white shadow-sm">
                         {isEditing ? (
                           <>
-                            {/* Name and Phone in one line */}
-                            <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-2">
+                            {/* Name, Email, and Phone in one line */}
+                            <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-2">
                           <div>
                           <input
                             type="text"
@@ -1300,42 +1344,12 @@ export default function BusinessPanel() {
                                 }}
                                 disabled={!isEditing}
                             placeholder="Emri i stafit"
-                              className={`px-2 py-1 border rounded text-xs w-full ${validationErrors[`staff_${index}_name`] ? 'border-red-500' : 'border-gray-300'}`}
+                                  className={`px-2 py-1 border rounded text-xs w-full bg-white ${validationErrors[`staff_${index}_name`] ? 'border-red-500' : 'border-gray-300'}`}
                           />
                             {validationErrors[`staff_${index}_name`] && (
                               <p className="text-red-500 text-xs mt-1">{validationErrors[`staff_${index}_name`]}</p>
                             )}
                           </div>
-                          <div>
-                          <input
-                              type="text"
-                              value={member.phone || ''}
-                            onChange={(e) => {
-                              if (isEditing) {
-                                const newStaff = [...(editData.staff || [])]
-                                  newStaff[index] = { ...member, phone: e.target.value }
-                                setEditData({...editData, staff: newStaff})
-                                  
-                                  // Clear validation error when user starts typing
-                                  if (validationErrors[`staff_${index}_phone`]) {
-                                    const newErrors = {...validationErrors}
-                                    delete newErrors[`staff_${index}_phone`]
-                                    setValidationErrors(newErrors)
-                                  }
-                              }
-                            }}
-                            disabled={!isEditing}
-                              placeholder="Telefoni"
-                              className={`px-2 py-1 border rounded text-xs w-full ${validationErrors[`staff_${index}_phone`] ? 'border-red-500' : 'border-gray-300'}`}
-                              />
-                            {validationErrors[`staff_${index}_phone`] && (
-                              <p className="text-red-500 text-xs mt-1">{validationErrors[`staff_${index}_phone`]}</p>
-                            )}
-                            </div>
-                        </div>
-                        
-                        {/* Email and Active Status in one line */}
-                        <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-2">
                           <div>
                           <input
                               type="email"
@@ -1356,29 +1370,37 @@ export default function BusinessPanel() {
                                 }}
                                 disabled={!isEditing}
                               placeholder="Email"
-                              className={`px-2 py-1 border rounded text-xs w-full ${validationErrors[`staff_${index}_email`] ? 'border-red-500' : 'border-gray-300'}`}
+                                  className={`px-2 py-1 border rounded text-xs w-full bg-white ${validationErrors[`staff_${index}_email`] ? 'border-red-500' : 'border-gray-300'}`}
                           />
                             {validationErrors[`staff_${index}_email`] && (
                               <p className="text-red-500 text-xs mt-1">{validationErrors[`staff_${index}_email`]}</p>
                             )}
                           </div>
-                          <div className="flex items-center">
-                            <label className="flex items-center text-xs">
+                              <div>
                               <input
-                                type="checkbox"
-                                checked={member.isActive || false}
+                                  type="text"
+                                  value={member.phone || ''}
                                 onChange={(e) => {
                                   if (isEditing) {
                                     const newStaff = [...(editData.staff || [])]
-                                    newStaff[index] = { ...member, isActive: e.target.checked }
+                                      newStaff[index] = { ...member, phone: e.target.value }
                                     setEditData({...editData, staff: newStaff})
+                                      
+                                      // Clear validation error when user starts typing
+                                      if (validationErrors[`staff_${index}_phone`]) {
+                                        const newErrors = {...validationErrors}
+                                        delete newErrors[`staff_${index}_phone`]
+                                        setValidationErrors(newErrors)
+                                      }
                                   }
                                 }}
                                 disabled={!isEditing}
-                                className="mr-1 w-4 h-4 text-teal-800 bg-white rounded focus:ring-teal-800 focus:ring-2 accent-teal-800 border-0"
+                                  placeholder="Telefoni"
+                                  className={`px-2 py-1 border rounded text-xs w-full bg-white ${validationErrors[`staff_${index}_phone`] ? 'border-red-500' : 'border-gray-300'}`}
                               />
-                              Është aktiv?
-                            </label>
+                                {validationErrors[`staff_${index}_phone`] && (
+                                  <p className="text-red-500 text-xs mt-1">{validationErrors[`staff_${index}_phone`]}</p>
+                                )}
                             </div>
                           </div>
 
@@ -1422,9 +1444,102 @@ export default function BusinessPanel() {
                                 {validationErrors[`staff_${index}_services`]}
                               </div>
                             )}
-                        <div className="flex justify-between items-center">
+                        
+                        {/* Password Field for Staff - Only show if password is not set */}
+                        {isEditing && !member.password && (() => {
+                          const password = staffPasswords[index] || ''
+                          const confirmPassword = staffPasswordConfirms[index] || ''
+                          const passwordsMatch = password && confirmPassword && password === confirmPassword && password.length >= 8
+                          const passwordsMismatch = password && confirmPassword && password !== confirmPassword
+                          const passwordTooShort = password && password.length < 8
+                          
+                          return (
+                            <div className={`mt-3 pt-3 border-t-2 p-3 rounded transition-colors ${
+                              passwordsMatch 
+                                ? 'border-green-300 bg-green-50' 
+                                : passwordsMismatch || passwordTooShort
+                                ? 'border-red-300 bg-red-50'
+                                : 'border-red-300 bg-red-50'
+                            }`}>
+                              {!passwordsMatch && (
+                                <label className="block text-xs font-semibold text-red-700 mb-2">
+                                  ⚠️ Vendosni fjalëkalimin për këtë staf për të menaxhuar kalendarin e rezervimeve
+                                </label>
+                              )}
+                              {passwordsMatch && (
+                                <label className="block text-xs font-semibold text-green-700 mb-2">
+                                  ✓ Fjalëkalimi u vendos me sukses
+                                </label>
+                              )}
+                              <div className="space-y-2">
+                                <div>
+                                  <label className={`block text-xs font-medium mb-1 ${
+                                    passwordsMatch ? 'text-green-700' : 'text-red-700'
+                                  }`}>
+                                    Fjalëkalimi * (min. 8 karaktere)
+                                  </label>
+                                  <input
+                                    type="password"
+                                    value={password}
+                                    onChange={(e) => {
+                                      setStaffPasswords(prev => ({
+                                        ...prev,
+                                        [index]: e.target.value
+                                      }))
+                                    }}
+                                    placeholder="Shkruani fjalëkalimin (min. 8 karaktere)"
+                                    className={`w-full px-2 py-1 border-2 rounded text-xs focus:outline-none ${
+                                      passwordsMatch
+                                        ? 'border-green-300 focus:border-green-500'
+                                        : passwordsMismatch || passwordTooShort
+                                        ? 'border-red-300 focus:border-red-500'
+                                        : 'border-red-300 focus:border-red-500'
+                                    }`}
+                                    required
+                                    minLength={8}
+                                  />
+                                  {passwordTooShort && password.length > 0 && (
+                                    <p className="text-xs text-red-600 mt-1">Fjalëkalimi duhet të jetë të paktën 8 karaktere!</p>
+                                  )}
+                                </div>
+                                <div>
+                                  <label className={`block text-xs font-medium mb-1 ${
+                                    passwordsMatch ? 'text-green-700' : 'text-red-700'
+                                  }`}>
+                                    Konfirmo Fjalëkalimin *
+                                  </label>
+                                  <input
+                                    type="password"
+                                    value={confirmPassword}
+                                    onChange={(e) => {
+                                      setStaffPasswordConfirms(prev => ({
+                                        ...prev,
+                                        [index]: e.target.value
+                                      }))
+                                    }}
+                                    placeholder="Konfirmoni fjalëkalimin"
+                                    className={`w-full px-2 py-1 border-2 rounded text-xs focus:outline-none ${
+                                      passwordsMatch
+                                        ? 'border-green-300 focus:border-green-500'
+                                        : passwordsMismatch
+                                        ? 'border-red-300 focus:border-red-500'
+                                        : 'border-red-300 focus:border-red-500'
+                                    }`}
+                                    required
+                                    minLength={8}
+                                  />
+                                  {passwordsMismatch && (
+                                    <p className="text-xs text-red-600 mt-1">Fjalëkalimet nuk përputhen!</p>
+                                  )}
+                                </div>
+                              </div>
+                            </div>
+                          )
+                        })()}
+                        
+                        <div className="flex justify-between items-center mt-2">
                           <div className="text-xs text-gray-500 pt-1">
-                            Lista e shërbimeve: {member.services?.map((service: any) => typeof service === 'string' ? service : service.name).filter((name: any) => name && name.trim() !== '').join(', ') || 'Asnjë'}
+                          Lista e shërbimeve: {member.services?.map((service: any) => typeof service === 'string' ? service : service.name).filter((name: any) => name && name.trim() !== '').join(', ') || 'Asnjë'}
                           </div>
                           {isEditing && (
                             <button
@@ -1505,7 +1620,7 @@ export default function BusinessPanel() {
                       {isEditing && (
                         <div className="mb-4">
                           <div 
-                            className="flex items-center justify-between cursor-pointer p-3 bg-gray-50 rounded-lg hover:bg-gray-100 transition-colors"
+                            className="flex items-center justify-between cursor-pointer p-3 bg-white shadow-sm rounded-lg hover:bg-gray-50 transition-colors"
                             onClick={() => setShowStaffHoursSection(!showStaffHoursSection)}
                           >
                             <h4 className="font-semibold bg-gradient-to-r from-gray-800 to-teal-800 bg-clip-text text-transparent">Orari i Punës së Stafit</h4>
@@ -1527,7 +1642,7 @@ export default function BusinessPanel() {
                                 })
                                 
                                 return (
-                                  <div key={index} className="border border-gray-200 rounded-lg p-3 bg-gray-50">
+                                  <div key={index} className="border border-gray-200 rounded-lg p-3 bg-white shadow-sm">
                                     <div 
                                       className="flex items-center justify-between mb-2 cursor-pointer"
                                       onClick={() => setExpandedStaffHours(expandedStaffHours === index ? null : index)}
@@ -1764,7 +1879,7 @@ export default function BusinessPanel() {
                       {isEditing && (
                         <div>
                           <div 
-                            className="flex items-center justify-between cursor-pointer p-3 bg-gray-50 rounded-lg hover:bg-gray-100 transition-colors"
+                            className="flex items-center justify-between cursor-pointer p-3 bg-white shadow-sm rounded-lg hover:bg-gray-50 transition-colors"
                               onClick={() => setShowPasswordFields(!showPasswordFields)}
                           >
                             <h4 className="font-semibold bg-gradient-to-r from-gray-800 to-teal-800 bg-clip-text text-transparent">Menaxhimi i Fjalëkalimit</h4>
@@ -1777,6 +1892,10 @@ export default function BusinessPanel() {
                           
                           {showPasswordFields && (
                             <div className="mt-3 p-4 bg-white border border-gray-200 rounded-lg">
+                              <div className="space-y-3">
+                                {/* Business Owner Password Change */}
+                                <div>
+                                  <h5 className="text-sm font-semibold text-gray-700 mb-3">Ndrysho Fjalëkalimin e Biznesit</h5>
                               <div className="space-y-3">
                                 <div>
                                   <label className="block text-xs font-medium text-gray-600 mb-1">Fjalëkalimi Aktual</label>
@@ -1808,6 +1927,103 @@ export default function BusinessPanel() {
                                     placeholder="Konfirmoni fjalëkalimin e ri"
                                   />
                                 </div>
+                              </div>
+                            </div>
+                                
+                                {/* Staff Password Management */}
+                                {(() => {
+                                  const allStaff = isEditing ? (editData.staff || []) : (business?.staff || [])
+                                  const staffWithPasswords = allStaff.filter((staffMember: any) => staffMember.password)
+                                  
+                                  return staffWithPasswords.length > 0 && (
+                                    <div className="pt-4 border-t border-gray-200">
+                                      <h5 className="text-sm font-semibold text-gray-700 mb-3">Ndrysho Fjalëkalimin për Staf</h5>
+                                      <div className="mb-3">
+                                        <label className="block text-xs font-medium text-gray-600 mb-1">Zgjidhni Stafin</label>
+                                        <select
+                                          value={selectedStaffForPassword !== null ? selectedStaffForPassword : ''}
+                                          onChange={(e) => {
+                                            const staffIndex = e.target.value === '' ? null : parseInt(e.target.value)
+                                            setSelectedStaffForPassword(staffIndex)
+                                            // Clear password fields when changing staff
+                                            if (staffIndex !== null) {
+                                              setStaffPasswords(prev => ({ ...prev, [staffIndex]: '' }))
+                                              setStaffPasswordConfirms(prev => ({ ...prev, [staffIndex]: '' }))
+                                            }
+                                          }}
+                                          className="w-full px-2 py-1 border border-gray-300 rounded text-sm"
+                                        >
+                                          <option value="">Zgjidhni stafin...</option>
+                                          {allStaff.map((staffMember: any, index: number) => {
+                                            // Only show staff members with passwords
+                                            if (!staffMember.password) return null
+                                            return (
+                                              <option key={index} value={index}>
+                                                {staffMember.name || staffMember.email}
+                                              </option>
+                                            )
+                                          })}
+                                        </select>
+                                      </div>
+                                    
+                                    {selectedStaffForPassword !== null && (() => {
+                                      const password = staffPasswords[selectedStaffForPassword] || ''
+                                      const confirmPassword = staffPasswordConfirms[selectedStaffForPassword] || ''
+                                      const passwordTooShort = password && password.length < 8
+                                      const passwordsMismatch = password && confirmPassword && password !== confirmPassword
+                                      
+                                      return (
+                                        <div className="space-y-3 bg-white shadow-sm p-3 rounded">
+                                          <div>
+                                            <label className="block text-xs font-medium text-gray-600 mb-1">
+                                              Fjalëkalimi i Ri për {(isEditing ? (editData.staff || []) : (business?.staff || []))[selectedStaffForPassword]?.name || (isEditing ? (editData.staff || []) : (business?.staff || []))[selectedStaffForPassword]?.email} (min. 8 karaktere)
+                                            </label>
+                                            <input
+                                              type="password"
+                                              value={password}
+                                              onChange={(e) => {
+                                                setStaffPasswords(prev => ({
+                                                  ...prev,
+                                                  [selectedStaffForPassword]: e.target.value
+                                                }))
+                                              }}
+                                              className={`w-full px-2 py-1 border rounded text-sm ${
+                                                passwordTooShort ? 'border-red-300' : 'border-gray-300'
+                                              }`}
+                                              placeholder="Shkruani fjalëkalimin e ri (min. 8 karaktere)"
+                                              minLength={8}
+                                            />
+                                            {passwordTooShort && (
+                                              <p className="text-xs text-red-600 mt-1">Fjalëkalimi duhet të jetë të paktën 8 karaktere!</p>
+                                            )}
+                                          </div>
+                                          <div>
+                                            <label className="block text-xs font-medium text-gray-600 mb-1">Konfirmo Fjalëkalimin</label>
+                                            <input
+                                              type="password"
+                                              value={confirmPassword}
+                                              onChange={(e) => {
+                                                setStaffPasswordConfirms(prev => ({
+                                                  ...prev,
+                                                  [selectedStaffForPassword]: e.target.value
+                                                }))
+                                              }}
+                                              className={`w-full px-2 py-1 border rounded text-sm ${
+                                                passwordsMismatch ? 'border-red-300' : 'border-gray-300'
+                                              }`}
+                                              placeholder="Konfirmoni fjalëkalimin e ri"
+                                              minLength={8}
+                                            />
+                                            {passwordsMismatch && (
+                                              <p className="text-xs text-red-600 mt-1">Fjalëkalimet nuk përputhen!</p>
+                                            )}
+                                          </div>
+                                        </div>
+                                      )
+                                    })()}
+                                    </div>
+                                  )
+                                })()}
                               </div>
                             </div>
                           )}

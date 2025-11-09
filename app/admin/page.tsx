@@ -78,6 +78,15 @@ interface Business {
   updated_at?: string
 }
 
+// Helper function to format date as dd/mm/yyyy
+const formatDate = (dateString: string | Date): string => {
+  const date = new Date(dateString)
+  const day = String(date.getDate()).padStart(2, '0')
+  const month = String(date.getMonth() + 1).padStart(2, '0')
+  const year = date.getFullYear()
+  return `${day}/${month}/${year}`
+}
+
 export default function AdminDashboard() {
   const [isAuthenticated, setIsAuthenticated] = useState(false)
   const [isLoading, setIsLoading] = useState(true)
@@ -104,6 +113,10 @@ export default function AdminDashboard() {
     }
     checkMobile()
   }, [filteredBusinesses, expandedCard])
+
+  // Preserve expandedCard state when switching tabs
+  // The expandedCard state persists across tab switches since it's a component-level state
+  // No need to reset it when showBusinessesTable changes
   const [editingBusiness, setEditingBusiness] = useState<number | null>(null)
   const [editFormData, setEditFormData] = useState<any>({})
   const [categories, setCategories] = useState<any[]>([])
@@ -222,6 +235,9 @@ export default function AdminDashboard() {
   const [showPasswordSection, setShowPasswordSection] = useState(false)
   const [showImageSection, setShowImageSection] = useState(false)
   const [showViewImageSection, setShowViewImageSection] = useState(false)
+  const [staffPasswords, setStaffPasswords] = useState<{ [key: number]: string }>({})
+  const [staffPasswordConfirms, setStaffPasswordConfirms] = useState<{ [key: number]: string }>({})
+  const [selectedStaffForPassword, setSelectedStaffForPassword] = useState<number | null>(null)
   
   const { toast } = useToast()
   const router = useRouter()
@@ -774,6 +790,21 @@ export default function AdminDashboard() {
               staffErrors[`staff_${i}_services`] = 'Duhet të ketë të paktën një shërbim të caktuar'
               invalidStaff.push(`Stafi ${i + 1} - duhet të ketë të paktën një shërbim`)
             }
+            
+            // Password validation removed for admin panel - passwords are optional
+            // If password is provided, validate it
+            if (!staffMember.password && staffPasswords[i]) {
+              const password = staffPasswords[i] || ''
+              const confirmPassword = staffPasswordConfirms[i] || ''
+              
+              if (password.length > 0 && password.length < 8) {
+                staffErrors[`staff_${i}_password`] = 'Fjalëkalimi duhet të jetë të paktën 8 karaktere'
+                invalidStaff.push(`Stafi ${i + 1} - fjalëkalimi duhet të jetë të paktën 8 karaktere`)
+              } else if (password.length > 0 && password !== confirmPassword) {
+                staffErrors[`staff_${i}_password`] = 'Fjalëkalimet nuk përputhen'
+                invalidStaff.push(`Stafi ${i + 1} - fjalëkalimet nuk përputhen`)
+              }
+            }
           } else {
             // If staff member has no data, it's invalid
             staffErrors[`staff_${i}_name`] = 'Stafi duhet të ketë të paktën emrin'
@@ -884,6 +915,30 @@ export default function AdminDashboard() {
       // Prepare data for API (exclude confirm_password)
       const { confirm_password, ...apiData } = editFormData
       
+      // Merge staff passwords into staff array
+      const updatedStaffWithPasswords = apiData.staff && apiData.staff.length > 0 ? apiData.staff.map((member: any, index: number) => {
+        // If password is not set and we have a new password in state, add it
+        if (!member.password && staffPasswords[index]) {
+          return {
+            ...member,
+            password: staffPasswords[index]
+          }
+        }
+        // If password is being changed via dropdown
+        if (selectedStaffForPassword === index && staffPasswords[index]) {
+          return {
+            ...member,
+            password: staffPasswords[index]
+          }
+        }
+        return member
+      }) : []
+      
+      // Update apiData with staff passwords
+      if (updatedStaffWithPasswords.length > 0) {
+        apiData.staff = updatedStaffWithPasswords
+      }
+      
       console.log('Saving business with services:', apiData.services)
       
       const response = await fetch(`/api/businesses/${businessId}`, {
@@ -895,16 +950,69 @@ export default function AdminDashboard() {
       })
 
       if (response.ok) {
-        // Update the business in the local state
-        setBusinesses(prev => prev.map(b => 
-          b.id === businessId ? { ...b, ...editFormData } : b
-        ))
-        setFilteredBusinesses(prev => prev.map(b => 
-          b.id === businessId ? { ...b, ...editFormData } : b
-        ))
+        // Fetch updated business data to get the hashed passwords
+        const updatedBusinessResponse = await fetch(`/api/businesses/${businessId}`)
+        if (updatedBusinessResponse.ok) {
+          const updatedBusiness = await updatedBusinessResponse.json()
+          
+          // Update editFormData with the fetched data (which includes hashed passwords)
+          const updatedEditFormData = {
+            ...editFormData,
+            staff: updatedBusiness.staff || editFormData.staff
+          }
+          
+          // Update the business in the local state
+          setBusinesses(prev => prev.map(b => 
+            b.id === businessId ? { ...b, ...updatedBusiness } : b
+          ))
+          setFilteredBusinesses(prev => prev.map(b => 
+            b.id === businessId ? { ...b, ...updatedBusiness } : b
+          ))
+          
+          // Update editFormData to reflect passwords were set (hashed passwords from API)
+          setEditFormData(updatedEditFormData)
+        } else {
+          // Fallback: mark passwords as set in local state if API fetch fails
+          const updatedEditFormData = {
+            ...editFormData,
+            staff: updatedStaffWithPasswords.length > 0 ? updatedStaffWithPasswords.map((member: any) => ({
+              ...member,
+              password: member.password ? '***' : member.password // Mark as set with placeholder
+            })) : editFormData.staff
+          }
+          
+          setEditFormData(updatedEditFormData)
+          
+          // Update the business in the local state
+          setBusinesses(prev => prev.map(b => 
+            b.id === businessId ? { ...b, ...updatedEditFormData } : b
+          ))
+          setFilteredBusinesses(prev => prev.map(b => 
+            b.id === businessId ? { ...b, ...updatedEditFormData } : b
+          ))
+        }
         
-        setEditingBusiness(null)
-        setEditFormData({})
+        // Clear password states for staff that now have passwords
+        const clearedPasswords: { [key: number]: string } = {}
+        const clearedConfirms: { [key: number]: string } = {}
+        
+        updatedStaffWithPasswords.forEach((member: any, index: number) => {
+          if (member.password) {
+            // Don't clear if this staff was selected for password change via dropdown
+            if (selectedStaffForPassword !== index) {
+              clearedPasswords[index] = ''
+              clearedConfirms[index] = ''
+            }
+          }
+        })
+        
+        setStaffPasswords(clearedPasswords)
+        setStaffPasswordConfirms(clearedConfirms)
+        
+        // Only clear selectedStaffForPassword if we're not in the middle of changing a password
+        if (selectedStaffForPassword === null || !staffPasswords[selectedStaffForPassword]) {
+          setSelectedStaffForPassword(null)
+        }
         
         toast({
           title: "Sukses!",
@@ -927,6 +1035,9 @@ export default function AdminDashboard() {
     setEditingBusiness(null)
     setEditFormData({})
     setValidationErrors({})
+    setStaffPasswords({})
+    setStaffPasswordConfirms({})
+    setSelectedStaffForPassword(null)
   }
 
   const handleDeleteBusiness = async (businessId: number) => {
@@ -1471,7 +1582,14 @@ export default function AdminDashboard() {
 
                       {/* Start Date Filter */}
                       <div>
-                        <label className="block text-sm font-medium text-gray-700 mb-1">Data Fillestare</label>
+                        <label className="block text-sm font-medium text-gray-700 mb-1">
+                          Data Fillestare
+                          {startDateFilter && (
+                            <span className="ml-2 text-teal-600 font-semibold">
+                              ({formatDate(startDateFilter)})
+                            </span>
+                          )}
+                        </label>
                         <input
                           type="date"
                           value={startDateFilter}
@@ -1482,7 +1600,14 @@ export default function AdminDashboard() {
 
                       {/* End Date Filter */}
                       <div>
-                        <label className="block text-sm font-medium text-gray-700 mb-1">Data Përfundimtare</label>
+                        <label className="block text-sm font-medium text-gray-700 mb-1">
+                          Data Përfundimtare
+                          {endDateFilter && (
+                            <span className="ml-2 text-teal-600 font-semibold">
+                              ({formatDate(endDateFilter)})
+                            </span>
+                          )}
+                        </label>
                         <input
                           type="date"
                           value={endDateFilter}
@@ -1586,7 +1711,7 @@ export default function AdminDashboard() {
                     <thead>
                       <tr className="border-b border-gray-200">
                         <th className="text-left py-3 px-0 sm:px-4 font-semibold w-[20%] min-w-[160px] whitespace-nowrap mr-2 sm:mr-0">Biznesi</th>
-                        <th className="text-left py-3 px-0 sm:px-4 font-semibold w-[18%] min-w-[140px] whitespace-nowrap mr-2 sm:mr-0">Sherbimi</th>
+                        <th className="text-left py-3 px-0 sm:px-4 font-semibold w-[18%] min-w-[140px] whitespace-nowrap mr-2 sm:mr-0">Shërbimi</th>
                         <th className="text-left py-3 px-0 sm:px-4 font-semibold w-[18%] min-w-[140px] whitespace-nowrap mr-2 sm:mr-0">Klienti</th>
                         <th className="text-left py-3 px-0 sm:px-4 font-semibold w-[15%] min-w-[120px] whitespace-nowrap mr-2 sm:mr-0">Data</th>
                         <th className="text-left py-3 px-0 sm:px-4 font-semibold w-[12%] min-w-[100px] whitespace-nowrap mr-2 sm:mr-0">Ora</th>
@@ -1624,7 +1749,7 @@ export default function AdminDashboard() {
                               </div>
                             </td>
                             <td className="py-3 px-0 sm:px-4 text-gray-900 text-sm whitespace-nowrap mr-2 sm:mr-0">
-                              {new Date(booking.appointment_date).toLocaleDateString('sq-AL')}
+                              {formatDate(booking.appointment_date)}
                             </td>
                             <td className="py-3 px-0 sm:px-4 text-gray-900 text-sm whitespace-nowrap mr-2 sm:mr-0">
                               {booking.appointment_time}
@@ -1715,7 +1840,7 @@ export default function AdminDashboard() {
                             )}
                           </td>
                           <td className="py-3 px-0 sm:px-4 text-gray-900 text-xs sm:text-sm whitespace-nowrap mr-2 sm:mr-0">
-                            {new Date(request.created_at).toLocaleDateString('sq-AL')}
+                            {formatDate(request.created_at)}
                           </td>
                           <td className="py-3 px-0 sm:px-4 text-right">
                             <div className="flex gap-1 sm:gap-2 justify-end">
@@ -1879,7 +2004,7 @@ export default function AdminDashboard() {
                           )}
                         </td>
                         <td className="py-3 px-0 sm:px-4 text-gray-900 text-sm whitespace-nowrap mr-2 sm:mr-0">
-                          {new Date(category.created_at).toLocaleDateString('sq-AL')}
+                          {formatDate(category.created_at)}
                         </td>
                         <td className="py-3 px-0 sm:px-4 text-right">
                           {editingCategoryId === category.id ? (
@@ -2025,7 +2150,7 @@ export default function AdminDashboard() {
                             </div>
                           </div>
                           <div className="flex space-x-1 flex-shrink-0">
-                            {expandedCard === business.id || isMobile ? (
+                            {expandedCard === (business.id || business.name) || isMobile ? (
                               // When expanded (or on mobile), show buttons based on edit state
                               <>
                                 <Button 
@@ -2484,7 +2609,7 @@ export default function AdminDashboard() {
 
                                 <div>
                                   <div 
-                                    className="flex items-center justify-between cursor-pointer p-3 bg-gray-50 rounded-lg hover:bg-gray-100 transition-colors"
+                                    className="flex items-center justify-between cursor-pointer p-3 bg-white rounded-lg shadow-sm hover:bg-gray-50 transition-colors"
                                     onClick={() => setShowImageSection(!showImageSection)}
                                   >
                                     <h4 className="font-semibold bg-gradient-to-r from-gray-800 to-teal-800 bg-clip-text text-transparent">Imazhi i Biznesit & Logo</h4>
@@ -2646,7 +2771,7 @@ export default function AdminDashboard() {
                                   <div className="bg-white rounded">
                                     <div className="space-y-3">
                                       {(editFormData.services || []).map((service: any, index: number) => (
-                                        <div key={service.id || index} className="border border-gray-200 rounded p-2 bg-gray-50/50">
+                                        <div key={service.id || index} className="border border-gray-200 rounded p-2 bg-white shadow-sm">
                                           <div className="grid grid-cols-1 md:grid-cols-3 gap-2 mb-2">
                                             <input
                                               type="text"
@@ -2687,7 +2812,7 @@ export default function AdminDashboard() {
                                                 }
                                               }}
                                               placeholder="Emri i shërbimit"
-                                              className={`px-2 py-1 border rounded text-xs ${validationErrors[`service_${index}_name`] ? 'border-red-500' : 'border-gray-300'}`}
+                                              className={`px-2 py-1 border rounded text-xs bg-white ${validationErrors[`service_${index}_name`] ? 'border-red-500' : 'border-gray-300'}`}
                                             />
                                             {validationErrors[`service_${index}_name`] && (
                                               <p className="text-red-500 text-xs mt-1">{validationErrors[`service_${index}_name`]}</p>
@@ -2703,7 +2828,7 @@ export default function AdminDashboard() {
                                                   setEditFormData({...editFormData, services: newServices})
                                                 }}
                                                 placeholder="Çmimi"
-                                                className="px-2 py-1 pr-6 border border-gray-300 rounded text-xs w-full"
+                                                className="px-2 py-1 pr-6 border border-gray-300 rounded text-xs w-full bg-white"
                                               />
                                               <span className="absolute right-2 top-1/2 transform -translate-y-1/2 text-xs text-gray-500 pointer-events-none">€</span>
                                             </div>
@@ -2722,7 +2847,7 @@ export default function AdminDashboard() {
                                                     setValidationErrors(newErrors)
                                                   }
                                                 }}
-                                              className={`px-2 py-1 border rounded text-xs ${validationErrors[`service_${index}_duration`] ? 'border-red-500' : 'border-gray-300'}`}
+                                              className={`px-2 py-1 border rounded text-xs bg-white ${validationErrors[`service_${index}_duration`] ? 'border-red-500' : 'border-gray-300'}`}
                                             >
                                               <option value="15 min">15 min</option>
                                               <option value="30 min">30 min</option>
@@ -2745,7 +2870,7 @@ export default function AdminDashboard() {
                                               setEditFormData({...editFormData, services: newServices})
                                             }}
                                             placeholder="Përshkrimi i shërbimit"
-                                            className="w-full px-2 py-1 border border-gray-300 rounded text-xs h-12 resize-none mb-2"
+                                            className="w-full px-2 py-1 border border-gray-300 rounded text-xs h-12 resize-none mb-2 bg-white"
                                           />
                                           <div className="flex justify-end items-center">
                                             <button
@@ -2785,70 +2910,78 @@ export default function AdminDashboard() {
                                   <div className="bg-white rounded">
                                     <div className="space-y-3">
                                       {(editFormData.staff || []).map((member: any, index: number) => (
-                                        <div key={index} className="border border-gray-200 rounded p-2 bg-gray-50/50">
-                                          <div className="grid grid-cols-2 gap-2 mb-2">
-                                            <input
-                                              type="text"
-                                              value={member.name || ''}
-                                              onChange={(e) => {
-                                                const newStaff = [...(editFormData.staff || [])]
-                                                newStaff[index] = { ...member, name: e.target.value }
-                                                setEditFormData({...editFormData, staff: newStaff})
-                                                // Clear validation error when user starts typing
-                                                if (validationErrors[`staff_${index}_name`]) {
-                                                  const newErrors = {...validationErrors}
-                                                  delete newErrors[`staff_${index}_name`]
-                                                  setValidationErrors(newErrors)
-                                                }
-                                              }}
-                                              placeholder="Emri i stafit"
-                                              className={`px-2 py-1 border rounded text-xs ${validationErrors[`staff_${index}_name`] ? 'border-red-500' : 'border-gray-300'}`}
-                                            />
-                                            {validationErrors[`staff_${index}_name`] && (
-                                              <p className="text-red-500 text-xs mt-1">{validationErrors[`staff_${index}_name`]}</p>
-                                            )}
-                                            <input
-                                              type="text"
-                                              value={member.phone || ''}
-                                              onChange={(e) => {
-                                                const newStaff = [...(editFormData.staff || [])]
-                                                newStaff[index] = { ...member, phone: e.target.value }
-                                                setEditFormData({...editFormData, staff: newStaff})
-                                                // Clear validation error when user starts typing
-                                                if (validationErrors[`staff_${index}_phone`]) {
-                                                  const newErrors = {...validationErrors}
-                                                  delete newErrors[`staff_${index}_phone`]
-                                                  setValidationErrors(newErrors)
-                                                }
-                                              }}
-                                              placeholder="Telefon"
-                                              className={`px-2 py-1 border rounded text-xs ${validationErrors[`staff_${index}_phone`] ? 'border-red-500' : 'border-gray-300'}`}
-                                            />
-                                            {validationErrors[`staff_${index}_phone`] && (
-                                              <p className="text-red-500 text-xs mt-1">{validationErrors[`staff_${index}_phone`]}</p>
-                                            )}
+                                        <div key={index} className="border border-gray-200 rounded p-2 bg-white shadow-sm">
+                                          {/* Name, Email, and Phone in one line */}
+                                          <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-2">
+                                            <div>
+                                              <input
+                                                type="text"
+                                                value={member.name || ''}
+                                                onChange={(e) => {
+                                                  const newStaff = [...(editFormData.staff || [])]
+                                                  newStaff[index] = { ...member, name: e.target.value }
+                                                  setEditFormData({...editFormData, staff: newStaff})
+                                                  // Clear validation error when user starts typing
+                                                  if (validationErrors[`staff_${index}_name`]) {
+                                                    const newErrors = {...validationErrors}
+                                                    delete newErrors[`staff_${index}_name`]
+                                                    setValidationErrors(newErrors)
+                                                  }
+                                                }}
+                                                placeholder="Emri i stafit"
+                                                className={`px-2 py-1 border rounded text-xs w-full bg-white ${validationErrors[`staff_${index}_name`] ? 'border-red-500' : 'border-gray-300'}`}
+                                              />
+                                              {validationErrors[`staff_${index}_name`] && (
+                                                <p className="text-red-500 text-xs mt-1">{validationErrors[`staff_${index}_name`]}</p>
+                                              )}
+                                            </div>
+                                            <div>
+                                              <input
+                                                type="email"
+                                                value={member.email || ''}
+                                                onChange={(e) => {
+                                                  const newStaff = [...(editFormData.staff || [])]
+                                                  newStaff[index] = { ...member, email: e.target.value }
+                                                  setEditFormData({...editFormData, staff: newStaff})
+                                                  // Clear validation error when user starts typing
+                                                  if (validationErrors[`staff_${index}_email`]) {
+                                                    const newErrors = {...validationErrors}
+                                                    delete newErrors[`staff_${index}_email`]
+                                                    setValidationErrors(newErrors)
+                                                  }
+                                                }}
+                                                placeholder="Email"
+                                                className={`px-2 py-1 border rounded text-xs w-full bg-white ${validationErrors[`staff_${index}_email`] ? 'border-red-500' : 'border-gray-300'}`}
+                                              />
+                                              {validationErrors[`staff_${index}_email`] && (
+                                                <p className="text-red-500 text-xs mt-1">{validationErrors[`staff_${index}_email`]}</p>
+                                              )}
+                                            </div>
+                                            <div>
+                                              <input
+                                                type="text"
+                                                value={member.phone || ''}
+                                                onChange={(e) => {
+                                                  const newStaff = [...(editFormData.staff || [])]
+                                                  newStaff[index] = { ...member, phone: e.target.value }
+                                                  setEditFormData({...editFormData, staff: newStaff})
+                                                  // Clear validation error when user starts typing
+                                                  if (validationErrors[`staff_${index}_phone`]) {
+                                                    const newErrors = {...validationErrors}
+                                                    delete newErrors[`staff_${index}_phone`]
+                                                    setValidationErrors(newErrors)
+                                                  }
+                                                }}
+                                                placeholder="Telefon"
+                                                className={`px-2 py-1 border rounded text-xs w-full bg-white ${validationErrors[`staff_${index}_phone`] ? 'border-red-500' : 'border-gray-300'}`}
+                                              />
+                                              {validationErrors[`staff_${index}_phone`] && (
+                                                <p className="text-red-500 text-xs mt-1">{validationErrors[`staff_${index}_phone`]}</p>
+                                              )}
+                                            </div>
                                           </div>
-                                          <div className="grid grid-cols-2 gap-2 mb-2">
-                                            <input
-                                              type="email"
-                                              value={member.email || ''}
-                                              onChange={(e) => {
-                                                const newStaff = [...(editFormData.staff || [])]
-                                                newStaff[index] = { ...member, email: e.target.value }
-                                                setEditFormData({...editFormData, staff: newStaff})
-                                                // Clear validation error when user starts typing
-                                                if (validationErrors[`staff_${index}_email`]) {
-                                                  const newErrors = {...validationErrors}
-                                                  delete newErrors[`staff_${index}_email`]
-                                                  setValidationErrors(newErrors)
-                                                }
-                                              }}
-                                              placeholder="Email"
-                                              className={`px-2 py-1 border rounded text-xs ${validationErrors[`staff_${index}_email`] ? 'border-red-500' : 'border-gray-300'}`}
-                                            />
-                                            {validationErrors[`staff_${index}_email`] && (
-                                              <p className="text-red-500 text-xs mt-1">{validationErrors[`staff_${index}_email`]}</p>
-                                            )}
+                                          {/* Commented out - Active status checkbox for staff */}
+                                          {/* <div className="grid grid-cols-2 gap-2 mb-2">
                                             <div className="flex items-center">
                                               <label className="flex items-center text-xs">
                                                 <input
@@ -2864,7 +2997,7 @@ export default function AdminDashboard() {
                                                 Është aktiv?
                                               </label>
                                             </div>
-                                          </div>
+                                          </div> */}
                                           <div className="space-y-2">
                                             <div className="text-xs font-medium text-gray-600">Shërbimet që ofron ky anëtar i stafit:</div>
                                             <div className="grid grid-cols-2 gap-1">
@@ -2905,6 +3038,90 @@ export default function AdminDashboard() {
                                             )}
                                           </div>
                                           
+                                          {/* Password Field for Staff - Optional in admin panel */}
+                                          {!member.password && (() => {
+                                            const password = staffPasswords[index] || ''
+                                            const confirmPassword = staffPasswordConfirms[index] || ''
+                                            const passwordsMatch = password && confirmPassword && password === confirmPassword && password.length >= 8
+                                            const passwordsMismatch = password && confirmPassword && password !== confirmPassword
+                                            const passwordTooShort = password && password.length > 0 && password.length < 8
+                                            
+                                            return (
+                                              <div className={`mt-3 pt-3 border-t-2 p-3 rounded transition-colors ${
+                                                passwordsMatch 
+                                                  ? 'border-green-300 bg-green-50' 
+                                                  : passwordsMismatch || passwordTooShort
+                                                  ? 'border-orange-300 bg-orange-50'
+                                                  : 'border-gray-300 bg-white'
+                                              }`}>
+                                                {passwordsMatch && (
+                                                  <label className="block text-xs font-semibold text-green-700 mb-2">
+                                                    ✓ Fjalëkalimi u vendos me sukses
+                                                  </label>
+                                                )}
+                                                <div className="space-y-2">
+                                                  <div>
+                                                    <label className={`block text-xs font-medium mb-1 ${
+                                                      passwordsMatch ? 'text-green-700' : passwordsMismatch || passwordTooShort ? 'text-orange-700' : 'text-gray-700'
+                                                    }`}>
+                                                      Fjalëkalimi (opsional, min. 8 karaktere)
+                                                    </label>
+                                                    <input
+                                                      type="password"
+                                                      value={password}
+                                                      onChange={(e) => {
+                                                        setStaffPasswords(prev => ({
+                                                          ...prev,
+                                                          [index]: e.target.value
+                                                        }))
+                                                      }}
+                                                      placeholder="Shkruani fjalëkalimin (opsional, min. 8 karaktere)"
+                                                      className={`w-full px-2 py-1 border-2 rounded text-xs focus:outline-none ${
+                                                        passwordsMatch
+                                                          ? 'border-green-300 focus:border-green-500'
+                                                          : passwordsMismatch || passwordTooShort
+                                                          ? 'border-orange-300 focus:border-orange-500'
+                                                          : 'border-gray-300 focus:border-gray-500'
+                                                      }`}
+                                                      minLength={8}
+                                                    />
+                                                    {passwordTooShort && (
+                                                      <p className="text-xs text-orange-600 mt-1">Fjalëkalimi duhet të jetë të paktën 8 karaktere!</p>
+                                                    )}
+                                                  </div>
+                                                  <div>
+                                                    <label className={`block text-xs font-medium mb-1 ${
+                                                      passwordsMatch ? 'text-green-700' : passwordsMismatch ? 'text-orange-700' : 'text-gray-700'
+                                                    }`}>
+                                                      Konfirmo Fjalëkalimin
+                                                    </label>
+                                                    <input
+                                                      type="password"
+                                                      value={confirmPassword}
+                                                      onChange={(e) => {
+                                                        setStaffPasswordConfirms(prev => ({
+                                                          ...prev,
+                                                          [index]: e.target.value
+                                                        }))
+                                                      }}
+                                                      placeholder="Konfirmoni fjalëkalimin"
+                                                      className={`w-full px-2 py-1 border-2 rounded text-xs focus:outline-none ${
+                                                        passwordsMatch
+                                                          ? 'border-green-300 focus:border-green-500'
+                                                          : passwordsMismatch
+                                                          ? 'border-orange-300 focus:border-orange-500'
+                                                          : 'border-gray-300 focus:border-gray-500'
+                                                      }`}
+                                                      minLength={8}
+                                                    />
+                                                    {passwordsMismatch && (
+                                                      <p className="text-xs text-orange-600 mt-1">Fjalëkalimet nuk përputhen!</p>
+                                                    )}
+                                                  </div>
+                                                </div>
+                                              </div>
+                                            )
+                                          })()}
                                         
                                           <div className="flex justify-between items-center">
                                             <div className="text-xs text-gray-500 pt-1">
@@ -2947,7 +3164,7 @@ export default function AdminDashboard() {
                                 {/* Staff Operating Hours */}
                       <div>
                                   <div 
-                                    className="flex items-center justify-between cursor-pointer p-3 bg-gray-50 rounded-lg hover:bg-gray-100 transition-colors"
+                                    className="flex items-center justify-between cursor-pointer p-3 bg-white rounded-lg shadow-sm hover:bg-gray-50 transition-colors"
                                     onClick={() => setShowStaffHoursSection(!showStaffHoursSection)}
                                   >
                                     <h4 className="font-semibold bg-gradient-to-r from-gray-800 to-teal-800 bg-clip-text text-transparent">Orari i Punës së Stafit</h4>
@@ -2969,7 +3186,7 @@ export default function AdminDashboard() {
                                         })
                                         
                                         return (
-                                          <div key={index} className="border border-gray-200 rounded-lg p-3 bg-gray-50">
+                                          <div key={index} className="border border-gray-200 rounded-lg p-3 bg-white shadow-sm">
                                             <div 
                                               className="flex items-center justify-between mb-2 cursor-pointer"
                                               onClick={() => setExpandedStaffHours(expandedStaffHours === index ? null : index)}
@@ -3204,7 +3421,7 @@ export default function AdminDashboard() {
 
                       <div>
                                   <div 
-                                    className="flex items-center justify-between cursor-pointer p-3 bg-gray-50 rounded-lg hover:bg-gray-100 transition-colors"
+                                    className="flex items-center justify-between cursor-pointer p-3 bg-white rounded-lg shadow-sm hover:bg-gray-50 transition-colors"
                                     onClick={() => setShowAdditionalInfoSection(!showAdditionalInfoSection)}
                                   >
                                     <h4 className="font-semibold bg-gradient-to-r from-gray-800 to-teal-800 bg-clip-text text-transparent">Informacione Shtesë</h4>
@@ -3270,7 +3487,7 @@ export default function AdminDashboard() {
                                 {/* Password Section */}
                                 <div>
                                   <div 
-                                    className="flex items-center justify-between cursor-pointer p-3 bg-gray-50 rounded-lg hover:bg-gray-100 transition-colors"
+                                    className="flex items-center justify-between cursor-pointer p-3 bg-white rounded-lg shadow-sm hover:bg-gray-50 transition-colors"
                                     onClick={() => setShowPasswordSection(!showPasswordSection)}
                                   >
                                     <h4 className="font-semibold bg-gradient-to-r from-gray-800 to-teal-800 bg-clip-text text-transparent">Menaxhimi i Fjalëkalimit</h4>
@@ -3284,31 +3501,130 @@ export default function AdminDashboard() {
                                   {showPasswordSection && (
                                     <div className="mt-3 p-4 bg-white border border-gray-200 rounded-lg">
                                       <div className="space-y-3">
-                                        <div className="grid grid-cols-1 gap-3">
-                                          <div>
-                                            <label className="block text-xs font-medium text-gray-600 mb-1">Fjalëkalimi i Ri</label>
-                                            <input
-                                              type="password"
-                                              value={editFormData.new_password || ''}
-                                              onChange={(e) => setEditFormData({...editFormData, new_password: e.target.value})}
-                                              className="w-full px-2 py-1 border border-gray-300 rounded text-sm"
-                                              placeholder="Lëreni bosh për të mos ndryshuar"
-                                            />
+                                        {/* Business Owner Password Change */}
+                                        <div>
+                                          <h5 className="text-sm font-semibold text-gray-700 mb-3">Ndrysho Fjalëkalimin e Biznesit</h5>
+                                          <div className="space-y-3">
+                                            <div>
+                                              <label className="block text-xs font-medium text-gray-600 mb-1">Fjalëkalimi i Ri</label>
+                                              <input
+                                                type="password"
+                                                value={editFormData.new_password || ''}
+                                                onChange={(e) => setEditFormData({...editFormData, new_password: e.target.value})}
+                                                className="w-full px-2 py-1 border border-gray-300 rounded text-sm"
+                                                placeholder="Lëreni bosh për të mos ndryshuar"
+                                              />
+                                            </div>
+                                            <div>
+                                              <label className="block text-xs font-medium text-gray-600 mb-1">Konfirmo Fjalëkalimin</label>
+                                              <input
+                                                type="password"
+                                                value={editFormData.confirm_password || ''}
+                                                onChange={(e) => setEditFormData({...editFormData, confirm_password: e.target.value})}
+                                                className="w-full px-2 py-1 border border-gray-300 rounded text-sm"
+                                                placeholder="Konfirmo fjalëkalimin e ri"
+                                              />
+                                            </div>
                                           </div>
-                                          <div>
-                                            <label className="block text-xs font-medium text-gray-600 mb-1">Konfirmo Fjalëkalimin</label>
-                                            <input
-                                              type="password"
-                                              value={editFormData.confirm_password || ''}
-                                              onChange={(e) => setEditFormData({...editFormData, confirm_password: e.target.value})}
-                                              className="w-full px-2 py-1 border border-gray-300 rounded text-sm"
-                                              placeholder="Konfirmo fjalëkalimin e ri"
-                                            />
+                                          <div className="text-xs text-gray-500 mt-2">
+                                            Lëreni të zbrazët për të ruajtur fjalëkalimin aktual
                                           </div>
                                         </div>
-                                        <div className="text-xs text-gray-500">
-                                          Lëreni të zbrazët për të ruajtur fjalëkalimin aktual
-                                        </div>
+                                        
+                                        {/* Staff Password Management */}
+                                        {(() => {
+                                          const allStaff = editFormData.staff || []
+                                          const staffWithPasswords = allStaff.filter((staffMember: any) => staffMember.password)
+                                          
+                                          return staffWithPasswords.length > 0 && (
+                                            <div className="pt-4 border-t border-gray-200">
+                                              <h5 className="text-sm font-semibold text-gray-700 mb-3">Ndrysho Fjalëkalimin për Staf</h5>
+                                              <div className="mb-3">
+                                                <label className="block text-xs font-medium text-gray-600 mb-1">Zgjidhni Stafin</label>
+                                                <select
+                                                  value={selectedStaffForPassword !== null ? selectedStaffForPassword : ''}
+                                                  onChange={(e) => {
+                                                    const staffIndex = e.target.value === '' ? null : parseInt(e.target.value)
+                                                    setSelectedStaffForPassword(staffIndex)
+                                                    // Clear password fields when changing staff
+                                                    if (staffIndex !== null) {
+                                                      setStaffPasswords(prev => ({ ...prev, [staffIndex]: '' }))
+                                                      setStaffPasswordConfirms(prev => ({ ...prev, [staffIndex]: '' }))
+                                                    }
+                                                  }}
+                                                  className="w-full px-2 py-1 border border-gray-300 rounded text-sm"
+                                                >
+                                                  <option value="">Zgjidhni stafin...</option>
+                                                  {allStaff.map((staffMember: any, index: number) => {
+                                                    // Only show staff members with passwords
+                                                    if (!staffMember.password) return null
+                                                    return (
+                                                      <option key={index} value={index}>
+                                                        {staffMember.name || staffMember.email}
+                                                      </option>
+                                                    )
+                                                  })}
+                                                </select>
+                                              </div>
+                                              
+                                              {selectedStaffForPassword !== null && (() => {
+                                                const password = staffPasswords[selectedStaffForPassword] || ''
+                                                const confirmPassword = staffPasswordConfirms[selectedStaffForPassword] || ''
+                                                const passwordTooShort = password && password.length < 8
+                                                const passwordsMismatch = password && confirmPassword && password !== confirmPassword
+                                                
+                                                return (
+                                                  <div className="space-y-3 bg-gray-50 p-3 rounded">
+                                                    <div>
+                                                      <label className="block text-xs font-medium text-gray-600 mb-1">
+                                                        Fjalëkalimi i Ri për {allStaff[selectedStaffForPassword]?.name || allStaff[selectedStaffForPassword]?.email} (min. 8 karaktere)
+                                                      </label>
+                                                      <input
+                                                        type="password"
+                                                        value={password}
+                                                        onChange={(e) => {
+                                                          setStaffPasswords(prev => ({
+                                                            ...prev,
+                                                            [selectedStaffForPassword]: e.target.value
+                                                          }))
+                                                        }}
+                                                        className={`w-full px-2 py-1 border rounded text-sm ${
+                                                          passwordTooShort ? 'border-red-300' : 'border-gray-300'
+                                                        }`}
+                                                        placeholder="Shkruani fjalëkalimin e ri (min. 8 karaktere)"
+                                                        minLength={8}
+                                                      />
+                                                      {passwordTooShort && (
+                                                        <p className="text-xs text-red-600 mt-1">Fjalëkalimi duhet të jetë të paktën 8 karaktere!</p>
+                                                      )}
+                                                    </div>
+                                                    <div>
+                                                      <label className="block text-xs font-medium text-gray-600 mb-1">Konfirmo Fjalëkalimin</label>
+                                                      <input
+                                                        type="password"
+                                                        value={confirmPassword}
+                                                        onChange={(e) => {
+                                                          setStaffPasswordConfirms(prev => ({
+                                                            ...prev,
+                                                            [selectedStaffForPassword]: e.target.value
+                                                          }))
+                                                        }}
+                                                        className={`w-full px-2 py-1 border rounded text-sm ${
+                                                          passwordsMismatch ? 'border-red-300' : 'border-gray-300'
+                                                        }`}
+                                                        placeholder="Konfirmoni fjalëkalimin e ri"
+                                                        minLength={8}
+                                                      />
+                                                      {passwordsMismatch && (
+                                                        <p className="text-xs text-red-600 mt-1">Fjalëkalimet nuk përputhen!</p>
+                                                      )}
+                                                    </div>
+                                                  </div>
+                                                )
+                                              })()}
+                                            </div>
+                                          )
+                                        })()}
                                       </div>
                                     </div>
                                   )}
@@ -3462,7 +3778,7 @@ export default function AdminDashboard() {
                               <div className="grid grid-cols-2 gap-4">
                                 
                                 
-                                <div className="bg-gray-50 rounded p-3">
+                                <div className="bg-white rounded p-3 shadow-sm">
                                   <div className="flex items-center text-gray-500 mb-1">
                                     <Star className="w-4 h-4 mr-1" />
                                     Vlerësimi
@@ -3471,7 +3787,7 @@ export default function AdminDashboard() {
                                     {business.rating ? business.rating.toFixed(1) : '0.0'}/5
                     </div>
                                 </div>
-                                <div className="bg-gray-50 rounded p-3">
+                                <div className="bg-white rounded p-3 shadow-sm">
                                   <div className="flex items-center text-gray-500 mb-1">
                                     <MessageCircle className="w-4 h-4 mr-1" />
                                     Vlerësime
@@ -3492,7 +3808,7 @@ export default function AdminDashboard() {
                       {business.services && business.services.length > 0 ? (
                         <div className="space-y-3">
                           {business.services.map((service: any, index: number) => (
-                            <div key={index} className="border border-gray-200 rounded-lg p-3 bg-gray-50">
+                            <div key={index} className="border border-gray-200 rounded-lg p-3 bg-white shadow-sm">
                               <div className="font-medium text-gray-900 text-sm mb-1">{service.name}</div>
                               <div className="text-gray-600 text-xs mb-2">{service.description}</div>
                               <div className="flex justify-between text-xs text-gray-500">
@@ -3512,7 +3828,7 @@ export default function AdminDashboard() {
                       {business.staff && business.staff.length > 0 ? (
                         <div className="space-y-3">
                           {business.staff.map((member: any, index: number) => (
-                            <div key={index} className="border border-gray-200 rounded-lg p-3 bg-gray-50">
+                            <div key={index} className="border border-gray-200 rounded-lg p-3 bg-white shadow-sm">
                               <div className="font-medium text-gray-900 text-sm mb-1">{member.name}</div>
                               <div className="text-gray-600 text-xs mb-1">{member.email}</div>
                               <div className="text-gray-500 text-xs mb-1">Telefon: {member.phone}</div>
@@ -3554,7 +3870,7 @@ export default function AdminDashboard() {
 
                       <div>
                               <div 
-                                className="flex items-center justify-between cursor-pointer p-3 bg-gray-50 rounded-lg hover:bg-gray-100 transition-colors mb-3"
+                                className="flex items-center justify-between cursor-pointer p-3 bg-white rounded-lg shadow-sm hover:bg-gray-50 transition-colors mb-3"
                                 onClick={() => setShowViewImageSection(!showViewImageSection)}
                               >
                                 <h4 className="font-semibold bg-gradient-to-r from-gray-800 to-teal-800 bg-clip-text text-transparent">Imazhi i Biznesit | Logo</h4>
@@ -3568,7 +3884,7 @@ export default function AdminDashboard() {
                               {showViewImageSection && (
                                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                                 {/* Business Images Box */}
-                                <div className="border border-gray-200 rounded-lg p-3 bg-gray-50">
+                                <div className="border border-gray-200 rounded-lg p-3 bg-white shadow-sm">
                                
                                   {business.business_images ? (
                                     <div className="flex justify-center">
@@ -3585,7 +3901,7 @@ export default function AdminDashboard() {
               </div>
                                 
                                 {/* Logo Box */}
-                                <div className="border border-gray-200 rounded-lg p-3 bg-gray-50">
+                                <div className="border border-gray-200 rounded-lg p-3 bg-white shadow-sm">
                                   
                                   <div className="flex justify-center">
                                     {business.logo ? (
@@ -3608,7 +3924,7 @@ export default function AdminDashboard() {
 
                       <div>
                               <div 
-                                className="flex items-center justify-between cursor-pointer p-3 bg-gray-50 rounded-lg hover:bg-gray-100 transition-colors"
+                                className="flex items-center justify-between cursor-pointer p-3 bg-white rounded-lg shadow-sm hover:bg-gray-50 transition-colors"
                                 onClick={() => setShowAdditionalInfoSection(!showAdditionalInfoSection)}
                               >
                                 <h4 className="font-semibold bg-gradient-to-r from-gray-800 to-teal-800 bg-clip-text text-transparent">Informacione Shtesë</h4>
@@ -3651,7 +3967,7 @@ export default function AdminDashboard() {
 
                         <div className="pt-4 border-t border-gray-200">
                           <div className="flex justify-between items-center text-sm text-gray-500">
-                            <span>Regjistruar: {business.created_at ? new Date(business.created_at).toLocaleDateString('sq-AL') : 'N/A'}</span>
+                            <span>Regjistruar: {business.created_at ? formatDate(business.created_at) : 'N/A'}</span>
                             
                           </div>
                         </div>
@@ -3679,7 +3995,7 @@ export default function AdminDashboard() {
 
                         {/* Services & Staff */}
                         <div className="grid grid-cols-2 gap-3 text-xs">
-                          <div className="bg-gray-50 rounded-lg p-3">
+                          <div className="bg-white rounded-lg p-3 shadow-sm">
                             <div className="flex items-center text-gray-500 mb-1">
                               <Clock className="w-3 h-3 mr-1" />
                               Shërbimet
@@ -3688,7 +4004,7 @@ export default function AdminDashboard() {
                               {business.services?.length || 0}
                             </div>
                           </div>
-                          <div className="bg-gray-50 rounded-lg p-3">
+                          <div className="bg-white rounded-lg p-3 shadow-sm">
                             <div className="flex items-center text-gray-500 mb-1">
                               <Users className="w-3 h-3 mr-1" />
                               Stafi
@@ -3707,7 +4023,7 @@ export default function AdminDashboard() {
                             <span className="text-gray-500 text-xs ml-1">({business.total_reviews})</span>
                           </div>
                           <div className="text-gray-500 text-xs">
-                            {business.created_at ? new Date(business.created_at).toLocaleDateString('sq-AL') : 'N/A'}
+                            {business.created_at ? formatDate(business.created_at) : 'N/A'}
                       </div>
                     </div>
                   </CardContent>
@@ -4015,7 +4331,7 @@ export default function AdminDashboard() {
                       Data e Përditësimit
                     </label>
                     <p className="text-gray-900">
-                      {new Date(request.updated_at).toLocaleDateString('sq-AL')}
+                      {formatDate(request.updated_at)}
                     </p>
                   </div>
                 </div>

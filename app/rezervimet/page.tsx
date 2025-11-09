@@ -6,7 +6,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
 import { Label } from "@/components/ui/label"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
-import { BusinessHeader } from "@/components/business-header"
+import { Header } from "@/components/header"
 import { useToast } from "@/hooks/use-toast"
 import { ArrowLeft, Calendar, Clock, User, Phone, Mail, Euro, ChevronLeft, ChevronRight, ChevronDown, ChevronUp } from "lucide-react"
 
@@ -64,6 +64,31 @@ export default function ReservationsPage() {
   useEffect(() => {
     const checkAuth = async () => {
       try {
+        // Check if user is staff
+        const staffAuthData = localStorage.getItem('staffAuth')
+        if (staffAuthData) {
+          const parsedStaffData = JSON.parse(staffAuthData)
+          const { businessId, staffName, role } = parsedStaffData
+          console.log('Staff auth data:', parsedStaffData)
+          
+          if (businessId) {
+            setIsAuthenticated(true)
+            await fetchBusinessData(businessId)
+            await fetchBookings(businessId)
+            await fetchBlockedSlots(businessId)
+            
+            // If staff (not MANAGER), auto-select their name and filter bookings
+            if (role === 'STAFF' && staffName) {
+              setSelectedStaff(staffName)
+            }
+            // If MANAGER, show all bookings (selectedStaff remains empty or 'all')
+            
+            setIsLoading(false)
+            return
+          }
+        }
+        
+        // Check if user is business owner
         const businessAuthData = localStorage.getItem('businessAuth')
         console.log('Business auth data:', businessAuthData)
         
@@ -82,7 +107,7 @@ export default function ReservationsPage() {
             router.push('/identifikohu')
           }
         } else {
-          console.log('No business auth data found')
+          console.log('No auth data found')
           router.push('/identifikohu')
         }
       } catch (error) {
@@ -147,10 +172,8 @@ export default function ReservationsPage() {
         if (booking.status !== 'CONFIRMED') return false
         
         // Get service duration
-        const serviceDuration = booking.serviceDuration || getServiceDuration(booking.serviceName)
-        const durationMinutes = typeof serviceDuration === 'string' 
-          ? parseInt(serviceDuration.replace(/\D/g, '')) || 30
-          : serviceDuration || 30
+        const serviceDuration = booking.serviceDuration ?? getServiceDuration(booking.serviceName)
+        const durationMinutes = typeof serviceDuration === 'number' ? serviceDuration : 30
         
         // Calculate service finish time
         const [hours, minutes] = booking.appointmentTime.split(':').map(Number)
@@ -867,53 +890,80 @@ export default function ReservationsPage() {
 
   return (
     <div className="min-h-screen bg-custom-gradient  relative overflow-hidden">
-      <BusinessHeader />
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 relative z-10 -mt-16 pt-24">
+      <Header transparent={true} />
+      <div className="container mx-auto px-[15px] md:px-4 py-8 relative z-10 pt-24">
+        <div className="bg-gray-50 rounded-lg p-6">
         
         {/* Header */}
-        <div className="mb-6">
-          <div className="flex justify-start sm:justify-end mb-2 sm:mb-4">
-            <Button
-              variant="outline"
-              size="sm"
-              onClick={() => router.push('/menaxho-biznesin')}
-              className="text-black border-white hover:bg-white hover:text-gray-800"
-            >
-              MENAXHO BIZNESIN
-              <ArrowLeft className="w-4 h-4 ml-2 rotate-180" />
-            </Button>
+        <div className="mb-2">
+          <div className="text-2xl sm:text-3xl font-bold flex items-center justify-between gap-4 mb-0">
+            
+              Rezervimet
+            
+            {(() => {
+              // Hide "MENAXHO BIZNESIN" button for staff (only show for business owners and managers)
+              const staffAuth = localStorage.getItem('staffAuth')
+              if (staffAuth) {
+                const { role } = JSON.parse(staffAuth)
+                if (role === 'STAFF') {
+                  return null // Don't show button for regular staff
+                }
+              }
+              // Show button for business owners and managers
+              return (
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={() => router.push('/menaxho-biznesin')}
+                  className="bg-custom-gradient text-white border-transparent hover:opacity-90"
+                >
+                  Menaxho Biznesin
+                  <ArrowLeft className="w-4 h-4 ml-2 rotate-180" />
+                </Button>
+              )
+            })()}
           </div>
           <div>
-            <h1 className="text-2xl sm:text-3xl font-bold text-white">Rezervimet</h1>
-            <p className="text-gray-200">{business.name}</p>
+            <p className="text-gray-700 font-medium">{business.name}</p>
           </div>
         </div>
 
-        {/* Staff Selection - Only show if staff exists */}
-        {business?.staff && business.staff.length > 0 && (
-          <Card className="bg-white border-gray-200 shadow-lg mb-6">
-            <CardContent className="py-2 sm:py-3 px-6">
-              <div className="flex items-center gap-6">
-                <div className="flex items-center gap-4">
-                  <Label className="font-medium text-gray-900">Filtro sipas stafit:</Label>
-                  <Select value={selectedStaff} onValueChange={setSelectedStaff}>
-                    <SelectTrigger className="w-48">
-                      <SelectValue placeholder="Zgjidhni stafin" />
-                    </SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value="all">Të gjithë stafi</SelectItem>
-                      {business?.staff?.filter((member: any) => member.isActive !== false).map((member: any, index: number) => (
-                        <SelectItem key={index} value={member.name}>
-                          {member.name}
-                        </SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
-                </div>
-              </div>
-            </CardContent>
-          </Card>
-        )}
+        {/* Staff Selection - Only show if staff exists and user is not a regular staff member */}
+        {(() => {
+          const staffAuth = localStorage.getItem('staffAuth')
+          const isRegularStaff = staffAuth && JSON.parse(staffAuth).role === 'STAFF'
+          
+          // Don't show staff selection dropdown for regular staff (they can only see their own bookings)
+          if (isRegularStaff) {
+            return null
+          }
+          
+          // Show staff selection for business owners and managers
+          if (business?.staff && business.staff.length > 0) {
+            return (
+
+                    <div className="flex items-center gap-4 pb-4">
+                      <Label className="font-medium text-gray-900">Filtro sipas stafit:</Label>
+                      <Select value={selectedStaff} onValueChange={setSelectedStaff}>
+                        <SelectTrigger className="w-48 bg-white">
+                          <SelectValue placeholder="Zgjidhni stafin" />
+                        </SelectTrigger>
+                        <SelectContent>
+                          <SelectItem value="all">Të gjithë stafi</SelectItem>
+                          {business?.staff?.filter((member: any) => member.isActive !== false).map((member: any, index: number) => (
+                            <SelectItem key={index} value={member.name}>
+                              {member.name}
+                            </SelectItem>
+                          ))}
+                        </SelectContent>
+                      </Select>
+                    </div>
+                 
+             
+            )
+          }
+          return null
+        })()}
 
         {/* Show message if no staff selected and staff exists */}
         {business?.staff && business.staff.length > 0 && !selectedStaff && (
@@ -1121,15 +1171,72 @@ export default function ReservationsPage() {
 
                 {/* Time Slots Grid */}
                 <div className="grid grid-cols-3 gap-2 max-h-64 overflow-y-auto">
-                  {generateTimeSlots(selectedDate, 30).map((timeSlot) => {
-                    const staffNameForCheck = selectedStaff === 'all' ? undefined : selectedStaff
-                    const hasBooking = hasBookingAtTime(selectedDate, timeSlot, staffNameForCheck)
-                    const isBlocked = isTimeSlotBlocked(selectedDate, timeSlot, staffNameForCheck)
-                    const isInBreakTime = isTimeSlotInBreakTime(timeSlot, staffNameForCheck)
-                    const isSelected = selectedTimeSlots.includes(timeSlot)
+                  {generateTimeSlots(selectedDate, 30)
+                    .map((timeSlot) => {
+                      const staffNameForCheck = selectedStaff === 'all' ? undefined : selectedStaff
+                      const hasBooking = hasBookingAtTime(selectedDate, timeSlot, staffNameForCheck)
+                      const isBlocked = isTimeSlotBlocked(selectedDate, timeSlot, staffNameForCheck)
+                      const isInBreakTime = isTimeSlotInBreakTime(timeSlot, staffNameForCheck)
+                      const isSelected = selectedTimeSlots.includes(timeSlot)
+                      
+                      // Find the booking for this slot
+                      const bookingForSlot = bookings.find(b => {
+                        const dateString = selectedDate.getFullYear() + '-' + 
+                                          String(selectedDate.getMonth() + 1).padStart(2, '0') + '-' + 
+                                          String(selectedDate.getDate()).padStart(2, '0')
+                        
+                        const bookingDateObj = new Date(b.appointmentDate)
+                        const bookingDate = bookingDateObj.getFullYear() + '-' + 
+                                           String(bookingDateObj.getMonth() + 1).padStart(2, '0') + '-' + 
+                                           String(bookingDateObj.getDate()).padStart(2, '0')
+                        
+                        const staffMatch = selectedStaff === 'all' || b.staffName === selectedStaff
+                        const dateMatch = bookingDate === dateString
+                        
+                        if (!dateMatch || !staffMatch) return false
+                        
+                        const bookingSlots = getBookingTimeSlots(b)
+                        return bookingSlots.includes(timeSlot)
+                      })
+                      
+                      // Check if this is the first slot of a booking (to show only first slot)
+                      const isFirstSlotOfBooking = bookingForSlot ? 
+                        getBookingTimeSlots(bookingForSlot)[0] === timeSlot : false
+                      
+                      // Check if time slot is in the past
+                      const isPastTime = (() => {
+                        const today = new Date()
+                        const selectedDateOnly = new Date(selectedDate.toDateString())
+                        const todayOnly = new Date(today.toDateString())
+                        
+                        // If selected date is in the past, all time slots are past
+                        if (selectedDateOnly < todayOnly) return true
+                        
+                        // If selected date is today, check if time slot is in the past
+                        if (selectedDateOnly.getTime() === todayOnly.getTime()) {
+                          const [hours, minutes] = timeSlot.split(':').map(Number)
+                          const slotTime = new Date()
+                          slotTime.setHours(hours, minutes, 0, 0)
+                          return slotTime < today
+                        }
+                        
+                        return false
+                      })()
+                      
+                      return { timeSlot, hasBooking, isBlocked, isInBreakTime, isSelected, bookingForSlot, isFirstSlotOfBooking, isPastTime }
+                    })
+                    .filter(({ hasBooking, bookingForSlot, isFirstSlotOfBooking }) => {
+                      // Hide slots that are part of a booking but not the first slot
+                      if (hasBooking && bookingForSlot && !isFirstSlotOfBooking) {
+                        return false
+                      }
+                      return true
+                    })
+                    .map(({ timeSlot, hasBooking, isBlocked, isInBreakTime, isSelected, bookingForSlot, isFirstSlotOfBooking, isPastTime }) => {
                     
                     // Debug logging for blocked slots
                     if (isBlocked) {
+                      const staffNameForCheck = selectedStaff === 'all' ? undefined : selectedStaff
                       console.log('🔴 Blocked slot detected:', {
                         timeSlot,
                         date: selectedDate.toISOString().split('T')[0],
@@ -1161,46 +1268,8 @@ export default function ReservationsPage() {
                       })
                     }
                     
-                    // Check if time slot is in the past
-                    const isPastTime = (() => {
-                      const today = new Date()
-                      const selectedDateOnly = new Date(selectedDate.toDateString())
-                      const todayOnly = new Date(today.toDateString())
-                      
-                      // If selected date is in the past, all time slots are past
-                      if (selectedDateOnly < todayOnly) return true
-                      
-                      // If selected date is today, check if time slot is in the past
-                      if (selectedDateOnly.getTime() === todayOnly.getTime()) {
-                        const [hours, minutes] = timeSlot.split(':').map(Number)
-                        const slotTime = new Date()
-                        slotTime.setHours(hours, minutes, 0, 0)
-                        return slotTime < today
-                      }
-                      
-                      return false
-                    })()
-                    
-                    const booking = bookings.find(b => {
-                      // Use local date format to avoid timezone issues
-                      const dateString = selectedDate.getFullYear() + '-' + 
-                                        String(selectedDate.getMonth() + 1).padStart(2, '0') + '-' + 
-                                        String(selectedDate.getDate()).padStart(2, '0')
-                      
-                      const bookingDateObj = new Date(b.appointmentDate)
-                      const bookingDate = bookingDateObj.getFullYear() + '-' + 
-                                         String(bookingDateObj.getMonth() + 1).padStart(2, '0') + '-' + 
-                                         String(bookingDateObj.getDate()).padStart(2, '0')
-                      
-                      const staffMatch = selectedStaff === 'all' || b.staffName === selectedStaff
-                      const dateMatch = bookingDate === dateString
-                      
-                      if (!dateMatch || !staffMatch) return false
-                      
-                      // Check if this time slot is covered by this booking
-                      const bookingSlots = getBookingTimeSlots(b)
-                      return bookingSlots.includes(timeSlot)
-                    })
+                    // Use bookingForSlot that we already found above
+                    const booking = bookingForSlot || null
                     
                     const isExpanded = expandedTimeSlots.includes(timeSlot)
                     const hasAdditionalText = isInBreakTime || hasBooking || isBlocked || isPastTime
@@ -1227,7 +1296,7 @@ export default function ReservationsPage() {
                         disabled={isPastTime}
                         className={`p-2 sm:p-3 text-xs sm:text-sm rounded-md transition-colors ${
                           isBlocked
-                            ? 'bg-orange-100 text-orange-600 border border-orange-200 cursor-pointer hover:bg-orange-200'
+                            ? 'bg-red-100 text-red-600 border border-red-200 cursor-pointer hover:bg-red-200'
                             : isInBreakTime
                             ? 'bg-orange-100 text-orange-600 border border-orange-200 cursor-pointer hover:bg-orange-200'
                             : hasBooking
@@ -1239,11 +1308,15 @@ export default function ReservationsPage() {
                             : 'bg-white text-gray-700 border border-gray-200 hover:bg-gray-50'
                         }`}
                       >
-                        <div className="font-medium">{timeSlot}</div>
+                        <div className="font-medium">
+                          {hasBooking && booking && isFirstSlotOfBooking 
+                            ? `${booking.appointmentTime}-${getEndTime(booking.appointmentTime, booking.serviceDuration || getServiceDuration(booking.serviceName))}`
+                            : timeSlot}
+                        </div>
                         {hasAdditionalText && isExpanded && (
                           <>
                             {isBlocked && (
-                              <div className="text-xs mt-1 text-orange-600 font-medium leading-tight">
+                              <div className="text-xs mt-1 text-red-600 font-medium leading-tight">
                                 Bllokuar nga biznesi
                               </div>
                             )}
@@ -1252,13 +1325,10 @@ export default function ReservationsPage() {
                                 Koha e pauzës
                               </div>
                             )}
-                            {hasBooking && booking && (
+                            {hasBooking && booking && isFirstSlotOfBooking && (
                               <div className="text-xs mt-1 space-y-1 leading-tight">
                                 <div className="font-medium text-teal-800">{booking.customerName}</div>
                                 <div className="text-teal-600">{booking.serviceName}</div>
-                                <div className="text-teal-600">
-                                  {booking.appointmentTime}-{getEndTime(booking.appointmentTime, booking.serviceDuration || getServiceDuration(booking.serviceName))}
-                                </div>
                               </div>
                             )}
                             {isPastTime && (
@@ -1343,11 +1413,14 @@ export default function ReservationsPage() {
                 {getBookingsForDate(selectedDate, selectedStaff === 'all' ? undefined : selectedStaff)
                   .sort((a, b) => a.appointmentTime.localeCompare(b.appointmentTime))
                   .map((booking) => (
-                  <div key={booking.id} className={`p-3 rounded-lg border ${
-                    booking.status === 'CANCELLED' 
-                      ? 'bg-red-50 border-red-200 opacity-75' 
-                      : 'bg-gray-50 border-gray-200'
-                  }`}>
+                  <div 
+                    key={booking.id} 
+                    className={`p-3 rounded-lg border ${
+                      booking.status === 'CANCELLED' 
+                        ? 'bg-red-50 border-red-200 opacity-75' 
+                        : 'bg-gray-50 border-gray-200'
+                    }`}
+                  >
                     <div className="flex flex-col h-full">
                       <div className="flex-1">
                         <div className="flex items-center gap-2 mb-2">
@@ -1539,6 +1612,7 @@ export default function ReservationsPage() {
         </Card>
           </>
         )}
+        </div>
       </div>
 
       {/* Block Confirmation Modal */}

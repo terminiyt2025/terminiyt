@@ -18,6 +18,7 @@ export async function GET(
     }
 
     // Use raw SQL to fetch business and avoid Prisma client issues
+    // Note: Removed is_verified check so businesses can access their data even if not verified yet
     const businessResult = await prisma.$queryRaw`
       SELECT 
         b.id, b.name, b.description, b.category_id, b.owner_name, b.phone, b.address, 
@@ -28,7 +29,7 @@ export async function GET(
         c.name as category_name, c.slug as category_slug
       FROM businesses b
       LEFT JOIN categories c ON b.category_id = c.id
-      WHERE b.id = ${businessId}::integer AND b.is_active = true AND b.is_verified = true
+      WHERE b.id = ${businessId}::integer AND b.is_active = true
     `
     
     const business = (businessResult as any[])[0]
@@ -219,8 +220,44 @@ export async function PUT(
       updateValues.push(JSON.stringify(body.services))
     }
     if (body.staff !== undefined) {
+      // Get existing staff from database to preserve passwords
+      const existingBusinessResult = await prisma.$queryRaw`
+        SELECT staff FROM businesses WHERE id = ${businessId}::integer
+      `
+      const existingBusiness = (existingBusinessResult as any[])[0]
+      const existingStaff = existingBusiness?.staff || []
+      
+      // Hash staff passwords before saving
+      const staffWithHashedPasswords = await Promise.all(
+        (body.staff || []).map(async (member: any) => {
+          // If password is provided as plain text string, hash it
+          if (member.password && typeof member.password === 'string' && member.password.trim() !== '') {
+            const hashedPassword = await bcrypt.hash(member.password, 12)
+            return {
+              ...member,
+              password: hashedPassword
+            }
+          }
+          
+          // If password is not provided, find existing staff member by email and preserve their password
+          const existingMember = existingStaff.find((s: any) => s.email === member.email)
+          if (existingMember && existingMember.password) {
+            return {
+              ...member,
+              password: existingMember.password // Keep existing hashed password
+            }
+          }
+          
+          // If no existing password found, leave it as null
+          return {
+            ...member,
+            password: null
+          }
+        })
+      )
+      
       updateFields.push('staff = $' + (updateValues.length + 1) + '::jsonb')
-      updateValues.push(JSON.stringify(body.staff))
+      updateValues.push(JSON.stringify(staffWithHashedPasswords))
     }
     if (body.rating !== undefined) {
       updateFields.push('rating = $' + (updateValues.length + 1))

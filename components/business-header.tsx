@@ -93,7 +93,7 @@ export function BusinessHeader() {
   if (isLoading) {
     return (
       <header className="bg-transparent backdrop-blur-md border-0 sticky top-0 z-50">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+        <div className="container mx-auto px-[15px] md:px-4">
           <div className="flex justify-between items-center h-16">
             <div className="flex items-center">
               <div className="h-8 w-32 bg-white/20 rounded animate-pulse"></div>
@@ -110,9 +110,9 @@ export function BusinessHeader() {
   }
 
   return (
-    <header className="bg-transparent backdrop-blur-md border-0 sticky top-0 z-50">
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-        <div className="flex justify-between items-center h-16">
+      <header className="bg-transparent backdrop-blur-md border-0 sticky top-0 z-50">
+        <div className="container mx-auto px-[15px] md:px-4">
+          <div className="flex justify-between items-center h-16">
           {/* Logo and Brand */}
           <div className="flex items-center">
             <Link href="/" className="flex items-center space-x-2">

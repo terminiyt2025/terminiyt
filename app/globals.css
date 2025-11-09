@@ -302,17 +302,17 @@ video::-webkit-media-controls-enclosure {
 .bg-custom-gradientb {
   background: linear-gradient(
     to bottom,
-    #171717 0%,       /* neutral-900 */
-    rgba(19, 78, 74, 0.9) 60%,  /* teal-950/90 */
-    #581c87 140%       /* purple-900 */
+    #171717 0%,      
+    rgba(19, 78, 74, 0.9) 60%,  
+    #581c87 140%      
   );
 }
 .bg-custom-gradient {
   background: linear-gradient(
     to right,
-    #202020 0%,       /* neutral-900 */
-    rgba(19, 78, 74, 0.9) 40%,  /* teal-950/90 */
-    #871c85 200%       /* 6urple-900 */
+    #202020 0%,       
+    rgba(19, 78, 74, 0.9) 40%,  
+    #871c85 200%      
   );
 }
 
