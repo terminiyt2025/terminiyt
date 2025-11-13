@@ -55,6 +55,34 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="sq">
+      <head>
+        <script
+          dangerouslySetInnerHTML={{
+            __html: `
+              // Immediately unregister service workers and clear cache
+              (function() {
+                if ('serviceWorker' in navigator) {
+                  // Unregister all service workers immediately
+                  navigator.serviceWorker.getRegistrations().then(function(registrations) {
+                    for(var i = 0; i < registrations.length; i++) {
+                      registrations[i].unregister();
+                    }
+                  });
+                  
+                  // Clear all caches
+                  if ('caches' in window) {
+                    caches.keys().then(function(cacheNames) {
+                      cacheNames.forEach(function(cacheName) {
+                        caches.delete(cacheName);
+                      });
+                    });
+                  }
+                }
+              })();
+            `,
+          }}
+        />
+      </head>
       <body className={`font-sans ${outfit.variable}`} suppressHydrationWarning={true}>
           <PWARegister />
           <Suspense fallback={null}>{children}</Suspense>
