@@ -915,6 +915,14 @@ export default function AdminDashboard() {
       // Prepare data for API (exclude confirm_password)
       const { confirm_password, ...apiData } = editFormData
       
+      // Convert null rating and total_reviews to 0 for database
+      if (apiData.rating === null || apiData.rating === undefined) {
+        apiData.rating = 0
+      }
+      if (apiData.total_reviews === null || apiData.total_reviews === undefined) {
+        apiData.total_reviews = 0
+      }
+      
       // Merge staff passwords into staff array
       const updatedStaffWithPasswords = apiData.staff && apiData.staff.length > 0 ? apiData.staff.map((member: any, index: number) => {
         // If password is not set and we have a new password in state, add it
@@ -2469,13 +2477,35 @@ export default function AdminDashboard() {
                                           sunday: 'E Dielë'
                                         }
                                         
-                                        // Generate time options from 00:00 to 23:45 (every 15 minutes)
+                                        // Generate time options from 6:00 to 00:00 (every 30 minutes)
                                         const timeOptions: string[] = []
-                                        for (let hour = 0; hour < 24; hour++) {
-                                          for (let minute = 0; minute < 60; minute += 15) {
+                                        // Start from 6:00 (hour 6)
+                                        for (let hour = 6; hour < 24; hour++) {
+                                          for (let minute = 0; minute < 60; minute += 30) {
                                             const timeString = `${hour.toString().padStart(2, '0')}:${minute.toString().padStart(2, '0')}`
-                                          timeOptions.push(timeString)
+                                            timeOptions.push(timeString)
                                           }
+                                        }
+                                        timeOptions.push("00:00") // Add midnight (00:00)
+                                        
+                                        // Helper function to convert time to minutes for comparison
+                                        const timeToMinutes = (time: string): number => {
+                                          const [hours, minutes] = time.split(':').map(Number)
+                                          // Handle 00:00 as 24:00 (1440 minutes) for proper comparison
+                                          if (hours === 0 && minutes === 0) {
+                                            return 24 * 60
+                                          }
+                                          return hours * 60 + minutes
+                                        }
+                                        
+                                        // Helper function to get available closing times (after opening time)
+                                        const getAvailableClosingTimes = (openTime: string): string[] => {
+                                          if (!openTime) return timeOptions
+                                          const openMinutes = timeToMinutes(openTime)
+                                          return timeOptions.filter((hour) => {
+                                            const hourMinutes = timeToMinutes(hour)
+                                            return hourMinutes > openMinutes
+                                          })
                                         }
                                         
                                         return dayOrder.map(day => {
@@ -2513,7 +2543,18 @@ export default function AdminDashboard() {
                                                       onChange={(e) => {
                                                         const newHours = { ...editFormData.operating_hours }
                                                         if (!newHours[day]) newHours[day] = { open: '', close: '', closed: false }
-                                                        newHours[day] = { ...newHours[day], open: e.target.value }
+                                                        const newOpenTime = e.target.value
+                                                        newHours[day] = { ...newHours[day], open: newOpenTime }
+                                                        
+                                                        // If opening time is changed, validate and reset closing time if invalid
+                                                        if (newOpenTime && newHours[day].close) {
+                                                          const openMinutes = timeToMinutes(newOpenTime)
+                                                          const closeMinutes = timeToMinutes(newHours[day].close)
+                                                          if (closeMinutes <= openMinutes) {
+                                                            // Reset closing time if it's now invalid
+                                                            newHours[day].close = ""
+                                                          }
+                                                        }
                                                         
                                                         // Sync to staff hours if unchanged
                                                         const updatedStaff = syncBusinessHoursToStaff(newHours)
@@ -2551,7 +2592,7 @@ export default function AdminDashboard() {
                                                       className="px-2 py-1 border border-gray-300 rounded text-xs w-19 md:w-20"
                                                     >
                                                       <option value="">Mbyllja</option>
-                                                      {timeOptions.map(time => (
+                                                      {getAvailableClosingTimes(hours.open || '').map(time => (
                                                         <option key={time} value={time}>{time}</option>
                                                       ))}
                                                     </select>
@@ -2582,8 +2623,20 @@ export default function AdminDashboard() {
                                           min="0"
                                           max="5"
                                           step="0.1"
-                                          value={editFormData.rating || business.rating}
-                                          onChange={(e) => setEditFormData({...editFormData, rating: parseFloat(e.target.value)})}
+                                          value={(() => {
+                                            if (editFormData.rating !== undefined) {
+                                              return editFormData.rating === null || editFormData.rating === undefined ? '' : editFormData.rating;
+                                            }
+                                            return business.rating ?? '';
+                                          })()}
+                                          onChange={(e) => {
+                                            if (e.target.value === '') {
+                                              setEditFormData({...editFormData, rating: null});
+                                            } else {
+                                              const val = parseFloat(e.target.value);
+                                              setEditFormData({...editFormData, rating: isNaN(val) ? null : val});
+                                            }
+                                          }}
                                           className="w-16 px-2 py-1 border border-gray-300 rounded text-sm mr-1"
                                         />
                                         <span className="text-gray-900 font-semibold text-lg">/5</span>
@@ -2598,8 +2651,20 @@ export default function AdminDashboard() {
                                         <input
                                           type="number"
                                           min="0"
-                                          value={editFormData.total_reviews || business.total_reviews}
-                                          onChange={(e) => setEditFormData({...editFormData, total_reviews: parseInt(e.target.value)})}
+                                          value={(() => {
+                                            if (editFormData.total_reviews !== undefined) {
+                                              return editFormData.total_reviews === null || editFormData.total_reviews === undefined ? '' : editFormData.total_reviews;
+                                            }
+                                            return business.total_reviews ?? '';
+                                          })()}
+                                          onChange={(e) => {
+                                            if (e.target.value === '') {
+                                              setEditFormData({...editFormData, total_reviews: null});
+                                            } else {
+                                              const val = parseInt(e.target.value);
+                                              setEditFormData({...editFormData, total_reviews: isNaN(val) ? null : val});
+                                            }
+                                          }}
                                           className="w-16 px-2 py-1 border border-gray-300 rounded text-sm"
                                         />
                                     </div>
@@ -3209,13 +3274,44 @@ export default function AdminDashboard() {
                                             {expandedStaffHours === index && (
                                               <div className="space-y-2">
                                                 {(() => {
-                                                  // Generate time options from 00:00 to 23:45 (every 15 minutes)
+                                                  // Generate time options from 6:00 to 00:00 (every 30 minutes)
                                                   const timeOptions: string[] = []
-                                                  for (let hour = 0; hour < 24; hour++) {
-                                                    for (let minute = 0; minute < 60; minute += 15) {
+                                                  // Start from 6:00 (hour 6)
+                                                  for (let hour = 6; hour < 24; hour++) {
+                                                    for (let minute = 0; minute < 60; minute += 30) {
                                                       const timeString = `${hour.toString().padStart(2, '0')}:${minute.toString().padStart(2, '0')}`
                                                       timeOptions.push(timeString)
                                                     }
+                                                  }
+                                                  timeOptions.push("00:00") // Add midnight (00:00)
+                                                  
+                                                  // Helper function to convert time to minutes for comparison
+                                                  const timeToMinutes = (time: string): number => {
+                                                    const [hours, minutes] = time.split(':').map(Number)
+                                                    // Handle 00:00 as 24:00 (1440 minutes) for proper comparison
+                                                    if (hours === 0 && minutes === 0) {
+                                                      return 24 * 60
+                                                    }
+                                                    return hours * 60 + minutes
+                                                  }
+                                                  
+                                                  // Helper function to get available closing times (after opening time)
+                                                  const getAvailableClosingTimes = (openTime: string, businessOpen: string, businessClose: string): string[] => {
+                                                    if (!openTime) {
+                                                      // If no opening time, return all times within business hours
+                                                      return timeOptions.filter(time => {
+                                                        const timeMinutes = timeToMinutes(time)
+                                                        const businessOpenMinutes = timeToMinutes(businessOpen || '06:00')
+                                                        const businessCloseMinutes = timeToMinutes(businessClose || '00:00')
+                                                        return timeMinutes >= businessOpenMinutes && timeMinutes <= businessCloseMinutes
+                                                      })
+                                                    }
+                                                    const openMinutes = timeToMinutes(openTime)
+                                                    const businessCloseMinutes = timeToMinutes(businessClose || '00:00')
+                                                    return timeOptions.filter((hour) => {
+                                                      const hourMinutes = timeToMinutes(hour)
+                                                      return hourMinutes > openMinutes && hourMinutes <= businessCloseMinutes
+                                                    })
                                                   }
                                                   
                                                   const dayOrder = ['monday', 'tuesday', 'wednesday', 'thursday', 'friday', 'saturday', 'sunday']
@@ -3237,8 +3333,11 @@ export default function AdminDashboard() {
                                                     const businessHours = editFormData.operating_hours?.[day] || { open: '', close: '', closed: true }
                                                     
                                                     // Filter time options based on business hours
+                                                    const businessOpenMinutes = timeToMinutes(businessHours.open || '06:00')
+                                                    const businessCloseMinutes = timeToMinutes(businessHours.close || '00:00')
                                                     const filteredTimeOptions = timeOptions.filter(time => {
-                                                      return time >= businessHours.open && time <= businessHours.close
+                                                      const timeMinutes = timeToMinutes(time)
+                                                      return timeMinutes >= businessOpenMinutes && timeMinutes <= businessCloseMinutes
                                                     })
                                                     
                                                     return (
@@ -3275,10 +3374,23 @@ export default function AdminDashboard() {
                                                                   if (!newStaff[index].operatingHours) {
                                                                     newStaff[index].operatingHours = {}
                                                                   }
-                                                                  newStaff[index].operatingHours[day] = {
+                                                                  const newOpenTime = e.target.value
+                                                                  const updatedStaffHours = {
                                                                     ...staffHours,
-                                                                    open: e.target.value
+                                                                    open: newOpenTime
                                                                   }
+                                                                  
+                                                                  // If opening time is changed, validate and reset closing time if invalid
+                                                                  if (newOpenTime && staffHours.close) {
+                                                                    const openMinutes = timeToMinutes(newOpenTime)
+                                                                    const closeMinutes = timeToMinutes(staffHours.close)
+                                                                    if (closeMinutes <= openMinutes) {
+                                                                      // Reset closing time if it's now invalid
+                                                                      updatedStaffHours.close = ""
+                                                                    }
+                                                                  }
+                                                                  
+                                                                  newStaff[index].operatingHours[day] = updatedStaffHours
                                                                   setEditFormData({...editFormData, staff: newStaff})
                                                                 }}
                                                                 className="px-2 py-1 border border-gray-300 rounded text-xs w-16 md:w-20"
@@ -3305,7 +3417,7 @@ export default function AdminDashboard() {
                                                                 className="px-2 py-1 border border-gray-300 rounded text-xs w-16 md:w-20"
                                                               >
                                                                 <option value="">Mbarimi</option>
-                                                                {filteredTimeOptions.map(time => (
+                                                                {getAvailableClosingTimes(staffHours.open || '', businessHours.open || '', businessHours.close || '').map(time => (
                                                                   <option key={time} value={time}>{time}</option>
                                                                 ))}
                                                               </select>
@@ -3325,14 +3437,16 @@ export default function AdminDashboard() {
                                                 <div className="text-xs font-medium text-gray-600 mb-2">Ora e Pauzës:</div>
                                             <div className="space-y-2">
                                               {(member.breakTimes || []).map((breakTime: any, breakIndex: number) => {
-                                                // Generate time options from 00:00 to 23:45 (every 15 minutes)
+                                                // Generate time options from 6:00 to 00:00 (every 30 minutes)
                                                 const timeOptions: string[] = []
-                                                for (let hour = 0; hour < 24; hour++) {
-                                                  for (let minute = 0; minute < 60; minute += 15) {
+                                                // Start from 6:00 (hour 6)
+                                                for (let hour = 6; hour < 24; hour++) {
+                                                  for (let minute = 0; minute < 60; minute += 30) {
                                                     const timeString = `${hour.toString().padStart(2, '0')}:${minute.toString().padStart(2, '0')}`
                                                     timeOptions.push(timeString)
                                                   }
                                                 }
+                                                timeOptions.push("00:00") // Add midnight (00:00)
                                                 
                                                 return (
                                                   <div key={breakIndex} className="flex items-center space-x-2">

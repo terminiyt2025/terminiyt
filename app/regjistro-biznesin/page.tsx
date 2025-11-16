@@ -44,15 +44,16 @@ const teamMemberSchema = z.object({
   phone: z.string().min(8, "Numri i telefonit duhet të ketë të paktën 8 shifra"),
 })
 
-// Generate operating hours with 15-minute intervals
+// Generate operating hours with 30-minute intervals from 6:00 to 00:00
 const operatingHours = (() => {
   const hours = []
-  for (let hour = 0; hour < 24; hour++) {
-    for (let minute = 0; minute < 60; minute += 15) {
+  // Start from 6:00 (hour 6)
+  for (let hour = 6; hour < 24; hour++) {
+    for (let minute = 0; minute < 60; minute += 30) {
       hours.push(`${hour.toString().padStart(2, '0')}:${minute.toString().padStart(2, '0')}`)
     }
   }
-  hours.push("24:00") // Add midnight for next day
+  hours.push("00:00") // Add midnight (00:00)
   return hours
 })()
 
@@ -528,12 +529,25 @@ export default function RegisterBusinessPage() {
 
   const updateOperatingHours = (day: string, field: string, value: any) => {
     setFormData((prev) => {
+      const dayData = prev.operatingHours[day as keyof typeof prev.operatingHours]
+      const newDayData = {
+        ...dayData,
+        [field]: value,
+      }
+      
+      // If opening time is changed, validate and reset closing time if invalid
+      if (field === 'open' && value && dayData.close) {
+        const openMinutes = timeToMinutes(value)
+        const closeMinutes = timeToMinutes(dayData.close)
+        if (closeMinutes <= openMinutes) {
+          // Reset closing time if it's now invalid
+          newDayData.close = ""
+        }
+      }
+      
       const newOperatingHours = {
         ...prev.operatingHours,
-        [day]: {
-          ...prev.operatingHours[day as keyof typeof prev.operatingHours],
-          [field]: value,
-        },
+        [day]: newDayData,
       }
       
       // Clear validation errors for this day when updating
@@ -552,7 +566,22 @@ export default function RegisterBusinessPage() {
   // Helper function to convert time to minutes for comparison
   const timeToMinutes = (time: string): number => {
     const [hours, minutes] = time.split(':').map(Number)
+    // Handle 00:00 as 24:00 (1440 minutes) for proper comparison
+    if (hours === 0 && minutes === 0) {
+      return 24 * 60
+    }
     return hours * 60 + minutes
+  }
+
+  // Helper function to get available closing times (after opening time)
+  const getAvailableClosingTimes = (openTime: string): string[] => {
+    if (!openTime) return operatingHours
+    
+    const openMinutes = timeToMinutes(openTime)
+    return operatingHours.filter((hour) => {
+      const hourMinutes = timeToMinutes(hour)
+      return hourMinutes > openMinutes
+    })
   }
 
   // Validate operating hours
@@ -1173,7 +1202,7 @@ export default function RegisterBusinessPage() {
                                     <SelectValue placeholder="Mbyllja" />
                                   </SelectTrigger>
                                   <SelectContent>
-                                    {operatingHours.map((hour) => (
+                                    {getAvailableClosingTimes(dayData.open).map((hour) => (
                                       <SelectItem key={hour} value={hour}>
                                         {hour}
                                       </SelectItem>
@@ -1430,7 +1459,7 @@ export default function RegisterBusinessPage() {
 
                     {/* Logo and Business Images Section */}
                     <div>
-                      <Label className="text-base md:text-base md:text-lg font-semibold text-gray-800 mb-4 block">Logo & Imazhet e Biznesit</Label>
+                      <Label className="text-base md:text-base md:text-lg font-semibold text-gray-800 mb-4 block">Logo & Imazhi i Biznesit</Label>
                       <div className="grid md:grid-cols-2 gap-6">
                         {/* Logo Section - 50% width */}
                         <div className="bg-white/95 backdrop-blur-sm border-0 shadow-2xl rounded-lg p-6">
@@ -1445,7 +1474,7 @@ export default function RegisterBusinessPage() {
                                   <img 
                                     src={typeof formData.logo === 'string' ? formData.logo : URL.createObjectURL(formData.logo)} 
                                     alt="Business Logo" 
-                                    className="max-w-full max-h-80 object-contain"
+                                    className="w-full max-w-full max-h-80 object-contain"
                                   />
                                 </div>
                               ) : (
@@ -1512,29 +1541,22 @@ export default function RegisterBusinessPage() {
                         {/* Business Images Section - 50% width */}
                         <div className="bg-white/95 backdrop-blur-sm border-0 shadow-2xl rounded-lg p-6">
                           <div className="text-center mb-4">
-                            <h4 className="text-base md:text-lg font-heading font-bold text-gray-800"> Imazhet e Biznesit</h4>
+                            <h4 className="text-base md:text-lg font-heading font-bold text-gray-800"> Imazhi i Biznesit</h4>
                           </div>
                           <div className="space-y-4">
-                            {/* Current Images Display */}
-                            <div className="grid grid-cols-1 gap-3">
+                            {/* Current Image Display */}
+                            <div className="w-full">
                               {formData.businessImages ? (
-                                <div className="w-full min-h-48 bg-gray-100 rounded-lg border-2 border-gray-200 relative group flex items-center justify-center p-2">
+                                <div className="w-full min-h-48 mb-4 rounded-lg border-2 border-gray-200 bg-white flex items-center justify-center p-4">
                                   <img 
                                     src={formData.businessImages} 
                                     alt="Business Image" 
-                                    className="max-w-full max-h-80 object-contain"
+                                    className="w-full max-w-full max-h-80 object-contain"
                                   />
-                                  <button 
-                                    type="button"
-                                    onClick={() => updateFormData("businessImages", null)}
-                                    className="absolute top-1 right-1 bg-red-500 text-white rounded-full w-6 h-6 flex items-center justify-center text-xs opacity-0 group-hover:opacity-100 transition-opacity hover:bg-red-600"
-                                  >
-                                    ×
-                                  </button>
                                 </div>
                               ) : (
-                                <div className="col-span-2 text-center py-8 text-gray-500 min-h-48 flex items-center justify-center bg-gray-100 rounded-lg border-2 border-gray-200">
-                                  Nuk keni imazhe të ngarkuara
+                                <div className="w-full min-h-48 mb-4 bg-gray-100 rounded-lg flex items-center justify-center border-2 border-gray-200">
+                                  <p className="text-gray-500">Nuk keni imazh të ngarkuar</p>
                                 </div>
                               )}
                             </div>
@@ -1549,9 +1571,8 @@ export default function RegisterBusinessPage() {
                               className="hidden" 
                               id="business-images-upload"
                               onChange={async (e) => {
-                                const files = Array.from(e.target.files || []);
-                                if (files.length > 0) {
-                                  const file = files[0]; // Only process the first file
+                                const file = e.target.files?.[0];
+                                if (file) {
                                   if (file.size > 2 * 1024 * 1024) { // 2MB limit
                                     alert('Imazhi duhet të jetë më pak se 2MB');
                                     return;
@@ -1580,6 +1601,8 @@ export default function RegisterBusinessPage() {
                                     alert('Gabim gjatë ngarkimit të imazhit');
                                   }
                                 }
+                                // Reset input to allow re-uploading the same file
+                                e.target.value = '';
                               }}
                             />
                               <Button 
@@ -1588,7 +1611,7 @@ export default function RegisterBusinessPage() {
                                 className="bg-custom-gradient hover:to-teal-700 text-white"
                               >
                                 <Upload className="w-4 h-4 mr-2" />
-                                Ngarko Imazhe
+                                {formData.businessImages ? 'Ndrysho Imazhin' : 'Ngarko Imazh'}
                               </Button>
                             </div>
                           </div>
