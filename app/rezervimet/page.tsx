@@ -605,6 +605,68 @@ export default function ReservationsPage() {
     })
   }
 
+  // Helper function to get break time for a specific time slot
+  const getBreakTimeForSlot = (timeSlot: string, staffName?: string): { startTime: string, endTime: string, staffName: string } | null => {
+    if (!business?.staff) return null
+    
+    // If a specific staff is selected, only check that staff member's break times
+    if (staffName && staffName !== 'all') {
+      const staffMember = business.staff.find((s: any) => s.name === staffName)
+      if (!staffMember?.isActive || !staffMember.breakTimes || !Array.isArray(staffMember.breakTimes)) {
+        return null
+      }
+      
+      const breakTime = staffMember.breakTimes.find((bt: any) => {
+        if (!bt.startTime || !bt.endTime) return false
+        return timeSlot >= bt.startTime && timeSlot < bt.endTime
+      })
+      
+      return breakTime ? { startTime: breakTime.startTime, endTime: breakTime.endTime, staffName } : null
+    }
+    
+    // For 'all' staff, find the first staff member with a break at this time
+    for (const staff of business.staff) {
+      if (!staff.isActive || !staff.breakTimes || !Array.isArray(staff.breakTimes)) {
+        continue
+      }
+      
+      const breakTime = staff.breakTimes.find((bt: any) => {
+        if (!bt.startTime || !bt.endTime) return false
+        return timeSlot >= bt.startTime && timeSlot < bt.endTime
+      })
+      
+      if (breakTime) {
+        return { startTime: breakTime.startTime, endTime: breakTime.endTime, staffName: staff.name }
+      }
+    }
+    
+    return null
+  }
+
+  // Helper function to get all time slots covered by a break time
+  const getBreakTimeSlots = (startTime: string, endTime: string): string[] => {
+    const allTimeSlots = generateTimeSlots(selectedDate, 30)
+    const slots: string[] = []
+    
+    const [startHour, startMin] = startTime.split(':').map(Number)
+    const [endHour, endMin] = endTime.split(':').map(Number)
+    const startTotalMinutes = startHour * 60 + startMin
+    const endTotalMinutes = endHour * 60 + endMin
+    
+    // Generate all 15-minute slots within the break time range
+    for (let minutes = startTotalMinutes; minutes < endTotalMinutes; minutes += 15) {
+      const slotHours = Math.floor(minutes / 60)
+      const slotMins = minutes % 60
+      const slotTime = `${slotHours.toString().padStart(2, '0')}:${slotMins.toString().padStart(2, '0')}`
+      
+      if (allTimeSlots.includes(slotTime)) {
+        slots.push(slotTime)
+      }
+    }
+    
+    return slots
+  }
+
   // Block selected time slots
   const blockSelectedTimeSlots = async (staffName?: string) => {
     if (!business || selectedTimeSlots.length === 0) {
@@ -1199,9 +1261,16 @@ export default function ReservationsPage() {
                         return bookingSlots.includes(timeSlot)
                       })
                       
+                      // Find the break time for this slot
+                      const breakTimeForSlot = getBreakTimeForSlot(timeSlot, staffNameForCheck)
+                      
                       // Check if this is the first slot of a booking (to show only first slot)
                       const isFirstSlotOfBooking = bookingForSlot ? 
                         getBookingTimeSlots(bookingForSlot)[0] === timeSlot : false
+                      
+                      // Check if this is the first slot of a break time (to show only first slot)
+                      const isFirstSlotOfBreakTime = breakTimeForSlot ? 
+                        getBreakTimeSlots(breakTimeForSlot.startTime, breakTimeForSlot.endTime)[0] === timeSlot : false
                       
                       // Check if time slot is in the past
                       const isPastTime = (() => {
@@ -1223,16 +1292,20 @@ export default function ReservationsPage() {
                         return false
                       })()
                       
-                      return { timeSlot, hasBooking, isBlocked, isInBreakTime, isSelected, bookingForSlot, isFirstSlotOfBooking, isPastTime }
+                      return { timeSlot, hasBooking, isBlocked, isInBreakTime, isSelected, bookingForSlot, isFirstSlotOfBooking, breakTimeForSlot, isFirstSlotOfBreakTime, isPastTime }
                     })
-                    .filter(({ hasBooking, bookingForSlot, isFirstSlotOfBooking }) => {
+                    .filter(({ hasBooking, bookingForSlot, isFirstSlotOfBooking, isInBreakTime, breakTimeForSlot, isFirstSlotOfBreakTime }) => {
                       // Hide slots that are part of a booking but not the first slot
                       if (hasBooking && bookingForSlot && !isFirstSlotOfBooking) {
                         return false
                       }
+                      // Hide slots that are part of a break time but not the first slot
+                      if (isInBreakTime && breakTimeForSlot && !isFirstSlotOfBreakTime) {
+                        return false
+                      }
                       return true
                     })
-                    .map(({ timeSlot, hasBooking, isBlocked, isInBreakTime, isSelected, bookingForSlot, isFirstSlotOfBooking, isPastTime }) => {
+                    .map(({ timeSlot, hasBooking, isBlocked, isInBreakTime, isSelected, bookingForSlot, isFirstSlotOfBooking, breakTimeForSlot, isFirstSlotOfBreakTime, isPastTime }) => {
                     
                     // Debug logging for blocked slots
                     if (isBlocked) {
@@ -1311,6 +1384,8 @@ export default function ReservationsPage() {
                         <div className="font-medium">
                           {hasBooking && booking && isFirstSlotOfBooking 
                             ? `${booking.appointmentTime}-${getEndTime(booking.appointmentTime, booking.serviceDuration || getServiceDuration(booking.serviceName))}`
+                            : isInBreakTime && breakTimeForSlot && isFirstSlotOfBreakTime
+                            ? `${breakTimeForSlot.startTime}-${breakTimeForSlot.endTime}`
                             : timeSlot}
                         </div>
                         {hasAdditionalText && isExpanded && (
@@ -1320,9 +1395,9 @@ export default function ReservationsPage() {
                                 Bllokuar nga biznesi
                               </div>
                             )}
-                            {isInBreakTime && (
+                            {isInBreakTime && breakTimeForSlot && isFirstSlotOfBreakTime && (
                               <div className="text-xs mt-1 text-orange-600 font-medium leading-tight">
-                                Koha e pauzës
+                                Koha e pauzës{selectedStaff === 'all' ? ` - ${breakTimeForSlot.staffName}` : ''}
                               </div>
                             )}
                             {hasBooking && booking && isFirstSlotOfBooking && (

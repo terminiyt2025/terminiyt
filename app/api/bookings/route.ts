@@ -159,20 +159,69 @@ export async function POST(request: NextRequest) {
 
         // 2. Send notification email to staff member (if staff is selected)
         if (body.staffName && business.staff && Array.isArray(business.staff)) {
-          const selectedStaff = business.staff.find((staff: any) => 
-            staff.name === body.staffName && staff.isActive !== false
-          ) as any
-          if (selectedStaff && selectedStaff.email) {
-            const staffEmail = emailTemplates.staffNotification(emailData)
-            await sendEmail({
-              to: selectedStaff.email,
-              subject: staffEmail.subject,
-              html: staffEmail.html,
-              text: staffEmail.text
-            })
-            console.log(`Email sent to staff member: ${selectedStaff.email}`)
+          console.log(`Looking for staff member: "${body.staffName}"`)
+          console.log(`Available staff members:`, business.staff.map((s: any) => ({
+            name: s.name,
+            email: s.email,
+            isActive: s.isActive,
+            role: s.role
+          })))
+          
+          // More robust staff lookup - trim whitespace and handle case-insensitive matching
+          const selectedStaff = business.staff.find((staff: any) => {
+            if (!staff || !staff.name) return false
+            
+            // Trim and compare names (case-insensitive for safety)
+            const staffNameNormalized = (staff.name || '').trim()
+            const requestedNameNormalized = (body.staffName || '').trim()
+            const nameMatch = staffNameNormalized === requestedNameNormalized
+            
+            // Check if staff is active (allow undefined, null, or true)
+            const isActiveCheck = staff.isActive !== false && staff.isActive !== null
+            
+            console.log(`Checking staff: "${staff.name}" (normalized: "${staffNameNormalized}"), requested: "${body.staffName}" (normalized: "${requestedNameNormalized}"), nameMatch: ${nameMatch}, isActive: ${staff.isActive}, isActiveCheck: ${isActiveCheck}`)
+            
+            return nameMatch && isActiveCheck
+          }) as any
+          
+          console.log(`Found staff member:`, selectedStaff ? {
+            name: selectedStaff.name,
+            email: selectedStaff.email,
+            isActive: selectedStaff.isActive,
+            role: selectedStaff.role,
+            hasEmail: !!selectedStaff.email
+          } : 'NOT FOUND')
+          
+          if (selectedStaff) {
+            if (selectedStaff.email && selectedStaff.email.trim()) {
+              const staffEmail = emailTemplates.staffNotification(emailData)
+              const emailResult = await sendEmail({
+                to: selectedStaff.email.trim(),
+                subject: staffEmail.subject,
+                html: staffEmail.html,
+                text: staffEmail.text
+              })
+              
+              if (emailResult.success) {
+                console.log(`✅ Email sent successfully to staff member: ${selectedStaff.email}`)
+              } else {
+                console.error(`❌ Failed to send email to staff member ${selectedStaff.email}:`, emailResult.error)
+              }
+            } else {
+              console.log(`❌ Staff member "${body.staffName}" found but has no valid email. Email value: "${selectedStaff.email}"`)
+              console.log(`Full staff data:`, JSON.stringify(selectedStaff, null, 2))
+            }
           } else {
-            console.log(`Staff member ${body.staffName} not found or has no email`)
+            console.log(`❌ Staff member "${body.staffName}" not found in staff array`)
+            console.log(`Available staff names:`, business.staff.map((s: any) => s.name))
+          }
+        } else {
+          if (!body.staffName) {
+            console.log(`Skipping staff email - no staffName provided`)
+          } else if (!business.staff) {
+            console.log(`Skipping staff email - business.staff is null/undefined`)
+          } else if (!Array.isArray(business.staff)) {
+            console.log(`Skipping staff email - business.staff is not an array. Type: ${typeof business.staff}`)
           }
         }
 
