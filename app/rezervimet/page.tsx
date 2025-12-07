@@ -384,8 +384,9 @@ export default function ReservationsPage() {
       const dateMatch = bookingDate === dateString
       const staffMatch = !selectedStaff || selectedStaff === 'all' || booking.staffName === selectedStaff
       const isNotCancelled = booking.status !== 'CANCELLED'
+      const isNotCompleted = booking.status !== 'COMPLETED'
       
-      if (dateMatch && staffMatch && isNotCancelled) {
+      if (dateMatch && staffMatch && isNotCancelled && isNotCompleted) {
         const bookingStartTime = booking.appointmentTime
         const bookingDuration = booking.serviceDuration || getServiceDuration(booking.serviceName)
         
@@ -530,6 +531,7 @@ export default function ReservationsPage() {
       const dateMatch = bookingDate === dateString
       const staffMatch = !staffName || booking.staffName === staffName
       const isNotCancelled = booking.status !== 'CANCELLED'
+      const isNotCompleted = booking.status !== 'COMPLETED'
       
       console.log('Booking check:', {
         originalBookingDate: booking.appointmentDate,
@@ -538,12 +540,13 @@ export default function ReservationsPage() {
         dateMatch,
         staffMatch,
         isNotCancelled,
+        isNotCompleted,
         bookingStatus: booking.status,
         bookingStaff: booking.staffName,
         requestedStaff: staffName
       })
       
-      if (!dateMatch || !staffMatch || !isNotCancelled) return false
+      if (!dateMatch || !staffMatch || !isNotCancelled || !isNotCompleted) return false
       
       // Check for time overlap instead of just exact slot matches
       const bookingStartTime = booking.appointmentTime
@@ -556,15 +559,19 @@ export default function ReservationsPage() {
       
       const [slotHour, slotMin] = timeSlot.split(':').map(Number)
       const slotStartMinutes = slotHour * 60 + slotMin
-      // For blocking slots, we check if the slot time itself falls within an existing booking
-      // A slot is blocked if it falls within the booking time range
-      const isBlocked = slotStartMinutes >= bookingStartMinutes && slotStartMinutes < bookingEndMinutes
+      const slotEndMinutes = slotStartMinutes + 15 // Each slot is 15 minutes
+      
+      // Check for proper overlap: a slot is blocked if it overlaps with the booking
+      // Overlap occurs when: slotStart < bookingEnd AND slotEnd > bookingStart
+      const isBlocked = slotStartMinutes < bookingEndMinutes && slotEndMinutes > bookingStartMinutes
       console.log('Time overlap check:', {
         bookingTime: bookingStartTime,
         bookingDuration: bookingDuration,
+        bookingStart: bookingStartMinutes,
         bookingEnd: bookingEndMinutes,
         slotTime: timeSlot,
         slotStart: slotStartMinutes,
+        slotEnd: slotEndMinutes,
         isBlocked
       })
       return isBlocked
@@ -1311,13 +1318,13 @@ export default function ReservationsPage() {
                   {generateTimeSlots(selectedDate, 30)
                     .map((timeSlot) => {
                       const staffNameForCheck = selectedStaff === 'all' ? undefined : selectedStaff
-                      const hasBooking = hasBookingAtTime(selectedDate, timeSlot, staffNameForCheck)
                       const isBlocked = isTimeSlotBlocked(selectedDate, timeSlot, staffNameForCheck)
                       const isInBreakTime = isTimeSlotInBreakTime(timeSlot, staffNameForCheck)
                       const isSelected = selectedTimeSlots.includes(timeSlot)
                       
-                      // Find the booking for this slot
-                      const bookingForSlot = bookings.find(b => {
+                      // Find the booking for this slot by checking if the slot overlaps with the booking time range
+                      // If multiple bookings overlap, find the one that starts earliest (most relevant for this slot)
+                      const overlappingBookings = bookings.filter(b => {
                         const dateString = selectedDate.getFullYear() + '-' + 
                                           String(selectedDate.getMonth() + 1).padStart(2, '0') + '-' + 
                                           String(selectedDate.getDate()).padStart(2, '0')
@@ -1329,19 +1336,115 @@ export default function ReservationsPage() {
                         
                         const staffMatch = selectedStaff === 'all' || b.staffName === selectedStaff
                         const dateMatch = bookingDate === dateString
+                        const isNotCancelled = b.status !== 'CANCELLED'
+                        const isNotCompleted = b.status !== 'COMPLETED'
                         
-                        if (!dateMatch || !staffMatch) return false
+                        if (!dateMatch || !staffMatch || !isNotCancelled || !isNotCompleted) return false
                         
-                        const bookingSlots = getBookingTimeSlots(b)
-                        return bookingSlots.includes(timeSlot)
+                        // Check if this time slot overlaps with the booking time range
+                        const bookingDuration = b.serviceDuration || getServiceDuration(b.serviceName)
+                        const [bookingStartHour, bookingStartMin] = b.appointmentTime.split(':').map(Number)
+                        const bookingStartMinutes = bookingStartHour * 60 + bookingStartMin
+                        const bookingEndMinutes = bookingStartMinutes + bookingDuration
+                        
+                        const [slotHour, slotMin] = timeSlot.split(':').map(Number)
+                        const slotStartMinutes = slotHour * 60 + slotMin
+                        const slotEndMinutes = slotStartMinutes + 15 // Each slot is 15 minutes
+                        
+                        // Check for overlap: slot overlaps if slotStart < bookingEnd AND slotEnd > bookingStart
+                        return slotStartMinutes < bookingEndMinutes && slotEndMinutes > bookingStartMinutes
                       })
+                      
+                      // If multiple bookings overlap, find the one that starts earliest
+                      const bookingForSlot = overlappingBookings.length > 0 
+                        ? overlappingBookings.reduce((earliest, current) => {
+                            const earliestStart = earliest.appointmentTime.split(':').map(Number)
+                            const currentStart = current.appointmentTime.split(':').map(Number)
+                            const earliestMinutes = earliestStart[0] * 60 + earliestStart[1]
+                            const currentMinutes = currentStart[0] * 60 + currentStart[1]
+                            return currentMinutes < earliestMinutes ? current : earliest
+                          })
+                        : null
+                      
+                      // hasBooking is true if there's any booking that overlaps with this slot
+                      const hasBooking = bookingForSlot !== null
                       
                       // Find the break time for this slot
                       const breakTimeForSlot = getBreakTimeForSlot(timeSlot, staffNameForCheck)
                       
                       // Check if this is the first slot of a booking (to show only first slot)
-                      const isFirstSlotOfBooking = bookingForSlot ? 
-                        getBookingTimeSlots(bookingForSlot)[0] === timeSlot : false
+                      // Find the first available slot for this booking (earliest slot that overlaps and doesn't have an earlier booking)
+                      const isFirstSlotOfBooking = bookingForSlot ? (() => {
+                        const bookingDuration = bookingForSlot.serviceDuration || getServiceDuration(bookingForSlot.serviceName)
+                        const [bookingStartHour, bookingStartMin] = bookingForSlot.appointmentTime.split(':').map(Number)
+                        const bookingStartMinutes = bookingStartHour * 60 + bookingStartMin
+                        const bookingEndMinutes = bookingStartMinutes + bookingDuration
+                        
+                        const [slotHour, slotMin] = timeSlot.split(':').map(Number)
+                        const slotStartMinutes = slotHour * 60 + slotMin
+                        
+                        // Find all slots that overlap with this booking
+                        const allTimeSlots = generateTimeSlots(selectedDate, 30)
+                        const overlappingSlots = allTimeSlots.filter(slot => {
+                          const [sHour, sMin] = slot.split(':').map(Number)
+                          const sStartMinutes = sHour * 60 + sMin
+                          const sEndMinutes = sStartMinutes + 15
+                          return sStartMinutes < bookingEndMinutes && sEndMinutes > bookingStartMinutes
+                        }).sort((a, b) => {
+                          const [aHour, aMin] = a.split(':').map(Number)
+                          const [bHour, bMin] = b.split(':').map(Number)
+                          return (aHour * 60 + aMin) - (bHour * 60 + bMin)
+                        })
+                        
+                        // Find the first slot that should display this booking
+                        // This is the earliest slot that overlaps with the booking AND doesn't already have a booking that starts earlier
+                        for (const slot of overlappingSlots) {
+                          // Check if this slot already has a booking that starts earlier than the current booking
+                          const slotHasEarlierBooking = bookings.some(b => {
+                            const dateString = selectedDate.getFullYear() + '-' + 
+                                              String(selectedDate.getMonth() + 1).padStart(2, '0') + '-' + 
+                                              String(selectedDate.getDate()).padStart(2, '0')
+                            
+                            const bookingDateObj = new Date(b.appointmentDate)
+                            const bookingDate = bookingDateObj.getFullYear() + '-' + 
+                                               String(bookingDateObj.getMonth() + 1).padStart(2, '0') + '-' + 
+                                               String(bookingDateObj.getDate()).padStart(2, '0')
+                            
+                            const staffMatch = selectedStaff === 'all' || b.staffName === selectedStaff
+                            const dateMatch = bookingDate === dateString
+                            const isNotCancelled = b.status !== 'CANCELLED'
+                            const isNotCompleted = b.status !== 'COMPLETED'
+                            
+                            if (!dateMatch || !staffMatch || !isNotCancelled || !isNotCompleted || b.id === bookingForSlot.id) return false
+                            
+                            // Check if this slot overlaps with booking b
+                            const bDuration = b.serviceDuration || getServiceDuration(b.serviceName)
+                            const [bStartHour, bStartMin] = b.appointmentTime.split(':').map(Number)
+                            const bStartMinutes = bStartHour * 60 + bStartMin
+                            const bEndMinutes = bStartMinutes + bDuration
+                            
+                            const [sHour, sMin] = slot.split(':').map(Number)
+                            const sStartMinutes = sHour * 60 + sMin
+                            const sEndMinutes = sStartMinutes + 15
+                            
+                            const slotOverlaps = sStartMinutes < bEndMinutes && sEndMinutes > bStartMinutes
+                            
+                            // Check if booking b starts earlier than bookingForSlot
+                            const bStartsEarlier = bStartMinutes < bookingStartMinutes
+                            
+                            return slotOverlaps && bStartsEarlier
+                          })
+                          
+                          // If this slot doesn't have an earlier booking, it's the first slot for this booking
+                          if (!slotHasEarlierBooking) {
+                            return timeSlot === slot
+                          }
+                        }
+                        
+                        // If all slots have earlier bookings, use the earliest overlapping slot anyway
+                        // This handles edge cases where bookings are very close together
+                        return overlappingSlots.length > 0 && timeSlot === overlappingSlots[0]
+                      })() : false
                       
                       // Check if this is the first slot of a break time (to show only first slot)
                       const isFirstSlotOfBreakTime = breakTimeForSlot ? 

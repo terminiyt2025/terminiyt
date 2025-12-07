@@ -39,6 +39,33 @@ import { useToast } from "@/hooks/use-toast"
 import { generateSlug } from "@/lib/slug"
 import { extractCoordinatesFromGoogleMapsLink, generateGoogleMapsLink, isValidGoogleMapsUrl } from '@/lib/google-maps-utils'
 
+const serviceDurations = [
+  "5 min",
+  "10 min",
+  "15 min",
+  "20 min",
+  "25 min",
+  "30 min",
+  "45 min",
+  "1 orë",
+  "1 orë 15 min",
+  "1 orë 30 min",
+  "1 orë 45 min",
+  "2 orë",
+  "2 orë 15 min",
+  "2 orë 30 min",
+  "2 orë 45 min",
+  "3 orë",
+  "3 orë 15 min",
+  "3 orë 30 min",
+  "3 orë 45 min",
+  "4 orë",
+  "5 orë",
+  "6 orë",
+  "8 orë",
+  "1 ditë",
+]
+
 interface AdminStats {
   totalBusinesses: number
   totalBookings: number
@@ -3024,16 +3051,11 @@ export default function AdminDashboard() {
                                                 }}
                                               className={`px-2 py-1 border rounded text-xs bg-white ${validationErrors[`service_${index}_duration`] ? 'border-red-500' : 'border-gray-300'}`}
                                             >
-                                              <option value="15 min">15 min</option>
-                                              <option value="30 min">30 min</option>
-                                              <option value="45 min">45 min</option>
-                                              <option value="1 orë">1 orë</option>
-                                              <option value="1 orë 15 min">1 orë 15 min</option>
-                                              <option value="1 orë 30 min">1 orë 30 min</option>
-                                              <option value="1 orë 45 min">1 orë 45 min</option>
-                                              <option value="2 orë">2 orë</option>
-                                              <option value="2 orë 30 min">2 orë 30 min</option>
-                                              <option value="3 orë">3 orë</option>
+                                              {serviceDurations.map((duration) => (
+                                                <option key={duration} value={duration}>
+                                                  {duration}
+                                                </option>
+                                              ))}
                                             </select>
                                           </div>
                                           <textarea

@@ -3,7 +3,8 @@
 import React, { useState, useEffect, useRef } from "react"
 import { createPortal } from 'react-dom'
 import Link from "next/link"
-import { Button } from "@/components/ui/button"
+import { Button, buttonVariants } from "@/components/ui/button"
+import { cn } from "@/lib/utils"
 import { Input } from "@/components/ui/input"
 import { Card, CardContent } from "@/components/ui/card"
 import { Badge } from "@/components/ui/badge"
@@ -470,16 +471,16 @@ export default function HomePage() {
 
                       {/* Action Buttons */}
                       <div className="space-y-3 pt-2 border-slate-100">
-                        <Button 
-                          size="lg" 
-                          className="w-full bg-custom-gradient text-white font-semibold py-3"
-                          asChild
+                        <Link 
+                          href={`/${(provider as any).slug}`}
+                          className={cn(
+                            buttonVariants({ size: "lg" }),
+                            "w-full bg-custom-gradient text-white font-semibold py-3 flex items-center justify-center"
+                          )}
                         >
-                          <Link href={`/${(provider as any).slug}`}>
-                            <Calendar className="w-5 h-5 mr-2" />
-                            Rezervo Tani
-                          </Link>
-                        </Button>
+                          <Calendar className="w-5 h-5 mr-2" />
+                          Rezervo Tani
+                        </Link>
                         
                         <div className="grid grid-cols-2 gap-2">
                           <Button 

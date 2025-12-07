@@ -2,7 +2,8 @@
 
 import Link from "next/link"
 import Image from "next/image"
-import { Button } from "@/components/ui/button"
+import { Button, buttonVariants } from "@/components/ui/button"
+import { cn } from "@/lib/utils"
 import { Badge } from "@/components/ui/badge"
 import { 
   DropdownMenu, 
@@ -716,16 +717,24 @@ export function Header({ transparent = false, className = "" }: HeaderProps) {
               </div>
             ) : (
               <div className="flex items-center space-x-3">
-                <Button size="lg" variant="outline" asChild className="text-lg text-white bg-transparent hover:bg-transparent"
+                <Link 
+                  href="/identifikohu"
+                  className={cn(
+                    buttonVariants({ size: "lg", variant: "outline" }),
+                    "text-lg text-white bg-transparent hover:bg-transparent"
+                  )}
                 >
-                  <Link href="/identifikohu">Kyçu</Link>
-                </Button>
-                <Button 
-                  asChild
-                  className={transparent ? "bg-white border-white text-zinc-800 text-lg hover:bg-white hover:text-teal-800" : ""}
+                  Kyçu
+                </Link>
+                <Link 
+                  href="/regjistro-biznesin"
+                  className={cn(
+                    buttonVariants(),
+                    transparent ? "bg-white border-white text-zinc-800 text-lg hover:bg-white hover:text-teal-800" : ""
+                  )}
                 >
-                  <Link href="/regjistro-biznesin">Regjistrohu si Biznes</Link>
-                </Button>
+                  Regjistrohu si Biznes
+                </Link>
               </div>
             )}
           </nav>
