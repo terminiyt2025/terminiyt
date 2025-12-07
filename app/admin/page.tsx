@@ -87,6 +87,58 @@ const formatDate = (dateString: string | Date): string => {
   return `${day}/${month}/${year}`
 }
 
+// Helper function to convert dd/mm/yyyy to yyyy-mm-dd (for date input)
+const formatDateForInput = (dateString: string): string => {
+  if (!dateString) return ''
+  // If already in yyyy-mm-dd format, return as is
+  if (/^\d{4}-\d{2}-\d{2}$/.test(dateString)) {
+    return dateString
+  }
+  // If in dd/mm/yyyy format, convert to yyyy-mm-dd
+  if (/^\d{2}\/\d{2}\/\d{4}$/.test(dateString)) {
+    const [day, month, year] = dateString.split('/')
+    return `${year}-${month}-${day}`
+  }
+  return dateString
+}
+
+// Helper function to convert yyyy-mm-dd to dd/mm/yyyy (for display)
+const formatDateFromInput = (dateString: string): string => {
+  if (!dateString) return ''
+  // If in yyyy-mm-dd format, convert to dd/mm/yyyy
+  if (/^\d{4}-\d{2}-\d{2}$/.test(dateString)) {
+    const [year, month, day] = dateString.split('-')
+    return `${day}/${month}/${year}`
+  }
+  return dateString
+}
+
+// Helper function to parse dd/mm/yyyy input and convert to yyyy-mm-dd
+const parseDateInput = (inputValue: string): string => {
+  if (!inputValue) return ''
+  // Remove any non-digit characters except /
+  const cleaned = inputValue.replace(/[^\d/]/g, '')
+  
+  // If it matches dd/mm/yyyy pattern
+  if (/^\d{2}\/\d{2}\/\d{4}$/.test(cleaned)) {
+    const [day, month, year] = cleaned.split('/')
+    // Validate date
+    const date = new Date(parseInt(year), parseInt(month) - 1, parseInt(day))
+    if (date.getFullYear() == parseInt(year) && 
+        date.getMonth() == parseInt(month) - 1 && 
+        date.getDate() == parseInt(day)) {
+      return `${year}-${month}-${day}`
+    }
+  }
+  
+  // If it's already in yyyy-mm-dd format
+  if (/^\d{4}-\d{2}-\d{2}$/.test(inputValue)) {
+    return inputValue
+  }
+  
+  return inputValue
+}
+
 export default function AdminDashboard() {
   const [isAuthenticated, setIsAuthenticated] = useState(false)
   const [isLoading, setIsLoading] = useState(true)
@@ -1592,16 +1644,45 @@ export default function AdminDashboard() {
                       <div>
                         <label className="block text-sm font-medium text-gray-700 mb-1">
                           Data Fillestare
-                          {startDateFilter && (
-                            <span className="ml-2 text-teal-600 font-semibold">
-                              ({formatDate(startDateFilter)})
-                            </span>
-                          )}
                         </label>
                         <input
-                          type="date"
-                          value={startDateFilter}
-                          onChange={(e) => setStartDateFilter(e.target.value)}
+                          type="text"
+                          value={startDateFilter ? formatDateFromInput(startDateFilter) : ''}
+                          onChange={(e) => {
+                            const value = e.target.value
+                            // Allow typing in dd/mm/yyyy format
+                            if (value.length <= 10) {
+                              // Auto-format as user types
+                              let formatted = value.replace(/[^\d/]/g, '')
+                              if (formatted.length >= 3 && formatted[2] !== '/') {
+                                formatted = formatted.slice(0, 2) + '/' + formatted.slice(2)
+                              }
+                              if (formatted.length >= 6 && formatted[5] !== '/') {
+                                formatted = formatted.slice(0, 5) + '/' + formatted.slice(5)
+                              }
+                              // Limit to dd/mm/yyyy format
+                              if (formatted.length <= 10) {
+                                const parsed = parseDateInput(formatted)
+                                if (parsed || formatted === '') {
+                                  setStartDateFilter(parsed)
+                                }
+                              }
+                            }
+                          }}
+                          onBlur={(e) => {
+                            // Validate and format on blur
+                            const value = e.target.value
+                            if (value) {
+                              const parsed = parseDateInput(value)
+                              if (parsed) {
+                                setStartDateFilter(parsed)
+                              } else {
+                                // If invalid, try to keep the value but show error
+                                setStartDateFilter('')
+                              }
+                            }
+                          }}
+                          placeholder="dd/mm/yyyy"
                           className="w-full px-3 py-2 border border-gray-300 rounded-md bg-white text-gray-900 focus:outline-none focus:ring-2 focus:ring-teal-500 text-sm md:text-base"
                         />
                       </div>
@@ -1610,16 +1691,45 @@ export default function AdminDashboard() {
                       <div>
                         <label className="block text-sm font-medium text-gray-700 mb-1">
                           Data Përfundimtare
-                          {endDateFilter && (
-                            <span className="ml-2 text-teal-600 font-semibold">
-                              ({formatDate(endDateFilter)})
-                            </span>
-                          )}
                         </label>
                         <input
-                          type="date"
-                          value={endDateFilter}
-                          onChange={(e) => setEndDateFilter(e.target.value)}
+                          type="text"
+                          value={endDateFilter ? formatDateFromInput(endDateFilter) : ''}
+                          onChange={(e) => {
+                            const value = e.target.value
+                            // Allow typing in dd/mm/yyyy format
+                            if (value.length <= 10) {
+                              // Auto-format as user types
+                              let formatted = value.replace(/[^\d/]/g, '')
+                              if (formatted.length >= 3 && formatted[2] !== '/') {
+                                formatted = formatted.slice(0, 2) + '/' + formatted.slice(2)
+                              }
+                              if (formatted.length >= 6 && formatted[5] !== '/') {
+                                formatted = formatted.slice(0, 5) + '/' + formatted.slice(5)
+                              }
+                              // Limit to dd/mm/yyyy format
+                              if (formatted.length <= 10) {
+                                const parsed = parseDateInput(formatted)
+                                if (parsed || formatted === '') {
+                                  setEndDateFilter(parsed)
+                                }
+                              }
+                            }
+                          }}
+                          onBlur={(e) => {
+                            // Validate and format on blur
+                            const value = e.target.value
+                            if (value) {
+                              const parsed = parseDateInput(value)
+                              if (parsed) {
+                                setEndDateFilter(parsed)
+                              } else {
+                                // If invalid, try to keep the value but show error
+                                setEndDateFilter('')
+                              }
+                            }
+                          }}
+                          placeholder="dd/mm/yyyy"
                           className="w-full px-3 py-2 border border-gray-300 rounded-md bg-white text-gray-900 focus:outline-none focus:ring-2 focus:ring-teal-500 text-sm md:text-base"
                         />
                       </div>

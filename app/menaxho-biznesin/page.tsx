@@ -1258,7 +1258,11 @@ export default function BusinessPanel() {
                                 disabled={!isEditing}
                               className={`px-2 py-1 border rounded text-xs w-full bg-white ${validationErrors[`service_${index}_duration`] ? 'border-red-500' : 'border-gray-300'}`}
                           >
+                            <option value="5 min">5 min</option>
+                            <option value="10 min">10 min</option>
                             <option value="15 min">15 min</option>
+                            <option value="20 min">20 min</option>
+                            <option value="25 min">25 min</option>
                             <option value="30 min">30 min</option>
                             <option value="45 min">45 min</option>
                             <option value="1 orë">1 orë</option>

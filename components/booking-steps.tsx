@@ -81,8 +81,8 @@ const generateTimeSlots = (operatingHours: any, selectedDate: Date, business: an
   const startMinutes = startHour * 60 + startMin
   const endMinutes = endHour * 60 + endMin
   
-  // Generate 15-minute slots when all slots are free
-  const interval = 15 // 15-minute intervals
+  // Generate 15-minute base slots
+  const interval = 15 // 15-minute base intervals
   const now = new Date()
   const isToday = selectedDate.toDateString() === now.toDateString()
   const currentTime = now.getHours() * 60 + now.getMinutes()
@@ -90,6 +90,9 @@ const generateTimeSlots = (operatingHours: any, selectedDate: Date, business: an
   // Calculate the latest time slot that allows for service completion before closing
   const latestSlotTime = endMinutes - serviceDuration
   
+  const timeSlotsSet = new Set<string>()
+  
+  // Generate base 15-minute slots
   for (let minutes = startMinutes; minutes < endMinutes; minutes += interval) {
     const hour = Math.floor(minutes / 60)
     const min = minutes % 60
@@ -105,10 +108,14 @@ const generateTimeSlots = (operatingHours: any, selectedDate: Date, business: an
       continue
     }
     
-    slots.push(timeString)
+    timeSlotsSet.add(timeString)
   }
   
-  return slots
+  // Add slots at booking end times to utilize remaining time after short bookings
+  // Note: bookings are passed from the component, we'll handle this in the component itself
+  // For now, just return the base slots - the component will add booking end times
+  
+  return Array.from(timeSlotsSet).sort()
 }
 
 // Check if a time slot is in break time
@@ -347,7 +354,7 @@ export function BookingSteps({ business }: BookingStepsProps) {
       const bookingStartTime = booking.appointmentTime
       const bookingDuration = booking.serviceDuration || (() => {
         const service = business.services?.find((s: any) => s.name === booking.serviceName)
-        return service?.duration || 30
+        return parseServiceDuration(service?.duration || 30)
       })()
       
       // Parse times to minutes for easier comparison
@@ -406,6 +413,37 @@ export function BookingSteps({ business }: BookingStepsProps) {
   const parseServiceDuration = (duration: any): number => {
     if (typeof duration === 'number') return duration
     if (typeof duration === 'string') {
+      const durationMap: { [key: string]: number } = {
+        '5 min': 5,
+        '10 min': 10,
+        '15 min': 15,
+        '20 min': 20,
+        '25 min': 25,
+        '30 min': 30,
+        '45 min': 45,
+        '1 orë': 60,
+        '1 orë 15 min': 75,
+        '1 orë 30 min': 90,
+        '1 orë 45 min': 105,
+        '2 orë': 120,
+        '2 orë 15 min': 135,
+        '2 orë 30 min': 150,
+        '2 orë 45 min': 165,
+        '3 orë': 180,
+        '3 orë 15 min': 195,
+        '3 orë 30 min': 210,
+        '3 orë 45 min': 225,
+        '4 orë': 240,
+        '5 orë': 300,
+        '6 orë': 360,
+        '8 orë': 480,
+        '1 ditë': 1440,
+      }
+      // First try exact match
+      if (durationMap[duration]) {
+        return durationMap[duration]
+      }
+      // Fallback: try to extract number (for backwards compatibility)
       const match = duration.match(/\d+/)
       return match ? parseInt(match[0]) : 30
     }
@@ -414,33 +452,95 @@ export function BookingSteps({ business }: BookingStepsProps) {
   
   const serviceDuration = parseServiceDuration(selectedService?.duration)
   
-  const availableTimeSlots = selectedDate ? 
-    generateTimeSlots(business.operating_hours, selectedDate, business, selectedStaff, serviceDuration).filter(time => {
-      // Check basic availability
-      if (isTimeSlotBlocked(selectedDate, time) || hasBookingAtTime(selectedDate, time) || isTimeSlotInBreakTime(time, business, selectedStaff)) {
+  // Generate base 15-minute slots
+  const baseTimeSlots = selectedDate ? 
+    generateTimeSlots(business.operating_hours, selectedDate, business, selectedStaff, serviceDuration) : []
+  
+  // Add slots at booking end times to utilize remaining time after short bookings
+  const timeSlotsSet = new Set(baseTimeSlots)
+  
+  if (selectedDate && bookings.length > 0) {
+    const dateStr = selectedDate.getFullYear() + '-' + 
+                   String(selectedDate.getMonth() + 1).padStart(2, '0') + '-' + 
+                   String(selectedDate.getDate()).padStart(2, '0')
+    
+    // Get operating hours for the selected date
+    const dayNames = ['sunday', 'monday', 'tuesday', 'wednesday', 'thursday', 'friday', 'saturday']
+    const dayOfWeek = dayNames[selectedDate.getDay()]
+    let dayHours = business.operating_hours?.[dayOfWeek]
+    
+    if (selectedStaff && business?.staff) {
+      const staffMember = business.staff.find((s: any) => s.name === selectedStaff.name)
+      if (staffMember?.operatingHours?.[dayOfWeek]) {
+        dayHours = staffMember.operatingHours[dayOfWeek]
+      }
+    }
+    
+    if (dayHours && !dayHours.closed) {
+      const [endHour, endMin] = dayHours.close.split(':').map(Number)
+      const endMinutes = endHour * 60 + endMin
+      const latestSlotTime = endMinutes - serviceDuration
+      const now = new Date()
+      const isToday = selectedDate.toDateString() === now.toDateString()
+      const currentTime = now.getHours() * 60 + now.getMinutes()
+      
+      bookings.forEach(booking => {
+        const bookingDateObj = new Date(booking.appointmentDate)
+        const bookingDate = bookingDateObj.getFullYear() + '-' + 
+                           String(bookingDateObj.getMonth() + 1).padStart(2, '0') + '-' + 
+                           String(bookingDateObj.getDate()).padStart(2, '0')
+        
+        const dateMatch = bookingDate === dateStr
+        const isStaffMatch = !booking.staffName || !selectedStaff || booking.staffName === selectedStaff.name
+        const isNotCancelled = booking.status !== 'CANCELLED'
+        
+        if (dateMatch && isStaffMatch && isNotCancelled) {
+          const bookingStartTime = booking.appointmentTime
+          const bookingDuration = booking.serviceDuration || (() => {
+            const service = business.services?.find((s: any) => s.name === booking.serviceName)
+            return parseServiceDuration(service?.duration || 30)
+          })()
+          
+          // Parse booking end time
+          const [bookingStartHour, bookingStartMin] = bookingStartTime.split(':').map(Number)
+          const bookingStartMinutes = bookingStartHour * 60 + bookingStartMin
+          const bookingEndMinutes = bookingStartMinutes + bookingDuration
+          
+          // Check if booking ends before the next 15-minute slot
+          const next15MinSlot = Math.ceil(bookingEndMinutes / 15) * 15
+          if (bookingEndMinutes < next15MinSlot && bookingEndMinutes < endMinutes) {
+            // Add the booking end time as an available slot
+            const endHour = Math.floor(bookingEndMinutes / 60)
+            const endMin = bookingEndMinutes % 60
+            const endTimeString = `${endHour.toString().padStart(2, '0')}:${endMin.toString().padStart(2, '0')}`
+            
+            // Only add if it's in the future and allows service completion
+            if ((!isToday || bookingEndMinutes > currentTime) && bookingEndMinutes <= latestSlotTime) {
+              timeSlotsSet.add(endTimeString)
+            }
+          }
+        }
+      })
+    }
+  }
+  
+  const availableTimeSlots = Array.from(timeSlotsSet).sort().filter(time => {
+    // Check basic availability
+    if (isTimeSlotBlocked(selectedDate!, time) || hasBookingAtTime(selectedDate!, time) || isTimeSlotInBreakTime(time, business, selectedStaff)) {
+      return false
+    }
+    
+    // Check if service would overlap with break time
+    if (selectedService) {
+      const serviceDuration = parseServiceDuration(selectedService?.duration || 30)
+      
+      if (wouldServiceOverlapWithBreakTime(time, serviceDuration, business, selectedStaff)) {
         return false
       }
-      
-      // Check if service would overlap with break time
-      if (selectedService) {
-        const serviceDuration = (() => {
-          const duration = selectedService?.duration || 30
-          // If duration is a string like "30 min", extract the number
-          if (typeof duration === 'string') {
-            const match = duration.match(/\d+/)
-            return match ? parseInt(match[0]) : 30
-          }
-          // If duration is already a number, use it
-          return typeof duration === 'number' ? duration : 30
-        })()
-        
-        if (wouldServiceOverlapWithBreakTime(time, serviceDuration, business, selectedStaff)) {
-          return false
-        }
-      }
-      
-      return true
-    }) : []
+    }
+    
+    return true
+  })
 
   const isDateDisabled = (date: Date) => {
     const today = startOfDay(new Date())
@@ -526,16 +626,7 @@ export function BookingSteps({ business }: BookingStepsProps) {
         customerPhone: data.customerPhone,
         notes: data.notes || '',
         totalPrice: selectedService?.price ? parseFloat(selectedService.price.toString()) : 0,
-        serviceDuration: (() => {
-          const duration = selectedService?.duration || 30
-          // If duration is a string like "30 min", extract the number
-          if (typeof duration === 'string') {
-            const match = duration.match(/\d+/)
-            return match ? parseInt(match[0]) : 30
-          }
-          // If duration is already a number, use it
-          return typeof duration === 'number' ? duration : 30
-        })()
+        serviceDuration: parseServiceDuration(selectedService?.duration || 30)
       }
 
       console.log('Booking data being sent:', bookingData)

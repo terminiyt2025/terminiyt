@@ -335,9 +335,9 @@ export default function ReservationsPage() {
 
     const startTime = dayHours.open
     const endTime = dayHours.close
-    const interval = 15 // 15-minute intervals
+    const interval = 15 // 15-minute base intervals
 
-    const timeSlots = []
+    const timeSlots = new Set<string>()
     const [startHour, startMinute] = startTime.split(':').map(Number)
     const [endHour, endMinute] = endTime.split(':').map(Number)
 
@@ -351,6 +351,7 @@ export default function ReservationsPage() {
     // Calculate the latest time slot that allows for service completion before closing
     const latestSlotTime = endMinutes - serviceDuration
     
+    // Generate base 15-minute slots
     for (let minutes = startMinutes; minutes < endMinutes; minutes += interval) {
       const hour = Math.floor(minutes / 60)
       const minute = minutes % 60
@@ -366,11 +367,86 @@ export default function ReservationsPage() {
         continue
       }
       
-      timeSlots.push(timeString)
+      timeSlots.add(timeString)
     }
 
-    // Don't filter blocked slots - show them but disable selection
-    return timeSlots
+    // Add slots at booking end times to utilize remaining time after short bookings
+    const dateString = date.getFullYear() + '-' + 
+                      String(date.getMonth() + 1).padStart(2, '0') + '-' + 
+                      String(date.getDate()).padStart(2, '0')
+    
+    bookings.forEach(booking => {
+      const bookingDateObj = new Date(booking.appointmentDate)
+      const bookingDate = bookingDateObj.getFullYear() + '-' + 
+                         String(bookingDateObj.getMonth() + 1).padStart(2, '0') + '-' + 
+                         String(bookingDateObj.getDate()).padStart(2, '0')
+      
+      const dateMatch = bookingDate === dateString
+      const staffMatch = !selectedStaff || selectedStaff === 'all' || booking.staffName === selectedStaff
+      const isNotCancelled = booking.status !== 'CANCELLED'
+      
+      if (dateMatch && staffMatch && isNotCancelled) {
+        const bookingStartTime = booking.appointmentTime
+        const bookingDuration = booking.serviceDuration || getServiceDuration(booking.serviceName)
+        
+        // Parse booking end time
+        const [bookingStartHour, bookingStartMin] = bookingStartTime.split(':').map(Number)
+        const bookingStartMinutes = bookingStartHour * 60 + bookingStartMin
+        const bookingEndMinutes = bookingStartMinutes + bookingDuration
+        
+        // Check if booking ends before the next 15-minute slot
+        const next15MinSlot = Math.ceil(bookingEndMinutes / 15) * 15
+        if (bookingEndMinutes < next15MinSlot && bookingEndMinutes < endMinutes) {
+          // Add the booking end time as an available slot
+          const endHour = Math.floor(bookingEndMinutes / 60)
+          const endMin = bookingEndMinutes % 60
+          const endTimeString = `${endHour.toString().padStart(2, '0')}:${endMin.toString().padStart(2, '0')}`
+          
+          // Only add if it's in the future and allows service completion
+          if ((!isToday || bookingEndMinutes > currentTime) && bookingEndMinutes <= latestSlotTime) {
+            timeSlots.add(endTimeString)
+          }
+        }
+      }
+    })
+
+    // Convert Set to sorted array
+    return Array.from(timeSlots).sort()
+  }
+
+  // Helper function to parse duration string to minutes
+  const parseDurationToMinutes = (duration: any): number => {
+    if (typeof duration === 'number') return duration
+    if (typeof duration === 'string') {
+      const durationMap: { [key: string]: number } = {
+        '5 min': 5,
+        '10 min': 10,
+        '15 min': 15,
+        '20 min': 20,
+        '25 min': 25,
+        '30 min': 30,
+        '45 min': 45,
+        '1 orë': 60,
+        '1 orë 15 min': 75,
+        '1 orë 30 min': 90,
+        '1 orë 45 min': 105,
+        '2 orë': 120,
+        '2 orë 15 min': 135,
+        '2 orë 30 min': 150,
+        '2 orë 45 min': 165,
+        '3 orë': 180,
+        '3 orë 15 min': 195,
+        '3 orë 30 min': 210,
+        '3 orë 45 min': 225,
+        '4 orë': 240,
+        '5 orë': 300,
+        '6 orë': 360,
+        '8 orë': 480,
+        '1 ditë': 1440,
+      }
+      return durationMap[duration] || 30 // Default 30 minutes if not found
+    }
+    return 30 // Default 30 minutes
   }
 
   // Helper function to get service duration in minutes
@@ -378,7 +454,9 @@ export default function ReservationsPage() {
     if (!business?.services) return 30 // Default 30 minutes
     
     const service = business.services.find((s: any) => s.name === serviceName)
-    return service?.duration || 30 // Default 30 minutes if not found
+    if (!service || !service.duration) return 30 // Default 30 minutes if not found
+    
+    return parseDurationToMinutes(service.duration)
   }
 
   // Helper function to calculate end time from start time and duration
@@ -478,18 +556,15 @@ export default function ReservationsPage() {
       
       const [slotHour, slotMin] = timeSlot.split(':').map(Number)
       const slotStartMinutes = slotHour * 60 + slotMin
-      const slotEndMinutes = slotStartMinutes + 15 // 15-minute slot duration
-      
-      // Check if the new booking would overlap with existing booking
-      // Overlap occurs if: new start < existing end AND new end > existing start
-      const isBlocked = slotStartMinutes < bookingEndMinutes && slotEndMinutes > bookingStartMinutes
+      // For blocking slots, we check if the slot time itself falls within an existing booking
+      // A slot is blocked if it falls within the booking time range
+      const isBlocked = slotStartMinutes >= bookingStartMinutes && slotStartMinutes < bookingEndMinutes
       console.log('Time overlap check:', {
         bookingTime: bookingStartTime,
         bookingDuration: bookingDuration,
         bookingEnd: bookingEndMinutes,
         slotTime: timeSlot,
         slotStart: slotStartMinutes,
-        slotEnd: slotEndMinutes,
         isBlocked
       })
       return isBlocked
@@ -653,8 +728,8 @@ export default function ReservationsPage() {
     const startTotalMinutes = startHour * 60 + startMin
     const endTotalMinutes = endHour * 60 + endMin
     
-    // Generate all 15-minute slots within the break time range
-    for (let minutes = startTotalMinutes; minutes < endTotalMinutes; minutes += 15) {
+    // Generate all 5-minute slots within the break time range (matching the new slot generation)
+    for (let minutes = startTotalMinutes; minutes < endTotalMinutes; minutes += 5) {
       const slotHours = Math.floor(minutes / 60)
       const slotMins = minutes % 60
       const slotTime = `${slotHours.toString().padStart(2, '0')}:${slotMins.toString().padStart(2, '0')}`

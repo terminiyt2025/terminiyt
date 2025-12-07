@@ -253,7 +253,11 @@ export async function POST(request: NextRequest) {
 // Helper function to convert duration string to minutes
 function parseDurationToMinutes(duration: string): number {
   const durationMap: { [key: string]: number } = {
+    '5 min': 5,
+    '10 min': 10,
     '15 min': 15,
+    '20 min': 20,
+    '25 min': 25,
     '30 min': 30,
     '45 min': 45,
     '1 orë': 60,
