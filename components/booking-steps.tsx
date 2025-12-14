@@ -687,7 +687,7 @@ export function BookingSteps({ business }: BookingStepsProps) {
                     <img
                       src={business.logo}
                       alt={`${business.name} logo`}
-                      className="w-full h-full object-contain bg-white"
+                      className="w-full h-full object-cover bg-white"
                     />
                   </div>
                 )}

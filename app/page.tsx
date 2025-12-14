@@ -435,7 +435,7 @@ export default function HomePage() {
                     <div className="flex flex-col h-full">
                       {/* Header */}
                       <div>
-                        <h3 className="text-2xl md:text-2xl font-heading font-bold text-slate-800 mb-1 group-hover:bg-gradient-to-r group-hover:from-gray-800 group-hover:to-teal-800 group-hover:bg-clip-text group-hover:text-transparent transition-all duration-300">
+                        <h3 className="text-xl md:text-xl font-heading font-bold text-slate-800 mb-1 group-hover:bg-gradient-to-r group-hover:from-gray-800 group-hover:to-teal-800 group-hover:bg-clip-text group-hover:text-transparent transition-all duration-300 truncate" title={provider.name}>
                           {provider.name}
                         </h3>
                       </div>
@@ -444,7 +444,7 @@ export default function HomePage() {
                       <div className="py-2 rounded-lg flex-1">
                         <div className="space-y-3">
                           <div className="flex items-center gap-3">
-                            <MapPin className="w-5 h-5 text-gray-600 flex-shrink-0" />
+                            <MapPin className="w-4 h-4 text-gray-600 flex-shrink-0" />
                             <span className="text-slate-600 text-sm  truncate">
                               {provider.address || "Address not provided"} - {provider.city}
                             </span>
@@ -457,7 +457,7 @@ export default function HomePage() {
                           </div>
                           {provider.displayDistance && (
                             <div className="flex items-center gap-3">
-                              <Navigation className="w-5 h-5 text-gray-600 flex-shrink-0" />
+                              <Navigation className="w-4 h-4 text-gray-600 flex-shrink-0" />
                               <span className="text-slate-600 text-sm ">{provider.displayDistance}</span>
                               {provider.calculatedDistance && (
                                 <Badge variant="outline" className="text-sm md:text-xs bg-teal-800/40 backdrop-blur-sm text-transparent bg-clip-text bg-gradient-to-br from-gray-800 to-teal-800 border-gradient-to-br border-from-gray-800 border-to-teal-800">
