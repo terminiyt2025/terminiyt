@@ -520,9 +520,9 @@ export default function HomePage() {
                           <Button
                             onClick={() => setShowAllCards(!showAllCards)}
                             variant="outline"
-                            className="px-8 py-2 border-slate-300 hover:border-teal-800 focus:border-teal-800 transition-all duration-300"
+                            className="px-8 py-2 border-slate-300 hover:bg-white focus:bg-white hover:text-slate-700 focus:text-slate-700 text-slate-700 hover:border-teal-800 focus:border-teal-800 transition-all duration-300"
                           >
-                            {showAllCards ? 'Show Less' : `Show More (${filteredProviders.length - 12} more)`}
+                            {showAllCards ? 'Shiko më pak' : `Shiko më shumë`}
                           </Button>
                         </div>
                       )}
