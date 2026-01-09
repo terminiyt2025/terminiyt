@@ -55,6 +55,8 @@ export default function HomePage() {
   const [isTouching, setIsTouching] = useState(false)
   const [isDragging, setIsDragging] = useState(false)
   const [screenWidth, setScreenWidth] = useState(0)
+  const [touchStartX, setTouchStartX] = useState(0)
+  const [touchCurrentX, setTouchCurrentX] = useState(0)
   const sliderRef = useRef<HTMLDivElement>(null)
   const autoScrollIntervalRef = useRef<NodeJS.Timeout | null>(null)
 
@@ -80,9 +82,12 @@ export default function HomePage() {
     setIsCityDropdownOpen(false)
   }
 
-  // Handle touch events for mobile slider
+  // Handle touch events for mobile slider with swipe functionality
   const handleTouchStart = (e: React.TouchEvent<HTMLDivElement>) => {
     if (!sliderRef.current) return
+    const touch = e.touches[0]
+    setTouchStartX(touch.clientX)
+    setTouchCurrentX(touch.clientX)
     setIsTouching(true)
     setIsDragging(true)
     setIsAutoScrolling(false)
@@ -91,12 +96,51 @@ export default function HomePage() {
     }
   }
 
+  const handleTouchMove = (e: React.TouchEvent<HTMLDivElement>) => {
+    if (!isTouching || !sliderRef.current) return
+    e.preventDefault() // Prevent scrolling
+    const touch = e.touches[0]
+    // Use requestAnimationFrame for smoother updates
+    requestAnimationFrame(() => {
+      setTouchCurrentX(touch.clientX)
+    })
+  }
+
   const handleTouchEnd = () => {
-    setIsTouching(false)
-    // Keep dragging state for a moment to prevent immediate transition
-    setTimeout(() => {
-      setIsDragging(false)
-    }, 100)
+    if (!sliderRef.current) return
+    
+    const swipeDistance = touchStartX - touchCurrentX
+    const swipeThreshold = screenWidth > 0 ? screenWidth * 0.15 : 50 // 15% of screen width
+    const providers = showAllCards ? filteredProviders : filteredProviders.slice(0, 12)
+    const maxSlide = providers.length - 1
+
+    // Only move one card at a time
+    if (Math.abs(swipeDistance) > swipeThreshold) {
+      if (swipeDistance > 0) {
+        // Swiped left - go to next slide (only one)
+        setCurrentSlide((prev) => {
+          const next = Math.min(prev + 1, maxSlide)
+          return next
+        })
+      } else {
+        // Swiped right - go to previous slide (only one)
+        setCurrentSlide((prev) => {
+          const prevSlide = Math.max(prev - 1, 0)
+          return prevSlide
+        })
+      }
+    }
+
+    // Smooth transition to final position
+    requestAnimationFrame(() => {
+      setIsTouching(false)
+      setTouchStartX(0)
+      setTouchCurrentX(0)
+      // Keep dragging state for a moment to prevent immediate transition
+      setTimeout(() => {
+        setIsDragging(false)
+      }, 10)
+    })
     // Resume auto-scroll after 5 seconds of no touch
     setTimeout(() => {
       setIsAutoScrolling(true)
@@ -104,6 +148,8 @@ export default function HomePage() {
   }
 
   const handleMouseDown = (e: React.MouseEvent<HTMLDivElement>) => {
+    setTouchStartX(e.clientX)
+    setTouchCurrentX(e.clientX)
     setIsTouching(true)
     setIsDragging(true)
     setIsAutoScrolling(false)
@@ -112,12 +158,50 @@ export default function HomePage() {
     }
   }
 
+  const handleMouseMove = (e: React.MouseEvent<HTMLDivElement>) => {
+    if (!isTouching) return
+    e.preventDefault() // Prevent text selection
+    // Use requestAnimationFrame for smoother updates
+    requestAnimationFrame(() => {
+      setTouchCurrentX(e.clientX)
+    })
+  }
+
   const handleMouseUp = () => {
-    setIsTouching(false)
-    // Keep dragging state for a moment to prevent immediate transition
-    setTimeout(() => {
-      setIsDragging(false)
-    }, 100)
+    if (!sliderRef.current) return
+    
+    const swipeDistance = touchStartX - touchCurrentX
+    const swipeThreshold = screenWidth > 0 ? screenWidth * 0.15 : 50 // 15% of screen width
+    const providers = showAllCards ? filteredProviders : filteredProviders.slice(0, 12)
+    const maxSlide = providers.length - 1
+
+    // Only move one card at a time
+    if (Math.abs(swipeDistance) > swipeThreshold) {
+      if (swipeDistance > 0) {
+        // Swiped left - go to next slide (only one)
+        setCurrentSlide((prev) => {
+          const next = Math.min(prev + 1, maxSlide)
+          return next
+        })
+      } else {
+        // Swiped right - go to previous slide (only one)
+        setCurrentSlide((prev) => {
+          const prevSlide = Math.max(prev - 1, 0)
+          return prevSlide
+        })
+      }
+    }
+
+    // Smooth transition to final position
+    requestAnimationFrame(() => {
+      setIsTouching(false)
+      setTouchStartX(0)
+      setTouchCurrentX(0)
+      // Keep dragging state for a moment to prevent immediate transition
+      setTimeout(() => {
+        setIsDragging(false)
+      }, 10)
+    })
     // Resume auto-scroll after 5 seconds
     setTimeout(() => {
       setIsAutoScrolling(true)
@@ -465,8 +549,8 @@ export default function HomePage() {
       </section>
 
       {/* Service Provider Cards Section */}
-      <section className="px-[15px] md:px-4 bg-gray-50 pb-20">
-        <div className="container mx-auto">
+      <section className="px-[15px] md:px-4 bg-gray-50 pb-20" style={{ overflowX: 'visible' }}>
+        <div className="container mx-auto" style={{ overflowX: 'visible' }}>
           
           {loading ? (
             <div className="flex justify-center items-center py-20">
@@ -622,27 +706,40 @@ export default function HomePage() {
 
                       {/* Mobile Slider View */}
                       <div 
-                        className="md:hidden overflow-x-hidden -mx-4 px-4"
+                        className="md:hidden"
+                        style={{ 
+                          overflowX: 'visible',
+                          overflow: 'visible',
+                          width: '100%',
+                          position: 'relative'
+                        }}
                         onTouchStart={handleTouchStart}
+                        onTouchMove={handleTouchMove}
                         onTouchEnd={handleTouchEnd}
                         onMouseDown={handleMouseDown}
+                        onMouseMove={handleMouseMove}
                         onMouseUp={handleMouseUp}
+                        onMouseLeave={handleMouseUp}
                       >
                         <div 
                           ref={sliderRef}
-                          className="flex gap-4 overflow-hidden"
+                          className="flex gap-4"
                           style={{
                             transform: screenWidth > 0 
-                              ? `translateX(calc(${screenWidth * 0.1}px - ${currentSlide} * (${screenWidth * 0.8}px + 1rem)))` 
+                              ? `translateX(calc(-${currentSlide} * (${screenWidth * 0.8}px + 1rem) + ${isTouching ? (touchStartX - touchCurrentX) : 0}px))` 
                               : 'translateX(0)',
-                            transition: isDragging ? 'none' : 'transform 0.8s ease-in-out'
+                            transition: isDragging ? 'none' : 'transform 0.4s cubic-bezier(0.25, 0.46, 0.45, 0.94)',
+                            willChange: 'transform',
+                            width: 'max-content',
+                            paddingLeft: '1rem',
+                            paddingRight: '1rem'
                           }}
                         >
                           {(showAllCards ? filteredProviders : filteredProviders.slice(0, 12)).map((provider, index) => (
                             <div
                               key={provider.id}
                               className="flex-shrink-0"
-                              style={{ width: '80%' }}
+                              style={{ width: `${screenWidth > 0 ? screenWidth * 0.8 : '80%'}px` }}
                               onClick={() => handleCardClick(index)}
                             >
                               <Card className="group hover:shadow-2xl transition-all duration-300 hover:-translate-y-1 bg-white border-0 shadow-lg overflow-hidden py-0 px-0 w-full">

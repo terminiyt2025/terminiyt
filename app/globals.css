@@ -400,6 +400,13 @@ main {
     box-sizing: border-box;
   }
   
+  /* Allow overflow for mobile slider */
+  section[style*="overflowX: visible"],
+  .container[style*="overflowX: visible"] {
+    overflow-x: visible !important;
+    overflow: visible !important;
+  }
+  
   /* Prevent fixed width elements from causing overflow */
   .map-container {
     width: calc(100vw - 30px) !important;
