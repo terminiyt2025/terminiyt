@@ -129,31 +129,35 @@ export default function HomePage() {
 
     // Only move one card at a time with smooth transition
     if (Math.abs(swipeDistance) > swipeThreshold) {
-      if (swipeDistance > 0) {
-        // Swiped left - go to next slide (only one)
-        setCurrentSlide((prev) => {
-          const next = Math.min(prev + 1, maxSlide)
-          return next
-        })
-      } else {
-        // Swiped right - go to previous slide (only one)
-        setCurrentSlide((prev) => {
-          const prevSlide = Math.max(prev - 1, 0)
-          return prevSlide
-        })
-      }
-    }
-
-    // Smooth transition to final position
-    requestAnimationFrame(() => {
+      // First, stop dragging to enable transition
+      setIsDragging(false)
       setIsTouching(false)
       setTouchStartX(0)
       setTouchCurrentX(0)
-      // Keep dragging state for a moment to allow smooth transition
+      
+      // Then update slide after a tiny delay to ensure transition works
       setTimeout(() => {
-        setIsDragging(false)
-      }, 50)
-    })
+        if (swipeDistance > 0) {
+          // Swiped left - go to next slide (only one)
+          setCurrentSlide((prev) => {
+            const next = Math.min(prev + 1, maxSlide)
+            return next
+          })
+        } else {
+          // Swiped right - go to previous slide (only one)
+          setCurrentSlide((prev) => {
+            const prevSlide = Math.max(prev - 1, 0)
+            return prevSlide
+          })
+        }
+      }, 10)
+    } else {
+      // If swipe wasn't enough, just reset
+      setIsTouching(false)
+      setTouchStartX(0)
+      setTouchCurrentX(0)
+      setIsDragging(false)
+    }
     // Resume auto-scroll after 5 seconds of no touch
     setTimeout(() => {
       setIsAutoScrolling(true)
@@ -203,31 +207,35 @@ export default function HomePage() {
 
     // Only move one card at a time with smooth transition
     if (Math.abs(swipeDistance) > swipeThreshold) {
-      if (swipeDistance > 0) {
-        // Swiped left - go to next slide (only one)
-        setCurrentSlide((prev) => {
-          const next = Math.min(prev + 1, maxSlide)
-          return next
-        })
-      } else {
-        // Swiped right - go to previous slide (only one)
-        setCurrentSlide((prev) => {
-          const prevSlide = Math.max(prev - 1, 0)
-          return prevSlide
-        })
-      }
-    }
-
-    // Smooth transition to final position
-    requestAnimationFrame(() => {
+      // First, stop dragging to enable transition
+      setIsDragging(false)
       setIsTouching(false)
       setTouchStartX(0)
       setTouchCurrentX(0)
-      // Keep dragging state for a moment to allow smooth transition
+      
+      // Then update slide after a tiny delay to ensure transition works
       setTimeout(() => {
-        setIsDragging(false)
-      }, 50)
-    })
+        if (swipeDistance > 0) {
+          // Swiped left - go to next slide (only one)
+          setCurrentSlide((prev) => {
+            const next = Math.min(prev + 1, maxSlide)
+            return next
+          })
+        } else {
+          // Swiped right - go to previous slide (only one)
+          setCurrentSlide((prev) => {
+            const prevSlide = Math.max(prev - 1, 0)
+            return prevSlide
+          })
+        }
+      }, 10)
+    } else {
+      // If swipe wasn't enough, just reset
+      setIsTouching(false)
+      setTouchStartX(0)
+      setTouchCurrentX(0)
+      setIsDragging(false)
+    }
     // Resume auto-scroll after 5 seconds
     setTimeout(() => {
       setIsAutoScrolling(true)
