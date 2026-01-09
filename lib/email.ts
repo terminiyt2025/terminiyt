@@ -66,7 +66,9 @@ export const emailTemplates = {
         
         <h3 style="font-size: 18px; margin-bottom: 20px;">📅 Detajet e Rezervimit:</h3>
         <p style="margin: 10px 0;"><strong> Biznesi:</strong> ${bookingData.businessName}</p>
-        <p style="margin: 10px 0;"><strong> Shërbimi:</strong> ${bookingData.serviceName}</p>
+        <p style="margin: 10px 0;"><strong> Shërbimi${bookingData.services && bookingData.services.length > 1 ? 'et' : ''}:</strong> ${bookingData.services && Array.isArray(bookingData.services) && bookingData.services.length > 0 
+          ? bookingData.services.map((s: any) => s.name).join(', ')
+          : bookingData.serviceName}</p>
         <p style="margin: 10px 0;"><strong> Stafi:</strong> ${bookingData.staffName}</p>
         <p style="margin: 10px 0;"><strong> Data:</strong> ${bookingData.date}</p>
         <p style="margin: 10px 0;"><strong> Ora:</strong> ${bookingData.time}</p>
@@ -127,7 +129,9 @@ export const emailTemplates = {
         <p style="margin: 10px 0;"><strong> Telefon:</strong> ${bookingData.customerPhone}</p>
         
         <h3 style="font-size: 18px; margin: 30px 0 20px 0;">📅 Detajet e Rezervimit:</h3>
-        <p style="margin: 10px 0;"><strong> Shërbimi:</strong> ${bookingData.serviceName}</p>
+        <p style="margin: 10px 0;"><strong> Shërbimi${bookingData.services && bookingData.services.length > 1 ? 'et' : ''}:</strong> ${bookingData.services && Array.isArray(bookingData.services) && bookingData.services.length > 0 
+          ? bookingData.services.map((s: any) => s.name).join(', ')
+          : bookingData.serviceName}</p>
         <p style="margin: 10px 0;"><strong> Data:</strong> ${bookingData.date}</p>
         <p style="margin: 10px 0;"><strong> Ora:</strong> ${bookingData.time}</p>
         <p style="margin: 10px 0;"><strong> Kohëzgjatja:</strong> ${bookingData.duration} minuta</p>
@@ -160,7 +164,9 @@ export const emailTemplates = {
       Telefon: ${bookingData.customerPhone}
       
       📅 Detajet e Rezervimit:
-      Shërbimi: ${bookingData.serviceName}
+      Shërbimi${bookingData.services && bookingData.services.length > 1 ? 'et' : ''}: ${bookingData.services && Array.isArray(bookingData.services) && bookingData.services.length > 0 
+        ? bookingData.services.map((s: any) => s.name).join(', ')
+        : bookingData.serviceName}
       Data: ${bookingData.date}
       Ora: ${bookingData.time}
       Kohëzgjatja: ${bookingData.duration} minuta
@@ -193,7 +199,9 @@ export const emailTemplates = {
         <p style="margin: 10px 0;"><strong> Telefon:</strong> ${bookingData.customerPhone}</p>
         
         <h3 style="font-size: 18px; margin: 30px 0 20px 0;">📅 Detajet e Rezervimit të Anuluar:</h3>
-        <p style="margin: 10px 0;"><strong> Shërbimi:</strong> ${bookingData.serviceName}</p>
+        <p style="margin: 10px 0;"><strong> Shërbimi${bookingData.services && bookingData.services.length > 1 ? 'et' : ''}:</strong> ${bookingData.services && Array.isArray(bookingData.services) && bookingData.services.length > 0 
+          ? bookingData.services.map((s: any) => s.name).join(', ')
+          : bookingData.serviceName}</p>
         <p style="margin: 10px 0;"><strong> Stafi:</strong> ${bookingData.staffName}</p>
         <p style="margin: 10px 0;"><strong> Data:</strong> ${bookingData.date}</p>
         <p style="margin: 10px 0;"><strong> Ora:</strong> ${bookingData.time}</p>
@@ -226,7 +234,9 @@ export const emailTemplates = {
       Telefon: ${bookingData.customerPhone}
       
       📅 Detajet e Rezervimit të Anuluar:
-      Shërbimi: ${bookingData.serviceName}
+      Shërbimi${bookingData.services && bookingData.services.length > 1 ? 'et' : ''}: ${bookingData.services && Array.isArray(bookingData.services) && bookingData.services.length > 0 
+        ? bookingData.services.map((s: any) => s.name).join(', ')
+        : bookingData.serviceName}
       Stafi: ${bookingData.staffName}
       Data: ${bookingData.date}
       Ora: ${bookingData.time}
@@ -254,7 +264,9 @@ export const emailTemplates = {
         
         <h3 style="font-size: 18px; margin-bottom: 20px;">📅 Detajet e Rezervimit të Anuluar:</h3>
         <p style="margin: 10px 0;"><strong> Biznesi:</strong> ${bookingData.businessName}</p>
-        <p style="margin: 10px 0;"><strong> Shërbimi:</strong> ${bookingData.serviceName}</p>
+        <p style="margin: 10px 0;"><strong> Shërbimi${bookingData.services && bookingData.services.length > 1 ? 'et' : ''}:</strong> ${bookingData.services && Array.isArray(bookingData.services) && bookingData.services.length > 0 
+          ? bookingData.services.map((s: any) => s.name).join(', ')
+          : bookingData.serviceName}</p>
         <p style="margin: 10px 0;"><strong> Stafi:</strong> ${bookingData.staffName}</p>
         <p style="margin: 10px 0;"><strong> Data:</strong> ${bookingData.date}</p>
         <p style="margin: 10px 0;"><strong> Ora:</strong> ${bookingData.time}</p>
@@ -283,7 +295,9 @@ export const emailTemplates = {
       
       📅 Detajet e Rezervimit të Anuluar:
       Biznesi: ${bookingData.businessName}
-      Shërbimi: ${bookingData.serviceName}
+      Shërbimi${bookingData.services && bookingData.services.length > 1 ? 'et' : ''}: ${bookingData.services && Array.isArray(bookingData.services) && bookingData.services.length > 0 
+        ? bookingData.services.map((s: any) => s.name).join(', ')
+        : bookingData.serviceName}
       Stafi: ${bookingData.staffName}
       Data: ${bookingData.date}
       Ora: ${bookingData.time}
@@ -311,7 +325,9 @@ export const emailTemplates = {
         
         <h3 style="font-size: 18px; margin-bottom: 20px;">📅 Detajet e Rezervimit:</h3>
         <p style="margin: 10px 0;"><strong> Biznesi:</strong> ${bookingData.businessName}</p>
-        <p style="margin: 10px 0;"><strong> Shërbimi:</strong> ${bookingData.serviceName}</p>
+        <p style="margin: 10px 0;"><strong> Shërbimi${bookingData.services && bookingData.services.length > 1 ? 'et' : ''}:</strong> ${bookingData.services && Array.isArray(bookingData.services) && bookingData.services.length > 0 
+          ? bookingData.services.map((s: any) => s.name).join(', ')
+          : bookingData.serviceName}</p>
         <p style="margin: 10px 0;"><strong> Stafi:</strong> ${bookingData.staffName}</p>
         <p style="margin: 10px 0;"><strong> Data:</strong> ${bookingData.date}</p>
         <p style="margin: 10px 0;"><strong> Ora:</strong> ${bookingData.time}</p>

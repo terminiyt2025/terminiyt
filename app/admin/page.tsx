@@ -1879,9 +1879,25 @@ export default function AdminDashboard() {
                               </span>
                             </td>
                             <td className="py-3 px-0 sm:px-4 mr-2 sm:mr-0">
-                              <span className="whitespace-nowrap truncate block" title={booking.service_name || 'N/A'}>
-                                {booking.service_name || 'N/A'}
-                              </span>
+                              <div className="whitespace-nowrap truncate block" title={(() => {
+                                try {
+                                  const parsed = JSON.parse(booking.service_name || '[]')
+                                  if (Array.isArray(parsed)) {
+                                    return parsed.join(', ')
+                                  }
+                                } catch {}
+                                return booking.service_name || 'N/A'
+                              })()}>
+                                {(() => {
+                                  try {
+                                    const parsed = JSON.parse(booking.service_name || '[]')
+                                    if (Array.isArray(parsed) && parsed.length > 0) {
+                                      return parsed.join(', ')
+                                    }
+                                  } catch {}
+                                  return booking.service_name || 'N/A'
+                                })()}
+                              </div>
                             </td>
                             <td className="py-3 px-0 sm:px-4 mr-2 sm:mr-0">
                               <div>

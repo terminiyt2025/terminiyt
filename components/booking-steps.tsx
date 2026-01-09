@@ -216,7 +216,7 @@ const wouldServiceOverlapWithBreakTime = (startTime: string, serviceDuration: nu
 
 export function BookingSteps({ business }: BookingStepsProps) {
   const [currentStep, setCurrentStep] = useState(1)
-  const [selectedService, setSelectedService] = useState<any>(null)
+  const [selectedServices, setSelectedServices] = useState<any[]>([])
   const [selectedStaff, setSelectedStaff] = useState<any>(null)
   const [selectedDate, setSelectedDate] = useState<Date>()
   const [selectedTime, setSelectedTime] = useState<string>("")
@@ -450,7 +450,24 @@ export function BookingSteps({ business }: BookingStepsProps) {
     return 30
   }
   
-  const serviceDuration = parseServiceDuration(selectedService?.duration)
+  // Calculate total duration for all selected services
+  const calculateTotalDuration = () => {
+    if (selectedServices.length === 0) return 30
+    return selectedServices.reduce((total, service) => {
+      return total + parseServiceDuration(service?.duration || 30)
+    }, 0)
+  }
+  
+  // Calculate total price for all selected services
+  const calculateTotalPrice = () => {
+    if (selectedServices.length === 0) return 0
+    return selectedServices.reduce((total, service) => {
+      const price = service?.price ? parseFloat(service.price.toString()) : 0
+      return total + price
+    }, 0)
+  }
+  
+  const serviceDuration = calculateTotalDuration()
   
   // Generate base 15-minute slots
   const baseTimeSlots = selectedDate ? 
@@ -531,9 +548,7 @@ export function BookingSteps({ business }: BookingStepsProps) {
     }
     
     // Check if service would overlap with break time
-    if (selectedService) {
-      const serviceDuration = parseServiceDuration(selectedService?.duration || 30)
-      
+    if (selectedServices.length > 0) {
       if (wouldServiceOverlapWithBreakTime(time, serviceDuration, business, selectedStaff)) {
         return false
       }
@@ -589,12 +604,45 @@ export function BookingSteps({ business }: BookingStepsProps) {
   }
 
   const handleServiceSelect = (service: any) => {
-    setSelectedService(service)
+    // If staff is selected, check if service is available for that staff
+    if (selectedStaff) {
+      if (!isServiceAvailableForStaff(service, selectedStaff)) {
+        toast({
+          title: "Shërbimi nuk disponohet",
+          description: `${service.name} nuk ofrohet nga ${selectedStaff.name}. Ju lutemi zgjidhni një shërbim tjetër ose staf tjetër.`,
+          variant: "destructive",
+        })
+        return // Don't allow selection
+      }
+    }
     
-    // Always reset staff selection to allow user to choose
-    setSelectedStaff(null)
+    // Toggle service selection
+    const isSelected = selectedServices.some(s => s.name === service.name)
+    if (isSelected) {
+      // Remove service if already selected
+      setSelectedServices(selectedServices.filter(s => s.name !== service.name))
+    } else {
+      // Add service if not selected
+      setSelectedServices([...selectedServices, service])
+    }
     
-    // Stay in step 1 to show staff selection
+    // Reset staff selection when services change (only if staff was selected first)
+    if (selectedStaff) {
+      // Check if staff can still handle all selected services after this change
+      const newServices = isSelected 
+        ? selectedServices.filter(s => s.name !== service.name)
+        : [...selectedServices, service]
+      
+      const canHandleAll = newServices.every(s => isServiceAvailableForStaff(s, selectedStaff))
+      if (!canHandleAll) {
+        setSelectedStaff(null)
+        toast({
+          title: "Stafi u resetuar",
+          description: "Stafi i zgjedhur nuk mund të ofrojë të gjitha shërbimet e zgjedhura.",
+          variant: "default",
+        })
+      }
+    }
   }
 
   const handleDateSelect = (date: Date | undefined) => {
@@ -614,10 +662,10 @@ export function BookingSteps({ business }: BookingStepsProps) {
     console.log("Business ID:", business?.id)
 
     try {
-      // Create booking data
+      // Create booking data with multiple services
       const bookingData = {
         businessId: business.id,
-        serviceName: selectedService?.name || '',
+        serviceName: JSON.stringify(selectedServices.map(s => ({ name: s.name, price: s.price || 0, duration: s.duration || '30 min' }))),
         staffName: selectedStaff?.name || '',
         appointmentDate: format(selectedDate!, "yyyy-MM-dd"),
         appointmentTime: selectedTime,
@@ -625,8 +673,8 @@ export function BookingSteps({ business }: BookingStepsProps) {
         customerEmail: data.customerEmail,
         customerPhone: data.customerPhone,
         notes: data.notes || '',
-        totalPrice: selectedService?.price ? parseFloat(selectedService.price.toString()) : 0,
-        serviceDuration: parseServiceDuration(selectedService?.duration || 30)
+        totalPrice: calculateTotalPrice(),
+        serviceDuration: serviceDuration
       }
 
       console.log('Booking data being sent:', bookingData)
@@ -654,10 +702,10 @@ export function BookingSteps({ business }: BookingStepsProps) {
       })
 
       // Redirect to confirmation page
-      const serviceName = selectedService?.name || ''
+      const serviceNames = selectedServices.map(s => s.name).join(', ')
       const staffName = selectedStaff?.name || ''
       router.push(
-        `/booking-confirmation?business=${encodeURIComponent(business.name)}&date=${format(selectedDate!, "yyyy-MM-dd")}&time=${encodeURIComponent(selectedTime)}&service=${encodeURIComponent(serviceName)}&staff=${encodeURIComponent(staffName)}&bookingId=${result.id}`,
+        `/booking-confirmation?business=${encodeURIComponent(business.name)}&date=${format(selectedDate!, "yyyy-MM-dd")}&time=${encodeURIComponent(selectedTime)}&service=${encodeURIComponent(serviceNames)}&staff=${encodeURIComponent(staffName)}&bookingId=${result.id}`,
       )
     } catch (error) {
       console.error('Booking error:', error)
@@ -672,7 +720,44 @@ export function BookingSteps({ business }: BookingStepsProps) {
     }
   }
 
+  // Check if a service is available for a specific staff member
+  const isServiceAvailableForStaff = (service: any, staffMember: any) => {
+    if (!staffMember || staffMember.isActive === false) return false
+    // If staff has no services defined, they can handle all services
+    if (!staffMember.services || staffMember.services.length === 0) return true
+    // Check if staff can handle this service
+    return staffMember.services.some((s: any) => 
+      typeof s === 'string' ? s === service.name : s.name === service.name
+    )
+  }
+
+  // Check if all selected services are available for selected staff
+  const areAllServicesAvailableForStaff = () => {
+    if (!selectedStaff || selectedServices.length === 0) return true
+    return selectedServices.every(service => 
+      isServiceAvailableForStaff(service, selectedStaff)
+    )
+  }
+
+  // Calculate available staff for selected services (used in multiple places)
+  const getAvailableStaff = () => {
+    if (selectedServices.length === 0) return []
+    return business.staff?.filter((member: any) => {
+      if (member.isActive === false) return false
+      // If staff has no services defined, they can handle all services
+      if (!member.services || member.services.length === 0) return true
+      // Check if staff can handle all selected services
+      return selectedServices.every(selectedService => 
+        member.services?.some((s: any) => 
+          typeof s === 'string' ? s === selectedService.name : s.name === selectedService.name
+        )
+      )
+    }) || []
+  }
+
   const renderStepContent = () => {
+    const availableStaff = getAvailableStaff()
+    
     switch (currentStep) {
       case 1:
         return (
@@ -717,14 +802,24 @@ export function BookingSteps({ business }: BookingStepsProps) {
             </div>
 
             {/* Service Selection */}
-            {!selectedService && (
-              <div className="text-center">
-                <h3 className="text-sm md:text-lg font-bold text-gray-900 mb-1">Zgjidhni shërbimin që dëshironi të rezervoni</h3>
-              </div>
-            )}
+            <div className="text-center">
+              <h3 className="text-sm md:text-lg font-bold text-gray-900 mb-1">
+                {selectedServices.length === 0 
+                  ? "Zgjidhni shërbimin/shërbimet që dëshironi të rezervoni" 
+                  : `Shërbime të zgjedhura: ${selectedServices.length}`}
+              </h3>
+              {selectedServices.length > 0 && (
+                <p className="text-xs text-gray-600 mt-1">Mund të zgjidhni më shumë shërbime</p>
+              )}
+              {selectedStaff && !selectedServices.length && (
+                <p className="text-xs text-teal-700 mt-1 font-medium">
+                  Shërbimet e disponueshme për {selectedStaff.name} janë të shënuara me ngjyrë jeshile
+                </p>
+              )}
+            </div>
 
-            {/* Service Options - Only show if no service selected */}
-            {!selectedService && (
+            {/* Service Options */}
+            {(
               <div className={`grid gap-3 ${
                 business.services?.length === 1 
                   ? 'grid-cols-1 max-w-md mx-auto' 
@@ -733,36 +828,99 @@ export function BookingSteps({ business }: BookingStepsProps) {
                     : 'grid-cols-1 md:grid-cols-2'
               }`}>
                 {business.services && business.services.length > 0 ? (
-                  business.services.map((service: any, index: number) => (
+                  business.services.map((service: any, index: number) => {
+                    const isSelected = selectedServices.some(s => s.name === service.name)
+                    const isAvailable = !selectedStaff || isServiceAvailableForStaff(service, selectedStaff)
+                    const isDisabled = selectedStaff && !isAvailable
+                    const isAvailableForSelectedStaff = selectedStaff && isAvailable && !isSelected
+                    
+                    return (
                     <Card 
                       key={index} 
-                      className="cursor-pointer hover:shadow-lg transition-all duration-300 border-2 border-gray-200 hover:border-transparent hover:scale-[1.02] bg-gradient-to-br from-white to-gray-50 relative"
+                      className={`transition-all duration-300 border-2 relative ${
+                        isDisabled 
+                          ? 'opacity-60 cursor-not-allowed border-red-300 bg-red-50'
+                          : isSelected
+                            ? 'cursor-pointer hover:shadow-lg hover:scale-[1.02] border-transparent bg-gradient-to-br from-white to-gray-50'
+                            : isAvailableForSelectedStaff
+                              ? 'cursor-pointer hover:shadow-lg hover:scale-[1.02] border-green-300 bg-green-50'
+                              : 'cursor-pointer hover:shadow-lg hover:scale-[1.02] border-gray-200 hover:border-transparent bg-gradient-to-br from-white to-gray-50'
+                      }`}
                       style={{
-                        background: 'linear-gradient(white, #f9fafb) padding-box, linear-gradient(to right, #1f2937, #0f766e) border-box'
+                        background: isDisabled 
+                          ? 'linear-gradient(to bottom right, #fef2f2, #fee2e2)'
+                          : isSelected
+                            ? 'linear-gradient(white, #f9fafb) padding-box, linear-gradient(to right, #1f2937, #0f766e) border-box'
+                            : isAvailableForSelectedStaff
+                              ? 'linear-gradient(to bottom right, #f0fdf4, #dcfce7)'
+                              : 'linear-gradient(to bottom right, white, #f9fafb)'
                       }}
                       onMouseEnter={(e) => {
-                        e.currentTarget.style.background = 'linear-gradient(white, #f9fafb) padding-box, linear-gradient(to right, #1f2937, #0f766e) border-box'
+                        if (!isDisabled && !isSelected) {
+                          if (isAvailableForSelectedStaff) {
+                            e.currentTarget.style.background = 'linear-gradient(to bottom right, #dcfce7, #bbf7d0)'
+                          } else {
+                            e.currentTarget.style.background = 'linear-gradient(white, #f9fafb) padding-box, linear-gradient(to right, #1f2937, #0f766e) border-box'
+                          }
+                        }
                       }}
                       onMouseLeave={(e) => {
-                        e.currentTarget.style.background = 'linear-gradient(to bottom right, white, #f9fafb)'
-                        e.currentTarget.style.border = '2px solid #e5e7eb'
+                        if (!isDisabled && !isSelected) {
+                          if (isAvailableForSelectedStaff) {
+                            e.currentTarget.style.background = 'linear-gradient(to bottom right, #f0fdf4, #dcfce7)'
+                          } else {
+                            e.currentTarget.style.background = 'linear-gradient(to bottom right, white, #f9fafb)'
+                            e.currentTarget.style.border = '2px solid #e5e7eb'
+                          }
+                        }
                       }}
-                      onClick={() => handleServiceSelect(service)}
+                      onClick={() => !isDisabled && handleServiceSelect(service)}
                     >
                       <CardContent >
                         <div>
                           {/* Service Header */}
                           <div className="flex items-start justify-between">
                             <div className="flex-1">
-                              <h4 className="text-md md:text-lg font-bold text-gray-900 ">{service.name}</h4>
+                              <div className="flex items-center gap-2">
+                                <h4 className={`text-md md:text-lg font-bold ${
+                                  isDisabled 
+                                    ? 'text-red-700' 
+                                    : isAvailableForSelectedStaff
+                                      ? 'text-green-800'
+                                      : 'text-gray-900'
+                                }`}>{service.name}</h4>
+                                {isSelected && (
+                                  <div className="w-5 h-5 bg-custom-gradient rounded-full flex items-center justify-center">
+                                    <Check className="w-3 h-3 text-white" />
+                                  </div>
+                                )}
+                                {isAvailableForSelectedStaff && (
+                                  <Badge className="bg-green-100 text-green-800 border-green-300 text-xs">
+                                    Disponueshëm
+                                  </Badge>
+                                )}
+                              </div>
                               {service.description && (
-                                <p className="text-sm text-gray-600">{service.description}</p>
+                                <p className={`text-sm ${isDisabled ? 'text-red-600' : 'text-gray-600'}`}>
+                                  {service.description}
+                                </p>
+                              )}
+                              {isDisabled && selectedStaff && (
+                                <p className="text-xs text-red-600 font-medium mt-1">
+                                  Nuk ofrohet nga {selectedStaff.name}
+                                </p>
                               )}
                             </div>
                             {service.price && service.price > 0 && (
                               <div className="ml-3 text-right">
-                                <div className="bg-custom-gradient px-2 py-1 rounded-md">
-                                  <span className="text-md md:text-lg font-bold text-white">{service.price}€</span>
+                                <div className={`px-2 py-1 rounded-md ${
+                                  isDisabled 
+                                    ? 'bg-red-200' 
+                                    : 'bg-custom-gradient'
+                                }`}>
+                                  <span className={`text-md md:text-lg font-bold ${
+                                    isDisabled ? 'text-red-800' : 'text-white'
+                                  }`}>{service.price}€</span>
                                 </div>
                               </div>
                             )}
@@ -771,7 +929,9 @@ export function BookingSteps({ business }: BookingStepsProps) {
                           {/* Service Details */}
                           {service.duration && (
                             <div className="flex items-center">
-                              <div className="flex items-center gap-1 text-teal-800">
+                              <div className={`flex items-center gap-1 ${
+                                isDisabled ? 'text-red-600' : 'text-teal-800'
+                              }`}>
                                 <Clock className="w-4 h-4" />
                                 <span className="text-sm font-medium">{service.duration}</span>
                               </div>
@@ -780,7 +940,8 @@ export function BookingSteps({ business }: BookingStepsProps) {
                         </div>
                       </CardContent>
                     </Card>
-                  ))
+                    )
+                  })
                 ) : (
                   <div className="text-center py-8">
                     <p className="text-gray-500">Nuk ka shërbime të disponueshme për këtë biznes.</p>
@@ -789,21 +950,19 @@ export function BookingSteps({ business }: BookingStepsProps) {
               </div>
             )}
 
-            {/* Staff Selection - Show after service is selected */}
-            {selectedService && (() => {
-              const availableStaff = business.staff?.filter((member: any) => 
-                member.isActive !== false && 
-                member.services?.some((s: any) => 
-                  typeof s === 'string' ? s === selectedService.name : s.name === selectedService.name
-                )
-              ) || [];
-              
-              // Always show staff selection if there are staff members
+            {/* Staff Selection - Show after at least one service is selected */}
+            {selectedServices.length > 0 && (() => {
+              // Show staff selection if there are staff members, otherwise allow proceeding without staff
               if (availableStaff.length > 0) {
                 return (
                   <div className="md:space-y-3 space-y-2">
                     <div className="text-center">
-                      <h3 className="text-sm md:text-xl font-bold text-gray-900 mb-2">Zgjidhni stafin që dëshironi të ofrojë shërbimin "{selectedService.name}" për ju:</h3>
+                      <h3 className="text-sm md:text-xl font-bold text-gray-900 mb-2">
+                        Zgjidhni stafin që dëshironi të ofrojë shërbimet për ju:
+                      </h3>
+                      <p className="text-xs text-gray-600 mt-1">
+                        {selectedServices.map(s => s.name).join(', ')}
+                      </p>
                     </div>
                     
                     <div className={`grid gap-3 ${
@@ -837,8 +996,20 @@ export function BookingSteps({ business }: BookingStepsProps) {
                           }}
                           onClick={() => {
                             setSelectedStaff(member)
-                            // Auto-move to next step after staff selection
-                            setTimeout(() => setCurrentStep(2), 500)
+                            // Don't auto-move - let user select services first
+                            // Check if any selected services are not available for this staff
+                            if (selectedServices.length > 0) {
+                              const unavailableServices = selectedServices.filter(s => !isServiceAvailableForStaff(s, member))
+                              if (unavailableServices.length > 0) {
+                                toast({
+                                  title: "Shërbime të padisponueshme",
+                                  description: `${member.name} nuk mund të ofrojë: ${unavailableServices.map(s => s.name).join(', ')}`,
+                                  variant: "destructive",
+                                })
+                                // Remove unavailable services
+                                setSelectedServices(selectedServices.filter(s => isServiceAvailableForStaff(s, member)))
+                              }
+                            }
                           }}
                         >
                           <CardContent className="py-3">
@@ -863,10 +1034,10 @@ export function BookingSteps({ business }: BookingStepsProps) {
                 );
               }
               
-              // If no staff available, show message
+              // If no staff available, allow proceeding without staff selection
               return (
-                <div className="text-center py-8">
-                  <p className="text-gray-500">Nuk ka staf të disponueshëm për këtë shërbim.</p>
+                <div className="text-center py-4">
+                  <p className="text-gray-500 text-sm">Nuk ka staf të caktuar për këto shërbime. Mund të vazhdoni pa zgjedhur staf.</p>
                 </div>
               );
             })()}
@@ -941,7 +1112,7 @@ export function BookingSteps({ business }: BookingStepsProps) {
               <h3 className="text-lg md:text-xl font-bold text-gray-900 mb-2">Ju lutemi shënoni të dhënat tuaja</h3>
             </div>
 
-            {selectedService && selectedDate && selectedTime && (
+            {selectedServices.length > 0 && selectedDate && selectedTime && (
               <div className="bg-gray-50 border border-gray-200 rounded-lg">
                 <button
                   onClick={() => setIsSummaryOpen(!isSummaryOpen)}
@@ -964,8 +1135,17 @@ export function BookingSteps({ business }: BookingStepsProps) {
                   <div className="px-4 pb-4">
                     <div className="space-y-2 text-sm">
                       <div>
-                        <span className="text-gray-600">Shërbimi: </span>
-                        <span className="font-medium text-gray-900">{selectedService.name}</span>
+                        <span className="text-gray-600">Shërbimet: </span>
+                        <div className="mt-1">
+                          {selectedServices.map((service, idx) => (
+                            <div key={idx} className="flex items-center justify-between">
+                              <span className="font-medium text-gray-900">{service.name}</span>
+                              {service.price && service.price > 0 && (
+                                <span className="text-gray-600 ml-2">{service.price}€</span>
+                              )}
+                            </div>
+                          ))}
+                        </div>
                       </div>
                       
                       {selectedStaff && (
@@ -982,10 +1162,15 @@ export function BookingSteps({ business }: BookingStepsProps) {
                         </span>
                       </div>
                       
-                      {selectedService.price && selectedService.price > 0 && (
+                      <div>
+                        <span className="text-gray-600">Kohëzgjatja totale: </span>
+                        <span className="font-medium text-gray-900">{serviceDuration} minuta</span>
+                      </div>
+                      
+                      {calculateTotalPrice() > 0 && (
                         <div className="pt-2 border-t border-gray-200">
-                          <span className="text-gray-600">Çmimi: </span>
-                          <span className="font-semibold text-gray-900">{selectedService.price}€</span>
+                          <span className="text-gray-600">Çmimi total: </span>
+                          <span className="font-semibold text-gray-900">{calculateTotalPrice()}€</span>
                         </div>
                       )}
                     </div>
@@ -1108,16 +1293,16 @@ export function BookingSteps({ business }: BookingStepsProps) {
       {/* Navigation Buttons */}
       <div className="flex justify-between pt-6 border-t">
         {/* Show appropriate back button based on current step */}
-        {currentStep === 1 && selectedService ? (
+        {currentStep === 1 && selectedServices.length > 0 ? (
           <Button
             onClick={() => {
-              setSelectedService(null)
+              setSelectedServices([])
               setSelectedStaff(null)
             }}
             className="bg-gradient-to-r from-gray-600 to-gray-700 hover:from-gray-500 hover:to-gray-600 text-white"
           >
             <ArrowLeft className="w-4 h-4 mr-2" />
-            Zgjidh shërbim tjetër
+            Zgjidh shërbime të tjera
           </Button>
         ) : currentStep === 2 && selectedDate ? (
           <Button
@@ -1133,7 +1318,7 @@ export function BookingSteps({ business }: BookingStepsProps) {
         ) : (
           <Button
             onClick={handlePrevious}
-            disabled={currentStep === 1 && !selectedService}
+            disabled={currentStep === 1 && (selectedServices?.length ?? 0) === 0}
             className="bg-gradient-to-r from-gray-600 to-gray-700 hover:from-gray-500 hover:to-gray-600 text-white"
           >
             <ArrowLeft className="w-4 h-4 mr-2" />
@@ -1145,8 +1330,9 @@ export function BookingSteps({ business }: BookingStepsProps) {
           <Button
             onClick={handleNext}
             disabled={
-              (currentStep === 1 && !selectedService) ||
-              (currentStep === 1 && selectedService && business.staff && business.staff.length > 1 && !selectedStaff) ||
+              (currentStep === 1 && selectedServices.length === 0) ||
+              (currentStep === 1 && selectedServices.length > 0 && getAvailableStaff().length > 0 && !selectedStaff) ||
+              (currentStep === 1 && selectedStaff && !areAllServicesAvailableForStaff()) ||
               (currentStep === 2 && (!selectedDate || !selectedTime))
             }
             className="bg-custom-gradient  text-white"
@@ -1154,6 +1340,15 @@ export function BookingSteps({ business }: BookingStepsProps) {
             Vazhdo
             <ArrowRight className="w-4 h-4 ml-2" />
           </Button>
+        )}
+        
+        {/* Warning message if services are not available for selected staff */}
+        {currentStep === 1 && selectedStaff && selectedServices.length > 0 && !areAllServicesAvailableForStaff() && (
+          <div className="mt-2 p-3 bg-red-50 border border-red-200 rounded-lg">
+            <p className="text-sm text-red-700 font-medium">
+              ⚠️ {selectedStaff.name} nuk mund të ofrojë të gjitha shërbimet e zgjedhura. Ju lutemi zgjidhni shërbime të tjera ose staf tjetër.
+            </p>
+          </div>
         )}
       </div>
     </div>

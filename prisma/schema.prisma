@@ -166,3 +166,15 @@ enum BookingStatus {
   CANCELLED
   COMPLETED
 }
+
+model LoginAttempt {
+  id        Int      @id @default(autoincrement())
+  email     String
+  attempts  Int      @default(1)
+  lockedUntil DateTime?
+  createdAt DateTime @default(now()) @map("created_at")
+  updatedAt DateTime @updatedAt @map("updated_at")
+
+  @@unique([email])
+  @@map("login_attempts")
+}

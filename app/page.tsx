@@ -48,6 +48,15 @@ export default function HomePage() {
   const { user, isAuthenticated, logout } = useAuth()
   const { calculateDistance, getCurrentLocation, setLocationToPrishtina, detectedCity, isUserLocation } = useLocation()
   const { businesses, loading } = useBusinesses()
+  
+  // Mobile slider state
+  const [currentSlide, setCurrentSlide] = useState(0)
+  const [isAutoScrolling, setIsAutoScrolling] = useState(true)
+  const [isTouching, setIsTouching] = useState(false)
+  const [isDragging, setIsDragging] = useState(false)
+  const [screenWidth, setScreenWidth] = useState(0)
+  const sliderRef = useRef<HTMLDivElement>(null)
+  const autoScrollIntervalRef = useRef<NodeJS.Timeout | null>(null)
 
   // Helper functions for category dropdown
   const getSelectedCategoryName = () => {
@@ -69,6 +78,50 @@ export default function HomePage() {
   const handleCitySelect = (city: string) => {
     setSelectedCity(city)
     setIsCityDropdownOpen(false)
+  }
+
+  // Handle touch events for mobile slider
+  const handleTouchStart = (e: React.TouchEvent<HTMLDivElement>) => {
+    if (!sliderRef.current) return
+    setIsTouching(true)
+    setIsDragging(true)
+    setIsAutoScrolling(false)
+    if (autoScrollIntervalRef.current) {
+      clearInterval(autoScrollIntervalRef.current)
+    }
+  }
+
+  const handleTouchEnd = () => {
+    setIsTouching(false)
+    // Keep dragging state for a moment to prevent immediate transition
+    setTimeout(() => {
+      setIsDragging(false)
+    }, 100)
+    // Resume auto-scroll after 5 seconds of no touch
+    setTimeout(() => {
+      setIsAutoScrolling(true)
+    }, 5000)
+  }
+
+  const handleMouseDown = (e: React.MouseEvent<HTMLDivElement>) => {
+    setIsTouching(true)
+    setIsDragging(true)
+    setIsAutoScrolling(false)
+    if (autoScrollIntervalRef.current) {
+      clearInterval(autoScrollIntervalRef.current)
+    }
+  }
+
+  const handleMouseUp = () => {
+    setIsTouching(false)
+    // Keep dragging state for a moment to prevent immediate transition
+    setTimeout(() => {
+      setIsDragging(false)
+    }, 100)
+    // Resume auto-scroll after 5 seconds
+    setTimeout(() => {
+      setIsAutoScrolling(true)
+    }, 5000)
   }
 
   // Fetch categories from database
@@ -95,6 +148,18 @@ export default function HomePage() {
   // Get user location on component mount
   React.useEffect(() => {
     getCurrentLocation()
+  }, [])
+
+  // Get screen width for mobile slider
+  useEffect(() => {
+    if (typeof window !== 'undefined') {
+      setScreenWidth(window.innerWidth)
+      const handleResize = () => {
+        setScreenWidth(window.innerWidth)
+      }
+      window.addEventListener('resize', handleResize)
+      return () => window.removeEventListener('resize', handleResize)
+    }
   }, [])
 
   // Handle clicking outside dropdown
@@ -194,6 +259,46 @@ export default function HomePage() {
       }
       return a.name.localeCompare(b.name);
     });
+
+  // Mobile slider auto-scroll (after filteredProviders is defined) - gradual movement
+  useEffect(() => {
+    if (typeof window === 'undefined') return
+    
+    const isMobile = window.innerWidth < 768
+    if (!isMobile || !isAutoScrolling || isTouching || isDragging) return
+
+    const providers = showAllCards ? filteredProviders : filteredProviders.slice(0, 12)
+    if (providers.length <= 1) return
+
+    autoScrollIntervalRef.current = setInterval(() => {
+      setCurrentSlide((prev) => {
+        if (prev >= providers.length - 1) {
+          return 0
+        }
+        return prev + 1
+      })
+    }, 4000) // Auto-scroll every 4 seconds for gradual movement
+
+    return () => {
+      if (autoScrollIntervalRef.current) {
+        clearInterval(autoScrollIntervalRef.current)
+      }
+    }
+  }, [isAutoScrolling, isTouching, isDragging, showAllCards, filteredProviders])
+
+  // Handle card click to center it and stop auto-scroll
+  const handleCardClick = (index: number) => {
+    setCurrentSlide(index)
+    setIsAutoScrolling(false)
+    setIsDragging(false) // Ensure smooth transition
+    if (autoScrollIntervalRef.current) {
+      clearInterval(autoScrollIntervalRef.current)
+    }
+    // Resume auto-scroll after 5 seconds
+    setTimeout(() => {
+      setIsAutoScrolling(true)
+    }, 5000)
+  }
 
   return (
     <div className="min-h-screen bg-background">
@@ -382,12 +487,13 @@ export default function HomePage() {
             </div>
                   ) : (
                     <>
-                      <div className="grid grid-cols-1 sm:grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-3 2xl:grid-cols-4 gap-6">
+                      {/* Desktop Grid View */}
+                      <div className="hidden md:grid grid-cols-1 sm:grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-3 2xl:grid-cols-4 gap-6">
                         {(showAllCards ? filteredProviders : filteredProviders.slice(0, 12)).map((provider) => (
               <Card key={provider.id} className="group hover:shadow-2xl transition-all duration-300 hover:-translate-y-1 bg-white border-0 shadow-lg overflow-hidden py-0 px-0">
                 <div className="flex flex-col">
                   {/* Image Section */}
-                  <div className="relative w-full h-65 overflow-hidden">
+                  <div className="relative w-full h-58  overflow-hidden">
                     {provider.business_images && typeof provider.business_images === 'string' ? (
                       <img
                         src={provider.business_images}
@@ -512,6 +618,165 @@ export default function HomePage() {
                 </div>
               </Card>
                         ))}
+                      </div>
+
+                      {/* Mobile Slider View */}
+                      <div 
+                        className="md:hidden overflow-x-hidden -mx-4 px-4"
+                        onTouchStart={handleTouchStart}
+                        onTouchEnd={handleTouchEnd}
+                        onMouseDown={handleMouseDown}
+                        onMouseUp={handleMouseUp}
+                      >
+                        <div 
+                          ref={sliderRef}
+                          className="flex gap-4 overflow-hidden"
+                          style={{
+                            transform: screenWidth > 0 
+                              ? `translateX(calc(${screenWidth * 0.1}px - ${currentSlide} * (${screenWidth * 0.8}px + 1rem)))` 
+                              : 'translateX(0)',
+                            transition: isDragging ? 'none' : 'transform 0.8s ease-in-out'
+                          }}
+                        >
+                          {(showAllCards ? filteredProviders : filteredProviders.slice(0, 12)).map((provider, index) => (
+                            <div
+                              key={provider.id}
+                              className="flex-shrink-0"
+                              style={{ width: '80%' }}
+                              onClick={() => handleCardClick(index)}
+                            >
+                              <Card className="group hover:shadow-2xl transition-all duration-300 hover:-translate-y-1 bg-white border-0 shadow-lg overflow-hidden py-0 px-0 w-full">
+                                <div className="flex flex-col">
+                                  {/* Image Section */}
+                                  <div className="relative w-full h-58 overflow-hidden">
+                                    {provider.business_images && typeof provider.business_images === 'string' ? (
+                                      <img
+                                        src={provider.business_images}
+                                        alt={provider.name}
+                                        className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
+                                      />
+                                    ) : provider.logo ? (
+                                      <img
+                                        src={provider.logo}
+                                        alt={provider.name}
+                                        className="w-full h-full object-contain group-hover:scale-105 transition-transform duration-300"
+                                      />
+                                    ) : (
+                                      <div className="w-full h-full bg-custom-gradient flex items-center justify-center">
+                                        <div className="text-white text-center">
+                                          <div className="w-16 h-16 bg-white/20 rounded-full flex items-center justify-center mx-auto mb-2">
+                                            <span className="text-2xl font-bold">{provider.name.charAt(0)}</span>
+                                          </div>
+                                          <p className="text-sm opacity-80">Nuk ka imazh</p>
+                                        </div>
+                                      </div>
+                                    )}
+                                    <div className="absolute top-4 left-4">
+                                      <Badge className="bg-teal-800/40 backdrop-blur-sm rounded-full border-0 shadow-sm">
+                                        {(provider as any).category_name || "Unknown Category"}
+                                      </Badge>
+                                    </div>
+                                    {provider.rating && provider.rating > 0 && (
+                                      <div className="absolute top-4 right-4">
+                                        <Badge className="bg-teal-800/40 backdrop-blur-sm rounded-full border-0 shadow-sm">
+                                          <Star className="w-3 h-3 fill-transparent text-white-400 mr-1" />
+                                          <span className="text-white text-sm md:text-xs">
+                                            {provider.rating.toFixed(1)}
+                                          </span>
+                                          <span className="text-slate-300 text-sm md:text-xs ml-1">
+                                            ({provider.total_reviews || 0})
+                                          </span>
+                                        </Badge>
+                                      </div>
+                                    )}
+                                  </div>
+
+                                  {/* Content Section */}
+                                  <div className="flex-1 p-6">
+                                    <div className="flex flex-col h-full">
+                                      {/* Header */}
+                                      <div>
+                                        <h3 className="text-xl md:text-xl font-heading font-bold text-slate-800 mb-1 group-hover:bg-gradient-to-r group-hover:from-gray-800 group-hover:to-teal-800 group-hover:bg-clip-text group-hover:text-transparent transition-all duration-300 truncate" title={provider.name}>
+                                          {provider.name}
+                                        </h3>
+                                      </div>
+
+                                      {/* Contact Info - Compact */}
+                                      <div className="py-2 rounded-lg flex-1">
+                                        <div className="space-y-3">
+                                          <div className="flex items-center gap-3">
+                                            <MapPin className="w-4 h-4 text-gray-600 flex-shrink-0" />
+                                            <span className="text-slate-600 text-sm truncate">
+                                              {provider.address || "Address not provided"} - {provider.city}
+                                            </span>
+                                          </div>
+                                          <div className="flex items-center gap-3">
+                                            <Phone className="w-4 h-4 text-gray-600 flex-shrink-0" />
+                                            <span className="text-slate-600 text-sm no-underline" style={{ textDecoration: 'none' }}>
+                                              {provider.phone || "Phone not provided"}
+                                            </span>
+                                          </div>
+                                          {provider.displayDistance && (
+                                            <div className="flex items-center gap-3">
+                                              <Navigation className="w-4 h-4 text-gray-600 flex-shrink-0" />
+                                              <span className="text-slate-600 text-sm">{provider.displayDistance}</span>
+                                              {provider.calculatedDistance && (
+                                                <Badge variant="outline" className="text-sm md:text-xs bg-teal-800/40 backdrop-blur-sm text-transparent bg-clip-text bg-gradient-to-br from-gray-800 to-teal-800 border-gradient-to-br border-from-gray-800 border-to-teal-800">
+                                                  GPS
+                                                </Badge>
+                                              )}
+                                            </div>
+                                          )}
+                                        </div>
+                                      </div>
+
+                                      {/* Action Buttons */}
+                                      <div className="space-y-3 pt-2 border-slate-100">
+                                        <Link 
+                                          href={`/${(provider as any).slug}`}
+                                          className={cn(
+                                            buttonVariants({ size: "lg" }),
+                                            "w-full bg-custom-gradient text-white font-semibold py-3 flex items-center justify-center"
+                                          )}
+                                        >
+                                          <Calendar className="w-5 h-5 mr-2" />
+                                          Rezervo Tani
+                                        </Link>
+                                        
+                                        <div className="grid grid-cols-2 gap-2">
+                                          <Button 
+                                            size="sm" 
+                                            variant="outline" 
+                                            className="text-sm md:text-xs py-2 border-slate-300 hover:bg-white focus:bg-white hover:text-slate-700 focus:text-slate-700 text-slate-700 hover:border-teal-800 focus:border-teal-800 transition-all duration-300"
+                                            onClick={(e) => {
+                                              e.stopPropagation()
+                                              setSelectedBusiness(provider)
+                                              setModalType('staff-sherbimet')
+                                            }}
+                                          >
+                                            Stafi & Shërbimet
+                                          </Button>
+                                          <Button 
+                                            size="sm" 
+                                            variant="outline" 
+                                            className="text-sm md:text-xs py-2 border-slate-300 hover:bg-white focus:bg-white hover:text-slate-700 focus:text-slate-700 text-slate-700 hover:border-teal-800 focus:border-teal-800 transition-all duration-300"
+                                            onClick={(e) => {
+                                              e.stopPropagation()
+                                              setSelectedBusiness(provider)
+                                              setModalType('orari')
+                                            }}
+                                          >
+                                            Orari
+                                          </Button>
+                                        </div>
+                                      </div>
+                                    </div>
+                                  </div>
+                                </div>
+                              </Card>
+                            </div>
+                          ))}
+                        </div>
                       </div>
                       
                       {/* Show More/Less Button */}

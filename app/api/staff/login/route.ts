@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { prisma } from '@/lib/database-prisma'
 import { verifyPassword } from '@/lib/password'
+import { checkLoginLockout, recordFailedAttempt, clearFailedAttempts } from '@/lib/login-attempts'
 
 export async function POST(request: NextRequest) {
   try {
@@ -11,6 +12,38 @@ export async function POST(request: NextRequest) {
       return NextResponse.json(
         { error: 'Email dhe fjalëkalimi janë të detyrueshëm' },
         { status: 400 }
+      )
+    }
+
+    // Check if account is locked
+    const lockoutCheck = await checkLoginLockout(email)
+    if (lockoutCheck.isLocked) {
+      return NextResponse.json(
+        { 
+          error: `Llogaria juaj është e bllokuar për ${lockoutCheck.remainingMinutes} minuta për shkak të tentativave të shumta të dështuara. Ju lutemi provoni më vonë.` 
+        },
+        { status: 423 } // 423 Locked
+      )
+    }
+
+    // Special case: if password is a marker for recording attempt only (from frontend)
+    // This happens when email doesn't exist in any system
+    if (password === 'INVALID_TO_RECORD_ATTEMPT') {
+      const failedAttempt = await recordFailedAttempt(email)
+      if (failedAttempt.isLocked) {
+        return NextResponse.json(
+          { 
+            error: `Llogaria juaj është e bllokuar për ${failedAttempt.remainingMinutes} minuta për shkak të tentativave të shumta të dështuara.` 
+          },
+          { status: 423 }
+        )
+      }
+      const attemptsRemaining = failedAttempt.attemptsRemaining || 0
+      return NextResponse.json(
+        { 
+          error: `Email ose fjalëkalimi i gabuar. ${attemptsRemaining > 0 ? `Tentativa të mbetura: ${attemptsRemaining}` : ''}` 
+        },
+        { status: 401 }
       )
     }
 
@@ -48,16 +81,38 @@ export async function POST(request: NextRequest) {
           foundStaff = staffMember
           foundBusiness = business
           break
+        } else {
+          // Email exists but password is wrong - record failed attempt
+          const failedAttempt = await recordFailedAttempt(email)
+          if (failedAttempt.isLocked) {
+            return NextResponse.json(
+              { 
+                error: `Llogaria juaj është e bllokuar për ${failedAttempt.remainingMinutes} minuta për shkak të tentativave të shumta të dështuara.` 
+              },
+              { status: 423 }
+            )
+          }
+          const attemptsRemaining = failedAttempt.attemptsRemaining || 0
+          return NextResponse.json(
+            { 
+              error: `Email ose fjalëkalimi i gabuar. ${attemptsRemaining > 0 ? `Tentativa të mbetura: ${attemptsRemaining}` : ''}` 
+            },
+            { status: 401 }
+          )
         }
       }
     }
 
-    if (!foundStaff || !foundBusiness) {
-      return NextResponse.json(
-        { error: 'Email ose fjalëkalimi i gabuar' },
-        { status: 401 }
-      )
-    }
+    // Email doesn't exist in staff system
+    // Don't record attempt here - it might exist in admin/business and they already recorded it
+    // Or it doesn't exist anywhere, in which case we'll record it once in the frontend
+    return NextResponse.json(
+      { error: 'Email ose fjalëkalimi i gabuar' },
+      { status: 401 }
+    )
+
+    // Clear failed attempts on successful login
+    await clearFailedAttempts(email)
 
     // Kthej staff dhe business data
     return NextResponse.json({

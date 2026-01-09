@@ -127,8 +127,18 @@
     @apply border-border outline-ring/50;
     font-family: var(--font-outfit), "Outfit", sans-serif;
   }
+  html {
+    width: 100%;
+    overflow-x: hidden;
+    position: relative;
+  }
   body {
     @apply bg-background text-foreground;
+    width: 100%;
+    overflow-x: hidden;
+    position: relative;
+    min-width: 0;
+    max-width: 100vw;
   }
   .font-heading {
     font-family: var(--font-outfit), "Outfit", sans-serif;
@@ -143,6 +153,14 @@ video::-webkit-media-controls-enclosure {
 
 .w-160 {
   width: 40rem; /* 640px */
+}
+
+.h-65 {
+  height: 16.25rem; /* 260px */
+}
+
+.h-58 {
+  height: 14.625rem; /* 234px - 10% reduction from h-65 */
 }
 @keyframes scroll {
   0% {
@@ -325,4 +343,71 @@ a[href*="kushtet"],
 .gm-style a[href*="terms"],
 .gm-style-cc a {
   display: none !important;
+}
+
+/* Mobile slider scrollbar hide */
+.scrollbar-hide {
+  -ms-overflow-style: none;
+  scrollbar-width: none;
+}
+
+.scrollbar-hide::-webkit-scrollbar {
+  display: none;
+}
+
+/* Prevent white space on mobile zoom out - like Facebook */
+html {
+  width: 100%;
+  max-width: 100vw;
+  overflow-x: hidden;
+  position: relative;
+}
+
+body {
+  width: 100%;
+  max-width: 100vw;
+  overflow-x: hidden;
+  position: relative;
+}
+
+/* Ensure root elements respect viewport */
+#__next,
+[data-nextjs-scroll-focus-boundary],
+main {
+  width: 100%;
+  max-width: 100vw;
+  overflow-x: hidden;
+  position: relative;
+}
+
+/* Mobile-specific fixes to prevent white space on zoom */
+@media (max-width: 768px) {
+  html, body {
+    width: 100% !important;
+    max-width: 100vw !important;
+    min-width: 0 !important;
+    overflow-x: hidden !important;
+    position: relative;
+  }
+  
+  /* Ensure all containers respect viewport width */
+  .container,
+  .main-content,
+  section .container,
+  .map-container,
+  section {
+    max-width: 100vw !important;
+    box-sizing: border-box;
+  }
+  
+  /* Prevent fixed width elements from causing overflow */
+  .map-container {
+    width: calc(100vw - 30px) !important;
+    max-width: 100vw !important;
+  }
+  
+  /* Ensure no element can cause horizontal scroll */
+  * {
+    box-sizing: border-box;
+  }
 }

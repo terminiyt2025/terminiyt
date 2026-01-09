@@ -77,6 +77,19 @@ export function LoginForm() {
         })
       })
 
+      // Check for lockout (423 status)
+      if (adminResponse.status === 423) {
+        const errorData = await adminResponse.json()
+        setLoginError(errorData.error || "Llogaria juaj është e bllokuar për shkak të tentativave të shumta të dështuara.")
+        setIsLoading(false)
+        toast({
+          title: "Llogaria e bllokuar",
+          description: errorData.error || "Llogaria juaj është e bllokuar për shkak të tentativave të shumta të dështuara.",
+          variant: "destructive",
+        })
+        return
+      }
+
       if (adminResponse.ok) {
         const { admin } = await adminResponse.json()
         
@@ -111,6 +124,19 @@ export function LoginForm() {
           password: data.password
         })
       })
+
+      // Check for lockout (423 status)
+      if (businessResponse.status === 423) {
+        const errorData = await businessResponse.json()
+        setLoginError(errorData.error || "Llogaria juaj është e bllokuar për shkak të tentativave të shumta të dështuara.")
+        setIsLoading(false)
+        toast({
+          title: "Llogaria e bllokuar",
+          description: errorData.error || "Llogaria juaj është e bllokuar për shkak të tentativave të shumta të dështuara.",
+          variant: "destructive",
+        })
+        return
+      }
 
       if (businessResponse.ok) {
         const { business } = await businessResponse.json()
@@ -148,6 +174,19 @@ export function LoginForm() {
         })
       })
 
+      // Check for lockout (423 status)
+      if (staffResponse.status === 423) {
+        const errorData = await staffResponse.json()
+        setLoginError(errorData.error || "Llogaria juaj është e bllokuar për shkak të tentativave të shumta të dështuara.")
+        setIsLoading(false)
+        toast({
+          title: "Llogaria e bllokuar",
+          description: errorData.error || "Llogaria juaj është e bllokuar për shkak të tentativave të shumta të dështuara.",
+          variant: "destructive",
+        })
+        return
+      }
+
       if (staffResponse.ok) {
         const { staff, business } = await staffResponse.json()
         
@@ -174,12 +213,59 @@ export function LoginForm() {
         return
       }
 
-      // All logins failed
-      const error = await businessResponse.json().catch(() => ({ error: "Emaili ose Fjalëkalimi i gabuar!" }))
-      setLoginError(error.error || "Emaili ose Fjalëkalimi i gabuar!")
+      // All logins failed - check if attempt was already recorded
+      let errorMessage = "Emaili ose Fjalëkalimi i gabuar!"
+      let attemptAlreadyRecorded = false
+      
+      // Check responses to see if any already recorded the attempt
+      // (they would include "Tentativa të mbetura" in the error message)
+      try {
+        const adminError = await adminResponse.json().catch(() => null)
+        if (adminError?.error) {
+          errorMessage = adminError.error
+          if (adminError.error.includes('Tentativa')) {
+            attemptAlreadyRecorded = true
+          }
+        }
+      } catch {}
+
+      try {
+        const businessError = await businessResponse.json().catch(() => null)
+        if (businessError?.error) {
+          errorMessage = businessError.error
+          if (businessError.error.includes('Tentativa')) {
+            attemptAlreadyRecorded = true
+          }
+        }
+      } catch {}
+
+      try {
+        const staffError = await staffResponse.json().catch(() => null)
+        if (staffError?.error) {
+          errorMessage = staffError.error
+          if (staffError.error.includes('Tentativa')) {
+            attemptAlreadyRecorded = true
+          }
+        }
+      } catch {}
+
+      // Only record attempt if it wasn't already recorded by any endpoint
+      // (i.e., email doesn't exist in any system)
+      if (!attemptAlreadyRecorded) {
+        // Record one failed attempt via staff endpoint (last one checked)
+        try {
+          await fetch('/api/staff/login', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ email: data.email, password: 'INVALID_TO_RECORD_ATTEMPT' })
+          }).catch(() => {})
+        } catch {}
+      }
+      
+      setLoginError(errorMessage)
       toast({
         title: "Identifikimi dështoi",
-        description: error.error || "Emaili ose Fjalëkalimi i gabuar!",
+        description: errorMessage,
         variant: "destructive",
       })
 

@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { prisma } from '@/lib/database-prisma'
 import { verifyPassword } from '@/lib/password'
+import { checkLoginLockout, recordFailedAttempt, clearFailedAttempts } from '@/lib/login-attempts'
 
 export async function POST(request: NextRequest) {
   try {
@@ -11,6 +12,17 @@ export async function POST(request: NextRequest) {
       return NextResponse.json(
         { error: 'Email dhe fjalëkalimi janë të detyrueshëm' },
         { status: 400 }
+      )
+    }
+
+    // Check if account is locked
+    const lockoutCheck = await checkLoginLockout(email)
+    if (lockoutCheck.isLocked) {
+      return NextResponse.json(
+        { 
+          error: `Llogaria juaj është e bllokuar për ${lockoutCheck.remainingMinutes} minuta për shkak të tentativave të shumta të dështuara. Ju lutemi provoni më vonë.` 
+        },
+        { status: 423 } // 423 Locked
       )
     }
 
@@ -31,6 +43,8 @@ export async function POST(request: NextRequest) {
     const business = (businessResult as any[])[0]
 
     if (!business) {
+      // Don't record failed attempt if email doesn't exist in business system
+      // (it might exist in admin or staff system)
       return NextResponse.json(
         { error: 'Email ose fjalëkalimi i gabuar' },
         { status: 401 }
@@ -41,11 +55,27 @@ export async function POST(request: NextRequest) {
     const isPasswordValid = await verifyPassword(password, business.account_password)
     
     if (!isPasswordValid) {
+      // Record failed attempt
+      const failedAttempt = await recordFailedAttempt(email)
+      if (failedAttempt.isLocked) {
+        return NextResponse.json(
+          { 
+            error: `Llogaria juaj është e bllokuar për ${failedAttempt.remainingMinutes} minuta për shkak të tentativave të shumta të dështuara.` 
+          },
+          { status: 423 }
+        )
+      }
+      const attemptsRemaining = failedAttempt.attemptsRemaining || 0
       return NextResponse.json(
-        { error: 'Email ose fjalëkalimi i gabuar' },
+        { 
+          error: `Email ose fjalëkalimi i gabuar. ${attemptsRemaining > 0 ? `Tentativa të mbetura: ${attemptsRemaining}` : ''}` 
+        },
         { status: 401 }
       )
     }
+
+    // Clear failed attempts on successful login
+    await clearFailedAttempts(email)
 
     // Return business data (without password)
     const businessData = {

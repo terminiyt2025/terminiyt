@@ -1581,7 +1581,19 @@ export default function ReservationsPage() {
                             {hasBooking && booking && isFirstSlotOfBooking && (
                               <div className="text-xs mt-1 space-y-1 leading-tight">
                                 <div className="font-medium text-teal-800">{booking.customerName}</div>
-                                <div className="text-teal-600">{booking.serviceName}</div>
+                                <div className="text-teal-600">
+                                  {(() => {
+                                    try {
+                                      const parsed = JSON.parse(booking.serviceName || '[]')
+                                      if (Array.isArray(parsed) && parsed.length > 0) {
+                                        return parsed.join(' & ')
+                                      }
+                                    } catch {
+                                      // Not JSON, return as is
+                                    }
+                                    return booking.serviceName
+                                  })()}
+                                </div>
                               </div>
                             )}
                             {isPastTime && (
@@ -1698,9 +1710,23 @@ export default function ReservationsPage() {
                             <Phone className="w-3 h-3" />
                             <span>{booking.customerPhone}</span>
                           </div>
-                          <div className="flex items-center gap-2">
+                          <div className="flex items-start gap-2">
                             <span className="text-xs text-gray-500">Shërbimi:</span>
-                            <span className="font-medium">{booking.serviceName}</span>
+                            <div className="flex-1">
+                              {(() => {
+                                try {
+                                  const parsed = JSON.parse(booking.serviceName || '[]')
+                                  if (Array.isArray(parsed) && parsed.length > 0) {
+                                    return (
+                                      <span className="font-medium text-xs">
+                                        {parsed.join(', ')}
+                                      </span>
+                                    )
+                                  }
+                                } catch {}
+                                return <span className="font-medium text-xs">{booking.serviceName}</span>
+                              })()}
+                            </div>
                           </div>
                           <div className="flex items-center gap-2">
                             <span className="text-xs text-gray-500">Statusi:</span>
@@ -1921,7 +1947,17 @@ export default function ReservationsPage() {
                Konfirmo Anulimin
              </h3>
              <p className="text-gray-600 mb-4">
-               A jeni të sigurtë që doni të anuloni terminin e <strong>{showCancelModal.booking.customerName}</strong> nga ora <strong>{showCancelModal.booking.appointmentTime}</strong> për shërbimin <strong>{showCancelModal.booking.serviceName}</strong>? 
+               A jeni të sigurtë që doni të anuloni terminin e <strong>{showCancelModal.booking.customerName}</strong> nga ora <strong>{showCancelModal.booking.appointmentTime}</strong> për shërbimin <strong>{(() => {
+                 try {
+                   const parsed = JSON.parse(showCancelModal.booking.serviceName || '[]')
+                   if (Array.isArray(parsed) && parsed.length > 0) {
+                     return parsed.join(' & ')
+                   }
+                 } catch {
+                   // Not JSON, return as is
+                 }
+                 return showCancelModal.booking.serviceName
+               })()}</strong>? 
              </p>
              <div className="flex items-center gap-2 mb-6 p-3 bg-red-50 border border-red-200 rounded-lg">
                <div className="text-red-600 text-lg font-bold">!</div>

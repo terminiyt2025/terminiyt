@@ -121,7 +121,7 @@ export function BusinessHeader() {
                 alt="terminiyt.com" 
                 width={200} 
                 height={70}
-                className="h-18 w-auto"
+                className="h-12 md:h-18 w-auto"
               />
              
             </Link>

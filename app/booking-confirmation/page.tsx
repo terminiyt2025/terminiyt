@@ -78,7 +78,21 @@ export default function BookingConfirmation() {
   const displayBusiness = bookingData?.business?.name || safeDecode(business)
   const displayDate = bookingData?.appointmentDate || date
   const displayTime = bookingData?.appointmentTime || safeDecode(time)
-  const displayService = bookingData?.serviceName || safeDecode(service)
+  // Parse serviceName - could be JSON array or plain string
+  const getDisplayService = () => {
+    const serviceValue = bookingData?.serviceName || safeDecode(service)
+    if (!serviceValue) return ''
+    try {
+      const parsed = JSON.parse(serviceValue)
+      if (Array.isArray(parsed) && parsed.length > 0) {
+        return parsed.join(', ')
+      }
+    } catch {
+      // Not JSON, return as is
+    }
+    return serviceValue
+  }
+  const displayService = getDisplayService()
   const displayStaff = bookingData?.staffName || safeDecode(staff)
   const displayNotes = bookingData?.notes || safeDecode(notes)
   
@@ -229,9 +243,13 @@ export default function BookingConfirmation() {
                   )}
                   
                   {displayService && displayService.trim() !== '' && (
-                    <div className="flex items-center gap-3 py-1">
-                      <SwatchBook className="h-5 w-5 text-teal-800"/>
-                      <span className="text-gray-900 font-medium">{displayService}</span>
+                    <div className="flex items-start gap-3 py-1">
+                      <SwatchBook className="h-5 w-5 text-teal-800 mt-0.5 flex-shrink-0"/>
+                      <div className="flex-1">
+                        <span className="text-gray-900 font-medium">
+                          {displayService}
+                        </span>
+                      </div>
                     </div>
                   )}
                   

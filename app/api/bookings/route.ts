@@ -79,11 +79,33 @@ export async function POST(request: NextRequest) {
       )
     }
 
+    // Parse serviceName - could be JSON string (multiple services) or plain string (single service)
+    let serviceNameToStore = body.serviceName
+    let servicesArray: any[] = []
+    
+    try {
+      // Try to parse as JSON (for multiple services)
+      const parsed = JSON.parse(body.serviceName)
+      if (Array.isArray(parsed)) {
+        servicesArray = parsed
+        // Store as JSON string for multiple services
+        serviceNameToStore = JSON.stringify(parsed.map((s: any) => s.name))
+      } else {
+        // Single service (backward compatibility)
+        serviceNameToStore = body.serviceName
+        servicesArray = [{ name: body.serviceName, price: body.totalPrice || 0, duration: body.serviceDuration || 30 }]
+      }
+    } catch {
+      // Not JSON, treat as single service (backward compatibility)
+      serviceNameToStore = body.serviceName
+      servicesArray = [{ name: body.serviceName, price: body.totalPrice || 0, duration: body.serviceDuration || 30 }]
+    }
+
     // Create the booking
     const booking = await prisma.booking.create({
       data: {
         businessId: parseInt(body.businessId),
-        serviceName: body.serviceName,
+        serviceName: serviceNameToStore,
         staffName: body.staffName || null,
         appointmentDate: (() => {
           // Create a date that represents the local time correctly in UTC
@@ -131,12 +153,24 @@ export async function POST(request: NextRequest) {
         const dateForDisplay = format(appointmentDate, "EEEE, d MMMM", { locale: sq })
         const dateForUrl = format(appointmentDate, "yyyy-MM-dd")
         
+        // Format service names for display
+        let serviceNameForDisplay = body.serviceName
+        try {
+          const parsed = JSON.parse(body.serviceName)
+          if (Array.isArray(parsed)) {
+            serviceNameForDisplay = parsed.map((s: any) => s.name || s).join(', ')
+          }
+        } catch {
+          // Not JSON, use as is
+        }
+
         const emailData = {
           businessName: business.name,
           customerName: body.customerName,
           customerEmail: body.customerEmail,
           customerPhone: body.customerPhone,
-          serviceName: body.serviceName,
+          serviceName: serviceNameForDisplay,
+          services: servicesArray, // Pass full services array for email template
           date: dateForDisplay,
           dateForUrl: dateForUrl,
           time: body.appointmentTime,
