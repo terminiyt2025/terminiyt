@@ -149,10 +149,10 @@ export default function HomePage() {
       setIsTouching(false)
       setTouchStartX(0)
       setTouchCurrentX(0)
-      // Keep dragging state for a moment to prevent immediate transition
+      // Keep dragging state for a moment to allow smooth transition
       setTimeout(() => {
         setIsDragging(false)
-      }, 10)
+      }, 50)
     })
     // Resume auto-scroll after 5 seconds of no touch
     setTimeout(() => {
@@ -754,7 +754,7 @@ export default function HomePage() {
                             transform: screenWidth > 0 
                               ? `translateX(calc(-${currentSlide} * (${screenWidth * 0.8}px + 1rem) + ${isTouching ? (touchStartX - touchCurrentX) : 0}px))` 
                               : 'translateX(0)',
-                            transition: isDragging ? 'none' : 'transform 0.8s cubic-bezier(0.25, 0.1, 0.25, 1)',
+                            transition: isDragging ? 'none' : 'transform 1.2s cubic-bezier(0.4, 0, 0.2, 1)',
                             willChange: 'transform',
                             width: 'max-content',
                             paddingLeft: '1rem',
