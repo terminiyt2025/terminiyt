@@ -85,6 +85,10 @@ export default function HomePage() {
   // Handle touch events for mobile slider with swipe functionality
   const handleTouchStart = (e: React.TouchEvent<HTMLDivElement>) => {
     if (!sliderRef.current) return
+    const providers = showAllCards ? filteredProviders : filteredProviders.slice(0, 12)
+    // Don't allow swipe if there's only one card
+    if (providers.length <= 1) return
+    
     const touch = e.touches[0]
     setTouchStartX(touch.clientX)
     setTouchCurrentX(touch.clientX)
@@ -109,12 +113,21 @@ export default function HomePage() {
   const handleTouchEnd = () => {
     if (!sliderRef.current) return
     
-    const swipeDistance = touchStartX - touchCurrentX
-    const swipeThreshold = screenWidth > 0 ? screenWidth * 0.15 : 50 // 15% of screen width
     const providers = showAllCards ? filteredProviders : filteredProviders.slice(0, 12)
+    // Don't allow swipe if there's only one card
+    if (providers.length <= 1) {
+      setIsTouching(false)
+      setTouchStartX(0)
+      setTouchCurrentX(0)
+      setIsDragging(false)
+      return
+    }
+    
+    const swipeDistance = touchStartX - touchCurrentX
+    const swipeThreshold = screenWidth > 0 ? screenWidth * 0.1 : 30 // 10% of screen width - easier to trigger
     const maxSlide = providers.length - 1
 
-    // Only move one card at a time
+    // Only move one card at a time with smooth transition
     if (Math.abs(swipeDistance) > swipeThreshold) {
       if (swipeDistance > 0) {
         // Swiped left - go to next slide (only one)
@@ -148,6 +161,10 @@ export default function HomePage() {
   }
 
   const handleMouseDown = (e: React.MouseEvent<HTMLDivElement>) => {
+    const providers = showAllCards ? filteredProviders : filteredProviders.slice(0, 12)
+    // Don't allow swipe if there's only one card
+    if (providers.length <= 1) return
+    
     setTouchStartX(e.clientX)
     setTouchCurrentX(e.clientX)
     setIsTouching(true)
@@ -170,12 +187,21 @@ export default function HomePage() {
   const handleMouseUp = () => {
     if (!sliderRef.current) return
     
-    const swipeDistance = touchStartX - touchCurrentX
-    const swipeThreshold = screenWidth > 0 ? screenWidth * 0.15 : 50 // 15% of screen width
     const providers = showAllCards ? filteredProviders : filteredProviders.slice(0, 12)
+    // Don't allow swipe if there's only one card
+    if (providers.length <= 1) {
+      setIsTouching(false)
+      setTouchStartX(0)
+      setTouchCurrentX(0)
+      setIsDragging(false)
+      return
+    }
+    
+    const swipeDistance = touchStartX - touchCurrentX
+    const swipeThreshold = screenWidth > 0 ? screenWidth * 0.1 : 30 // 10% of screen width - easier to trigger
     const maxSlide = providers.length - 1
 
-    // Only move one card at a time
+    // Only move one card at a time with smooth transition
     if (Math.abs(swipeDistance) > swipeThreshold) {
       if (swipeDistance > 0) {
         // Swiped left - go to next slide (only one)
@@ -197,10 +223,10 @@ export default function HomePage() {
       setIsTouching(false)
       setTouchStartX(0)
       setTouchCurrentX(0)
-      // Keep dragging state for a moment to prevent immediate transition
+      // Keep dragging state for a moment to allow smooth transition
       setTimeout(() => {
         setIsDragging(false)
-      }, 10)
+      }, 50)
     })
     // Resume auto-scroll after 5 seconds
     setTimeout(() => {
@@ -728,7 +754,7 @@ export default function HomePage() {
                             transform: screenWidth > 0 
                               ? `translateX(calc(-${currentSlide} * (${screenWidth * 0.8}px + 1rem) + ${isTouching ? (touchStartX - touchCurrentX) : 0}px))` 
                               : 'translateX(0)',
-                            transition: isDragging ? 'none' : 'transform 0.4s cubic-bezier(0.25, 0.46, 0.45, 0.94)',
+                            transition: isDragging ? 'none' : 'transform 0.8s cubic-bezier(0.25, 0.1, 0.25, 1)',
                             willChange: 'transform',
                             width: 'max-content',
                             paddingLeft: '1rem',
