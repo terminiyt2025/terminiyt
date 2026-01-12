@@ -760,7 +760,7 @@ export default function HomePage() {
                             transform: screenWidth > 0 
                               ? `translateX(calc(-${currentSlide} * (${screenWidth * 0.8}px + 1rem) + ${isTouching && isDragging ? (touchStartX - touchCurrentX) : 0}px))` 
                               : 'translateX(0)',
-                            transition: isDragging && isTouching ? 'none' : 'transform 0.6s cubic-bezier(0.4, 0, 0.2, 1)',
+                            transition: isDragging && isTouching ? 'none' : 'transform 1.1s cubic-bezier(0.22, 1, 0.36, 1)',
                             willChange: 'transform',
                             width: 'max-content',
                             paddingLeft: '1rem',
