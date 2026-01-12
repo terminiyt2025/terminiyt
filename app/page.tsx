@@ -54,6 +54,7 @@ export default function HomePage() {
   const [isAutoScrolling, setIsAutoScrolling] = useState(true)
   const [isTouching, setIsTouching] = useState(false)
   const [isDragging, setIsDragging] = useState(false)
+  const [isTransitioning, setIsTransitioning] = useState(false)
   const [screenWidth, setScreenWidth] = useState(0)
   const [touchStartX, setTouchStartX] = useState(0)
   const [touchCurrentX, setTouchCurrentX] = useState(0)
@@ -84,7 +85,7 @@ export default function HomePage() {
 
   // Handle touch events for mobile slider with swipe functionality
   const handleTouchStart = (e: React.TouchEvent<HTMLDivElement>) => {
-    if (!sliderRef.current) return
+    if (!sliderRef.current || isTransitioning) return // Don't allow new drag during transition
     const providers = showAllCards ? filteredProviders : filteredProviders.slice(0, 12)
     // Don't allow swipe if there's only one card
     if (providers.length <= 1) return
@@ -146,6 +147,8 @@ export default function HomePage() {
       }
       
       if (shouldMove) {
+        // Set transitioning flag to prevent new drags
+        setIsTransitioning(true)
         // Stop dragging first to enable smooth transition
         setIsTouching(false)
         setTouchStartX(0)
@@ -158,6 +161,11 @@ export default function HomePage() {
         setTimeout(() => {
           setIsDragging(false)
         }, 20)
+        
+        // Allow new drags after transition completes (2.2s)
+        setTimeout(() => {
+          setIsTransitioning(false)
+        }, 2200)
       } else {
         // Can't move in this direction - stay in place (snap back smoothly)
         // Reset touch state immediately to prevent any movement
@@ -183,6 +191,7 @@ export default function HomePage() {
   }
 
   const handleMouseDown = (e: React.MouseEvent<HTMLDivElement>) => {
+    if (isTransitioning) return // Don't allow new drag during transition
     const providers = showAllCards ? filteredProviders : filteredProviders.slice(0, 12)
     // Don't allow swipe if there's only one card
     if (providers.length <= 1) return
@@ -198,8 +207,22 @@ export default function HomePage() {
   }
 
   const handleMouseMove = (e: React.MouseEvent<HTMLDivElement>) => {
-    if (!isTouching) return
+    if (!isTouching || isTransitioning) return
     e.preventDefault() // Prevent text selection
+    
+    // Check boundaries to prevent movement
+    const providers = showAllCards ? filteredProviders : filteredProviders.slice(0, 12)
+    const maxSlide = providers.length - 1
+    const isAtLastCard = currentSlide >= maxSlide
+    const isAtFirstCard = currentSlide <= 0
+    
+    const dragDistance = touchStartX - e.clientX
+    // If at first card and dragging left (positive dragDistance), don't allow movement
+    // If at last card and dragging right (negative dragDistance), don't allow movement
+    if ((isAtFirstCard && dragDistance > 0) || (isAtLastCard && dragDistance < 0)) {
+      return // Don't update touchCurrentX to prevent visual movement
+    }
+    
     setTouchCurrentX(e.clientX)
   }
 
@@ -242,6 +265,8 @@ export default function HomePage() {
       }
       
       if (shouldMove) {
+        // Set transitioning flag to prevent new drags
+        setIsTransitioning(true)
         // Stop dragging first to enable smooth transition
         setIsTouching(false)
         setTouchStartX(0)
@@ -254,6 +279,11 @@ export default function HomePage() {
         setTimeout(() => {
           setIsDragging(false)
         }, 20)
+        
+        // Allow new drags after transition completes (2.2s)
+        setTimeout(() => {
+          setIsTransitioning(false)
+        }, 2200)
       } else {
         // Can't move in this direction - stay in place (snap back smoothly)
         // Reset touch state immediately to prevent any movement
