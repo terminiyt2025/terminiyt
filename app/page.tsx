@@ -160,12 +160,12 @@ export default function HomePage() {
         }, 20)
       } else {
         // Can't move in this direction - stay in place (snap back smoothly)
+        // Reset touch state immediately to prevent any movement
         setIsTouching(false)
         setTouchStartX(0)
         setTouchCurrentX(0)
-        setTimeout(() => {
-          setIsDragging(false)
-        }, 20)
+        setIsDragging(false)
+        // Don't change currentSlide - keep it at the current position
       }
     } else {
       // If swipe wasn't enough, snap back smoothly
@@ -256,12 +256,12 @@ export default function HomePage() {
         }, 20)
       } else {
         // Can't move in this direction - stay in place (snap back smoothly)
+        // Reset touch state immediately to prevent any movement
         setIsTouching(false)
         setTouchStartX(0)
         setTouchCurrentX(0)
-        setTimeout(() => {
-          setIsDragging(false)
-        }, 20)
+        setIsDragging(false)
+        // Don't change currentSlide - keep it at the current position
       }
     } else {
       // If swipe wasn't enough, snap back smoothly
@@ -796,7 +796,7 @@ export default function HomePage() {
                           className="flex gap-4"
                           style={{
                             transform: screenWidth > 0 
-                              ? `translateX(calc(-${currentSlide} * (${screenWidth * 0.8}px + 1rem) + ${isTouching && isDragging ? (touchStartX - touchCurrentX) : 0}px))` 
+                              ? `translateX(calc(-${currentSlide} * (${screenWidth * 0.8}px + 1rem)${isTouching && isDragging && touchStartX !== 0 && touchCurrentX !== 0 ? ` + ${touchStartX - touchCurrentX}px` : ''}))` 
                               : 'translateX(0)',
                             transition: isDragging && isTouching ? 'none' : 'transform 2.2s cubic-bezier(0.22, 1, 0.36, 1)',
                             willChange: 'transform',
