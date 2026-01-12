@@ -127,36 +127,39 @@ export default function HomePage() {
     // Only move one card at a time with smooth transition
     if (Math.abs(swipeDistance) > swipeThreshold) {
       // Check if we can move in the requested direction
-      const canMoveLeft = currentSlide < maxSlide
-      const canMoveRight = currentSlide > 0
+      // swipeDistance > 0 means swiped left (go to next card, slide +1)
+      // swipeDistance < 0 means swiped right (go to previous card, slide -1)
+      const isAtLastCard = currentSlide >= maxSlide
+      const isAtFirstCard = currentSlide <= 0
       
-      if ((swipeDistance > 0 && canMoveLeft) || (swipeDistance < 0 && canMoveRight)) {
+      let shouldMove = false
+      let newSlide = currentSlide
+      
+      if (swipeDistance > 0 && !isAtLastCard) {
+        // Swiped left - go to next slide (only one)
+        newSlide = currentSlide + 1
+        shouldMove = true
+      } else if (swipeDistance < 0 && !isAtFirstCard) {
+        // Swiped right - go to previous slide (only one)
+        newSlide = currentSlide - 1
+        shouldMove = true
+      }
+      
+      if (shouldMove) {
         // Stop dragging first to enable smooth transition
         setIsTouching(false)
         setTouchStartX(0)
         setTouchCurrentX(0)
         
         // Update slide immediately - transition will handle the smooth movement (only one card)
-        if (swipeDistance > 0) {
-          // Swiped left - go to next slide (only one)
-          setCurrentSlide((prev) => {
-            const next = Math.min(prev + 1, maxSlide)
-            return next
-          })
-        } else {
-          // Swiped right - go to previous slide (only one)
-          setCurrentSlide((prev) => {
-            const prevSlide = Math.max(prev - 1, 0)
-            return prevSlide
-          })
-        }
+        setCurrentSlide(newSlide)
         
         // Disable dragging after a tiny delay to allow transition
         setTimeout(() => {
           setIsDragging(false)
         }, 20)
       } else {
-        // Can't move in this direction - snap back smoothly
+        // Can't move in this direction - stay in place (snap back smoothly)
         setIsTouching(false)
         setTouchStartX(0)
         setTouchCurrentX(0)
@@ -220,36 +223,39 @@ export default function HomePage() {
     // Only move one card at a time with smooth transition
     if (Math.abs(swipeDistance) > swipeThreshold) {
       // Check if we can move in the requested direction
-      const canMoveLeft = currentSlide < maxSlide
-      const canMoveRight = currentSlide > 0
+      // swipeDistance > 0 means swiped left (go to next card, slide +1)
+      // swipeDistance < 0 means swiped right (go to previous card, slide -1)
+      const isAtLastCard = currentSlide >= maxSlide
+      const isAtFirstCard = currentSlide <= 0
       
-      if ((swipeDistance > 0 && canMoveLeft) || (swipeDistance < 0 && canMoveRight)) {
+      let shouldMove = false
+      let newSlide = currentSlide
+      
+      if (swipeDistance > 0 && !isAtLastCard) {
+        // Swiped left - go to next slide (only one)
+        newSlide = currentSlide + 1
+        shouldMove = true
+      } else if (swipeDistance < 0 && !isAtFirstCard) {
+        // Swiped right - go to previous slide (only one)
+        newSlide = currentSlide - 1
+        shouldMove = true
+      }
+      
+      if (shouldMove) {
         // Stop dragging first to enable smooth transition
         setIsTouching(false)
         setTouchStartX(0)
         setTouchCurrentX(0)
         
         // Update slide immediately - transition will handle the smooth movement (only one card)
-        if (swipeDistance > 0) {
-          // Swiped left - go to next slide (only one)
-          setCurrentSlide((prev) => {
-            const next = Math.min(prev + 1, maxSlide)
-            return next
-          })
-        } else {
-          // Swiped right - go to previous slide (only one)
-          setCurrentSlide((prev) => {
-            const prevSlide = Math.max(prev - 1, 0)
-            return prevSlide
-          })
-        }
+        setCurrentSlide(newSlide)
         
         // Disable dragging after a tiny delay to allow transition
         setTimeout(() => {
           setIsDragging(false)
         }, 20)
       } else {
-        // Can't move in this direction - snap back smoothly
+        // Can't move in this direction - stay in place (snap back smoothly)
         setIsTouching(false)
         setTouchStartX(0)
         setTouchCurrentX(0)
