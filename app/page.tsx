@@ -126,30 +126,44 @@ export default function HomePage() {
 
     // Only move one card at a time with smooth transition
     if (Math.abs(swipeDistance) > swipeThreshold) {
-      // Stop dragging first to enable smooth transition
-      setIsTouching(false)
-      setTouchStartX(0)
-      setTouchCurrentX(0)
+      // Check if we can move in the requested direction
+      const canMoveLeft = currentSlide < maxSlide
+      const canMoveRight = currentSlide > 0
       
-      // Update slide immediately - transition will handle the smooth movement
-      if (swipeDistance > 0) {
-        // Swiped left - go to next slide (only one)
-        setCurrentSlide((prev) => {
-          const next = Math.min(prev + 1, maxSlide)
-          return next
-        })
+      if ((swipeDistance > 0 && canMoveLeft) || (swipeDistance < 0 && canMoveRight)) {
+        // Stop dragging first to enable smooth transition
+        setIsTouching(false)
+        setTouchStartX(0)
+        setTouchCurrentX(0)
+        
+        // Update slide immediately - transition will handle the smooth movement (only one card)
+        if (swipeDistance > 0) {
+          // Swiped left - go to next slide (only one)
+          setCurrentSlide((prev) => {
+            const next = Math.min(prev + 1, maxSlide)
+            return next
+          })
+        } else {
+          // Swiped right - go to previous slide (only one)
+          setCurrentSlide((prev) => {
+            const prevSlide = Math.max(prev - 1, 0)
+            return prevSlide
+          })
+        }
+        
+        // Disable dragging after a tiny delay to allow transition
+        setTimeout(() => {
+          setIsDragging(false)
+        }, 20)
       } else {
-        // Swiped right - go to previous slide (only one)
-        setCurrentSlide((prev) => {
-          const prevSlide = Math.max(prev - 1, 0)
-          return prevSlide
-        })
+        // Can't move in this direction - snap back smoothly
+        setIsTouching(false)
+        setTouchStartX(0)
+        setTouchCurrentX(0)
+        setTimeout(() => {
+          setIsDragging(false)
+        }, 20)
       }
-      
-      // Disable dragging after a tiny delay to allow transition
-      setTimeout(() => {
-        setIsDragging(false)
-      }, 20)
     } else {
       // If swipe wasn't enough, snap back smoothly
       setIsTouching(false)
@@ -205,14 +219,17 @@ export default function HomePage() {
 
     // Only move one card at a time with smooth transition
     if (Math.abs(swipeDistance) > swipeThreshold) {
-      // First, stop dragging to enable transition
-      setIsDragging(false)
-      setIsTouching(false)
-      setTouchStartX(0)
-      setTouchCurrentX(0)
+      // Check if we can move in the requested direction
+      const canMoveLeft = currentSlide < maxSlide
+      const canMoveRight = currentSlide > 0
       
-      // Then update slide after a tiny delay to ensure transition works
-      setTimeout(() => {
+      if ((swipeDistance > 0 && canMoveLeft) || (swipeDistance < 0 && canMoveRight)) {
+        // Stop dragging first to enable smooth transition
+        setIsTouching(false)
+        setTouchStartX(0)
+        setTouchCurrentX(0)
+        
+        // Update slide immediately - transition will handle the smooth movement (only one card)
         if (swipeDistance > 0) {
           // Swiped left - go to next slide (only one)
           setCurrentSlide((prev) => {
@@ -226,13 +243,28 @@ export default function HomePage() {
             return prevSlide
           })
         }
-      }, 10)
+        
+        // Disable dragging after a tiny delay to allow transition
+        setTimeout(() => {
+          setIsDragging(false)
+        }, 20)
+      } else {
+        // Can't move in this direction - snap back smoothly
+        setIsTouching(false)
+        setTouchStartX(0)
+        setTouchCurrentX(0)
+        setTimeout(() => {
+          setIsDragging(false)
+        }, 20)
+      }
     } else {
-      // If swipe wasn't enough, just reset
+      // If swipe wasn't enough, snap back smoothly
       setIsTouching(false)
       setTouchStartX(0)
       setTouchCurrentX(0)
-      setIsDragging(false)
+      setTimeout(() => {
+        setIsDragging(false)
+      }, 20)
     }
     // Resume auto-scroll after 5 seconds
     setTimeout(() => {
