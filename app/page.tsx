@@ -104,10 +104,7 @@ export default function HomePage() {
     if (!isTouching || !sliderRef.current) return
     e.preventDefault() // Prevent scrolling
     const touch = e.touches[0]
-    // Use requestAnimationFrame for smoother updates
-    requestAnimationFrame(() => {
-      setTouchCurrentX(touch.clientX)
-    })
+    setTouchCurrentX(touch.clientX)
   }
 
   const handleTouchEnd = () => {
@@ -129,34 +126,38 @@ export default function HomePage() {
 
     // Only move one card at a time with smooth transition
     if (Math.abs(swipeDistance) > swipeThreshold) {
-      // First, stop dragging to enable transition
-      setIsDragging(false)
+      // Stop dragging first to enable smooth transition
       setIsTouching(false)
       setTouchStartX(0)
       setTouchCurrentX(0)
       
-      // Then update slide after a tiny delay to ensure transition works
+      // Update slide immediately - transition will handle the smooth movement
+      if (swipeDistance > 0) {
+        // Swiped left - go to next slide (only one)
+        setCurrentSlide((prev) => {
+          const next = Math.min(prev + 1, maxSlide)
+          return next
+        })
+      } else {
+        // Swiped right - go to previous slide (only one)
+        setCurrentSlide((prev) => {
+          const prevSlide = Math.max(prev - 1, 0)
+          return prevSlide
+        })
+      }
+      
+      // Disable dragging after a tiny delay to allow transition
       setTimeout(() => {
-        if (swipeDistance > 0) {
-          // Swiped left - go to next slide (only one)
-          setCurrentSlide((prev) => {
-            const next = Math.min(prev + 1, maxSlide)
-            return next
-          })
-        } else {
-          // Swiped right - go to previous slide (only one)
-          setCurrentSlide((prev) => {
-            const prevSlide = Math.max(prev - 1, 0)
-            return prevSlide
-          })
-        }
-      }, 10)
+        setIsDragging(false)
+      }, 20)
     } else {
-      // If swipe wasn't enough, just reset
+      // If swipe wasn't enough, snap back smoothly
       setIsTouching(false)
       setTouchStartX(0)
       setTouchCurrentX(0)
-      setIsDragging(false)
+      setTimeout(() => {
+        setIsDragging(false)
+      }, 20)
     }
     // Resume auto-scroll after 5 seconds of no touch
     setTimeout(() => {
@@ -182,10 +183,7 @@ export default function HomePage() {
   const handleMouseMove = (e: React.MouseEvent<HTMLDivElement>) => {
     if (!isTouching) return
     e.preventDefault() // Prevent text selection
-    // Use requestAnimationFrame for smoother updates
-    requestAnimationFrame(() => {
-      setTouchCurrentX(e.clientX)
-    })
+    setTouchCurrentX(e.clientX)
   }
 
   const handleMouseUp = () => {
@@ -760,9 +758,9 @@ export default function HomePage() {
                           className="flex gap-4"
                           style={{
                             transform: screenWidth > 0 
-                              ? `translateX(calc(-${currentSlide} * (${screenWidth * 0.8}px + 1rem) + ${isTouching ? (touchStartX - touchCurrentX) : 0}px))` 
+                              ? `translateX(calc(-${currentSlide} * (${screenWidth * 0.8}px + 1rem) + ${isTouching && isDragging ? (touchStartX - touchCurrentX) : 0}px))` 
                               : 'translateX(0)',
-                            transition: isDragging ? 'none' : 'transform 2s cubic-bezier(0.25, 0.46, 0.45, 0.94)',
+                            transition: isDragging && isTouching ? 'none' : 'transform 0.6s cubic-bezier(0.4, 0, 0.2, 1)',
                             willChange: 'transform',
                             width: 'max-content',
                             paddingLeft: '1rem',
